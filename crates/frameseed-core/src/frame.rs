@@ -1,5 +1,5 @@
-use crate::color::{lerp_rgba, Rgba};
-use image::RgbaImage;
+use crate::color::{Rgba, lerp_rgba};
+use image::{RgbaImage};
 use std::path::Path;
 
 #[derive(Debug, Clone)]
@@ -44,9 +44,8 @@ impl Frame {
         for y in 0..self.height {
             for x in 0..self.width {
                 if let Some(color) = self.get_pixel(x, y) {
-                    image.put_pixel(x, y, image::Rgba([color.r, color.g, color.b, color.a]),
-                    );
-                } 
+                    image.put_pixel(x, y, image::Rgba([color.r, color.g, color.b, color.a]));
+                }
             }
         }
 
@@ -54,10 +53,45 @@ impl Frame {
         Ok(())
     }
 
+    pub fn fill_solid(&mut self, color: Rgba) {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                self.set_pixel(x, y, color);
+            }
+        }
+    }
+
+    pub fn fill_vertical_gradient(&mut self, start_color: Rgba, end_color: Rgba) {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let t = y as f32 / (self.height - 1) as f32;
+                self.set_pixel(x, y, lerp_rgba(start_color, end_color, t));
+            }
+        }
+    }
+
     pub fn fill_horizontal_gradient(&mut self, start_color: Rgba, end_color: Rgba) {
         for y in 0..self.height {
             for x in 0..self.width {
                 let t = x as f32 / (self.width - 1) as f32;
+                self.set_pixel(x, y, lerp_rgba(start_color, end_color, t));
+            }
+        }
+    }
+
+    pub fn fill_radial_gradient(&mut self, start_color: Rgba, end_color: Rgba) {
+        let center_x = (self.width - 1) as f32 / 2.0;
+        let center_y = (self.height - 1) as f32 / 2.0;
+        let max_distance = (center_x * center_x + center_y * center_y).sqrt();
+
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let dx = x as f32 - center_x;
+                let dy = y as f32 - center_y;
+
+                let distance = (dx * dx + dy * dy).sqrt();
+
+                let t = (distance / max_distance).min(1.0);
                 self.set_pixel(x, y, lerp_rgba(start_color, end_color, t));
             }
         }
@@ -105,5 +139,18 @@ mod tests {
         let frame = Frame::new(3, 2);
         assert_eq!(frame.get_pixel(4, 0), None);
         assert_eq!(frame.get_pixel(0, 3), None);
+    }
+
+    #[test]
+    fn vertical_top_differs_from_bottom() {
+        let mut frame = Frame::new(10, 10);
+        frame.fill_vertical_gradient(Rgba::black(), Rgba::white());
+        assert_ne!(frame.get_pixel(0, 0), frame.get_pixel(0, 9));
+    }
+    #[test]
+    fn radial_center_differs_from_corner() {
+        let mut frame = Frame::new(10, 10);
+        frame.fill_radial_gradient(Rgba::black(), Rgba::white());
+        assert_ne!(frame.get_pixel(5, 5), frame.get_pixel(0, 0));
     }
 }
