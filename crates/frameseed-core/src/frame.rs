@@ -1,5 +1,5 @@
 use crate::color::{Rgba, lerp_rgba};
-use image::{RgbaImage};
+use image::RgbaImage;
 use std::path::Path;
 
 #[derive(Debug, Clone)]
@@ -74,6 +74,20 @@ impl Frame {
         for y in 0..self.height {
             for x in 0..self.width {
                 let t = x as f32 / (self.width - 1) as f32;
+                self.set_pixel(x, y, lerp_rgba(start_color, end_color, t));
+            }
+        }
+    }
+
+    pub fn fill_sliding_horizontal_gradient(
+        &mut self,
+        start_color: Rgba,
+        end_color: Rgba,
+        offset: f32,
+    ) {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let t = (x as f32 / (self.width - 1) as f32 + offset).fract();
                 self.set_pixel(x, y, lerp_rgba(start_color, end_color, t));
             }
         }
