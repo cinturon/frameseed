@@ -1,5 +1,5 @@
 mod color;
-pub use color::Rgba;
+pub use color::{lerp_rgba, Rgba};
 
 mod frame;
 pub use frame::Frame;

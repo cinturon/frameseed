@@ -1,4 +1,4 @@
-use crate::color::Rgba;
+use crate::color::{lerp_rgba, Rgba};
 use image::RgbaImage;
 use std::path::Path;
 
@@ -52,6 +52,15 @@ impl Frame {
 
         image.save(path)?;
         Ok(())
+    }
+
+    pub fn fill_horizontal_gradient(&mut self, start_color: Rgba, end_color: Rgba) {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let t = x as f32 / (self.width - 1) as f32;
+                self.set_pixel(x, y, lerp_rgba(start_color, end_color, t));
+            }
+        }
     }
 }
 

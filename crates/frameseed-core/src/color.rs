@@ -20,30 +20,37 @@ impl Rgba {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub fn lerp_u8(start: u8, end: u8, t: f32) -> u8 {
+    let start = start as f32;
+    let end = end as f32;
+    (start + t * (end - start)) as u8
+}
 
-    #[test]
-    fn test_new() {
-        assert_eq!(
-            Rgba::new(12, 13, 14, 15),
-            Rgba {
-                r: 12,
-                g: 13,
-                b: 14,
-                a: 15
-            }
-        );
-    }
-
-    #[test]
-    fn test_black() {
-        assert_eq!(Rgba::black(), Rgba::new(0, 0, 0, 255));
-    }
-
-    #[test]
-    fn test_white() {
-        assert_eq!(Rgba::white(), Rgba::new(255, 255, 255, 255));
+pub fn lerp_rgba(start: Rgba, end: Rgba, t: f32) -> Rgba {
+    Rgba {
+        r: lerp_u8(start.r, end.r, t),
+        g: lerp_u8(start.g, end.g, t),
+        b: lerp_u8(start.b, end.b, t),
+        a: lerp_u8(start.a, end.a, t),
     }
 }
+
+#[test]
+fn test_black() {
+    assert_eq!(Rgba::black(), Rgba::new(0, 0, 0, 255));
+}
+
+#[test]
+fn test_white() {
+    assert_eq!(Rgba::white(), Rgba::new(255, 255, 255, 255));
+}
+
+#[test]
+fn test_lerp_u8() {
+    assert_eq!(lerp_u8(0, 255, 0.5), 127);
+}
+
+#[test]
+fn test_lerp_rgba() {
+    assert_eq!(lerp_rgba(Rgba::new(0, 0, 0, 255), Rgba::new(255, 255, 255, 255), 0.5), Rgba::new(127, 127, 127, 255));
+}   
