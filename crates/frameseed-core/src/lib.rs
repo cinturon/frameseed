@@ -1,8 +1,11 @@
 mod color;
 pub use color::Rgba;
 
+mod frame;
+pub use frame::Frame;
+
 pub fn welcome_message() -> &'static str {
-    "Welcome to the frameseed-core crate."
+    "Welcome to Frameseed."
 }
 
 #[cfg(test)]
@@ -11,6 +14,6 @@ mod tests {
 
     #[test]
     fn test_welcome_message() {
-        assert_eq!(welcome_message(), "Welcome to the frameseed-core crate.");
+        assert_eq!(welcome_message(), "Welcome to Frameseed.");
     }
 }
