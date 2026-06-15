@@ -13,13 +13,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 
     let deadbeef = Rgba::new(222, 173, 191, 255);
-    let bada55 = Rgba::new(186, 218, 85, 255);
 
     for i in 0..total_frames {
         let ctx = RenderContext::new(i, total_frames, fps, seed);
         let mut frame = Frame::new(256, 64);
         
-        frame.fill_sliding_horizontal_gradient(deadbeef, bada55, ctx.normalized_time);
+        frame.fill_sine_wave(deadbeef, ctx.normalized_time, 10.0);
         
 
         let file_path = frame_path(Path::new("output/sequence"), i + 1);

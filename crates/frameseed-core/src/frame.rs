@@ -110,6 +110,20 @@ impl Frame {
             }
         }
     }
+
+    pub fn fill_sine_wave(&mut self, color: Rgba, time: f32, frequency: f32) {
+        use std::f32::consts::TAU;
+        let phase = TAU * time;
+        
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let nx = x as f32 / (self.width - 1) as f32;
+                let wave = (nx * frequency + phase).sin();
+                let t = (wave + 1.0) / 2.0;
+                self.set_pixel(x, y, lerp_rgba(color, Rgba::black(), t));
+            }
+        }
+    }
 }
 
 #[cfg(test)]
