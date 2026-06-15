@@ -1,5 +1,6 @@
 use frameseed_core::{RenderContext, welcome_message, Frame, Rgba, frame_path};
 use std::{error::Error, path::Path};
+use frameseed_encoder::encode_png_sequence;
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("{}", welcome_message());
@@ -26,6 +27,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     println!("Done. Rendered {} frames to output/sequence", total_frames);
+
+    let sequence_dir = Path::new("output/sequence");
+    let input_pattern = sequence_dir.join("frame_%06d.png");
+    let output_path = Path::new("output/video.mp4");
+
+    encode_png_sequence(&input_pattern, output_path, fps, 1, total_frames)?;
+
+    println!("Done. Encoded {} frames to output/video.mp4", total_frames);
 
     Ok(())
 }

@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 frameseed-core = { path = "../frameseed-core" }
+frameseed-encoder = { path = "../frameseed-encoder" }

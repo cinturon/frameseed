@@ -299,6 +299,7 @@ name = "frameseed-cli"
 version = "0.1.0"
 dependencies = [
  "frameseed-core",
+ "frameseed-encoder",
 ]
 
 [[package]]
@@ -307,6 +308,10 @@ version = "0.1.0"
 dependencies = [
  "image",
 ]
+
+[[package]]
+name = "frameseed-encoder"
+version = "0.1.0"
 
 [[package]]
 name = "getrandom"
