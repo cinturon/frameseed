@@ -1,3 +1,6 @@
+mod color;
+pub use color::Rgba;
+
 pub fn welcome_message() -> &'static str {
     "Welcome to the frameseed-core crate."
 }
