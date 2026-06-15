@@ -1,10 +1,12 @@
 use crate::color::Rgba;
+use image::RgbaImage;
+use std::path::Path;
 
 #[derive(Debug, Clone)]
 pub struct Frame {
-    width: u32,
-    height: u32,
-    pixels: Vec<Rgba>,
+    pub width: u32,
+    pub height: u32,
+    pub pixels: Vec<Rgba>,
 }
 
 impl Frame {
@@ -34,6 +36,22 @@ impl Frame {
         }
         let index = (y * self.width + x) as usize;
         self.pixels.get(index).copied()
+    }
+
+    pub fn save_png(&self, path: &Path) -> Result<(), image::ImageError> {
+        let mut image = RgbaImage::new(self.width, self.height);
+
+        for y in 0..self.height {
+            for x in 0..self.width {
+                if let Some(color) = self.get_pixel(x, y) {
+                    image.put_pixel(x, y, image::Rgba([color.r, color.g, color.b, color.a]),
+                    );
+                } 
+            }
+        }
+
+        image.save(path)?;
+        Ok(())
     }
 }
 
