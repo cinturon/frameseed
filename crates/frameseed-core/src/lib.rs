@@ -4,6 +4,9 @@ pub use color::{lerp_rgba, Rgba};
 mod frame;
 pub use frame::Frame;
 
+mod context;
+pub use context::RenderContext;
+
 pub fn welcome_message() -> &'static str {
     "Welcome to Frameseed."
 }
