@@ -1,0 +1,8 @@
+[workspace]
+members = [
+    "crates/frameseed-core",
+    "crates/frameseed-cli",
+]
+resolver = "2"
+
+
