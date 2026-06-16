@@ -1,3 +1,6 @@
+use rand_chacha::ChaCha8Rng;
+
+use crate::seeded_rng;
 
 pub struct RenderContext {
     pub frame_index: u32,
@@ -25,10 +28,16 @@ impl RenderContext {
             seed,
         }
     }
+
+    pub fn rng(&self) -> ChaCha8Rng {
+        seeded_rng(self.seed)
+    }
 }
 
 #[cfg(test)]
 mod tests{
+    use rand::Rng;
+
     use super::*;
 
     #[test]
@@ -60,4 +69,15 @@ mod tests{
         assert!((ctx.normalized_time - 0.504).abs() < 0.01);
         assert!((ctx.time_seconds - 2.5).abs() < f32::EPSILON);
     }
+
+    #[test]
+    fn consecutive_draws_from_one_seedproduces_different_output() {
+        let ctx = RenderContext::new(0, 120, 24.0, 42);
+        let mut rng = ctx.rng();
+        let first = rng.random::<f32>();
+        let second = rng.random::<f32>();
+        assert_ne!(first, second);
+    }
+
+    
 }

@@ -7,6 +7,9 @@ pub use frame::Frame;
 mod context;
 pub use context::RenderContext;
 
+mod rng;
+pub use rng::seeded_rng;
+
 use std::path::Path;
 
 pub fn welcome_message() -> &'static str {
