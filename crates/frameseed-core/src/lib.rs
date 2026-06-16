@@ -10,6 +10,9 @@ pub use context::RenderContext;
 mod rng;
 pub use rng::seeded_rng;
 
+mod config;
+pub use config::RenderConfig;
+
 use std::path::Path;
 
 pub fn welcome_message() -> &'static str {
