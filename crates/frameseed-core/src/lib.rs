@@ -14,8 +14,7 @@ mod config;
 pub use config::{RenderConfig, load_from_path};
 
 mod scenes;
-pub use scenes::GradientScene;
-
+pub use scenes::{scene_from_name, GradientScene};
 use std::path::Path;
 
 pub trait Scene {
