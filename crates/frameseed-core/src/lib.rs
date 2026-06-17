@@ -13,6 +13,9 @@ pub use rng::seeded_rng;
 mod config;
 pub use config::{RenderConfig, load_from_path};
 
+mod scenes;
+pub use scenes::GradientScene;
+
 use std::path::Path;
 
 pub trait Scene {
