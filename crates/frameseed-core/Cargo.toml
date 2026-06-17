@@ -7,3 +7,5 @@ edition = "2024"
 image = "0.25.5"
 rand = "0.9"
 rand_chacha = "0.9"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"

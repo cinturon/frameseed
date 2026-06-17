@@ -11,7 +11,7 @@ mod rng;
 pub use rng::seeded_rng;
 
 mod config;
-pub use config::RenderConfig;
+pub use config::{RenderConfig, load_from_path};
 
 use std::path::Path;
 
