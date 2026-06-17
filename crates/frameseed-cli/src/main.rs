@@ -3,10 +3,8 @@ use clap::Parser;
 use commands::Cli;
 use commands::Commands;
 use frameseed_core::Frame;
-use frameseed_core::GradientScene;
+use frameseed_core::scene_from_name;
 use frameseed_core::RenderContext;
-use frameseed_core::Rgba;
-use frameseed_core::Scene;
 use frameseed_core::frame_path;
 use frameseed_core::load_from_path;
 use std::error::Error;
@@ -29,8 +27,7 @@ fn render(config: &Path) -> Result<(), Box<dyn Error>> {
 
     std::fs::create_dir_all("output/sequence")?;
 
-    let bada55 = Rgba::new(189, 165, 85, 255);
-    let scene = GradientScene::new(Rgba::black(), bada55);
+    let scene = scene_from_name(&config.scene)?;
 
     for i in 0..config.total_frames() {
         let ctx = RenderContext::new(i, config.total_frames(), config.fps, config.seed);
