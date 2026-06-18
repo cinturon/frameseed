@@ -4,6 +4,7 @@ use crate::{GradientScene, Scene};
 use crate::scenes::NoiseCloudsScene;
 use crate::scenes::ConwayScene;
 use crate::scenes::ParticlesScene;
+use crate::scenes::FlowFieldScene;
 
 pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigError> {
     match scene.name.as_str() {
@@ -19,6 +20,9 @@ pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigEr
         },
         "particles" => {
             Ok(Box::new(ParticlesScene::new(scene.particles.count, scene.particles.speed, scene.particles.kind.clone(), scene.particles.fps)))
+        },
+        "flow_field" => {
+            Ok(Box::new(FlowFieldScene::new(scene.flow_field.count, scene.flow_field.speed, scene.flow_field.scale, scene.flow_field.fps)))
         },
         _ => Err(ConfigError::Invalid(format!("Unknown scene: {}", scene.name))),
     }
