@@ -13,11 +13,13 @@ pub use rng::seeded_rng;
 mod noise;
 pub use noise::value_noise_2d;
 
+mod scenes;
+pub use scenes::{scene_from_config, GradientParams, GradientScene, palette_from_name};
+
 mod config;
 pub use config::{RenderConfig, load_from_path};
 
-mod scenes;
-pub use scenes::{scene_from_config, GradientScene};
+
 use std::path::Path;
 
 pub trait Scene {
