@@ -1,6 +1,6 @@
+use crate::scenes::GradientParams;
 use serde::Deserialize;
 use std::{error::Error, fmt::Display, path::Path};
-
 
 #[derive(Debug)]
 pub enum ConfigError {
@@ -29,7 +29,6 @@ impl Error for ConfigError {
     }
 }
 
-
 impl From<std::io::Error> for ConfigError {
     fn from(e: std::io::Error) -> Self {
         ConfigError::Io(e)
@@ -54,9 +53,8 @@ pub struct RenderConfig {
     pub fps: f32,
     pub duration: f32,
     pub seed: u64,
-    pub scene: String,
+    pub scene: SceneConfig,
 }
-
 
 impl RenderConfig {
     pub fn new(
@@ -65,7 +63,7 @@ impl RenderConfig {
         fps: f32,
         duration: f32,
         seed: u64,
-        scene: impl Into<String>,
+        scene: SceneConfig,
     ) -> Self {
         Self {
             width,
@@ -73,7 +71,7 @@ impl RenderConfig {
             fps,
             duration,
             seed,
-            scene: scene.into(),
+            scene,
         }
     }
 
@@ -92,16 +90,25 @@ impl RenderConfig {
             return Err(ConfigError::Invalid("FPS must be greater than 0".into()));
         }
         if self.duration <= 0.0 {
-            return Err(ConfigError::Invalid("Duration must be greater than 0".into()));
+            return Err(ConfigError::Invalid(
+                "Duration must be greater than 0".into(),
+            ));
         }
         if self.seed == 0 {
             return Err(ConfigError::Invalid("Seed must be greater than 0".into()));
         }
-        if self.scene.is_empty() {
+        if self.scene.name.is_empty() {
             return Err(ConfigError::Invalid("Scene must be provided".into()));
         }
         Ok(())
     }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct SceneConfig {
+    pub name: String,
+    #[serde(default)]
+    pub gradient: GradientParams,
 }
 
 pub fn load_from_path(path: &Path) -> Result<RenderConfig, ConfigError> {
@@ -118,18 +125,38 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let config = RenderConfig::new(1920, 1080, 24.0, 5.0, 42, "gradient");
+        let config = RenderConfig::new(
+            1920,
+            1080,
+            24.0,
+            5.0,
+            42,
+            SceneConfig {
+                name: "gradient".to_string(),
+                gradient: GradientParams::default(),
+            },
+        );
         assert_eq!(config.width, 1920);
         assert_eq!(config.height, 1080);
         assert_eq!(config.fps, 24.0);
         assert_eq!(config.duration, 5.0);
         assert_eq!(config.seed, 42);
-        assert_eq!(config.scene, "gradient");
+        assert_eq!(config.scene.name, "gradient");
     }
 
     #[test]
     fn test_total_frames() {
-        let config = RenderConfig::new(1920, 1080, 24.0, 5.0, 42, "gradient");
+        let config = RenderConfig::new(
+            1920,
+            1080,
+            24.0,
+            5.0,
+            42,
+            SceneConfig {
+                name: "gradient".to_string(),
+                gradient: GradientParams::default(),
+            },
+        );
         assert_eq!(config.total_frames(), 120);
     }
 
@@ -141,7 +168,13 @@ mod tests {
         fps = 24.0
         duration = 5.0
         seed = 42
-        scene = "sine_wave"
+        
+        [scene]
+        name = "gradient"
+
+        [scene.gradient]
+        speed = 1.0
+        palette = "sunset"
         "#;
         let config: RenderConfig = toml::from_str(toml_content).unwrap();
         config.validate().unwrap();
@@ -150,7 +183,7 @@ mod tests {
         assert_eq!(config.fps, 24.0);
         assert_eq!(config.duration, 5.0);
         assert_eq!(config.seed, 42);
-        assert_eq!(config.scene, "sine_wave");
+        assert_eq!(config.scene.name, "gradient");
     }
 
     #[test]
@@ -161,11 +194,17 @@ mod tests {
         fps = 24.0
         duration = 5.0
         seed = 42
-        scene = "sine_wave"
+        
+        [scene]
+        name = "gradient"
+
+        [scene.gradient]
+        speed = 1.0
+        palette = "sunset"
         "#;
         let config: RenderConfig = toml::from_str(toml_content).unwrap();
         assert!(config.validate().is_err());
-   }
+    }
 
     #[test]
     fn invalid_zero_height_returns_error() {
@@ -175,7 +214,13 @@ mod tests {
         fps = 24.0
         duration = 5.0
         seed = 42
-        scene = "sine_wave"
+        
+        [scene]
+        name = "gradient"
+
+        [scene.gradient]
+        speed = 1.0
+        palette = "sunset"
         "#;
         let config: RenderConfig = toml::from_str(toml_content).unwrap();
         assert!(config.validate().is_err());
@@ -189,7 +234,13 @@ mod tests {
         fps = 0.0
         duration = 5.0
         seed = 42
-        scene = "sine_wave"
+        
+        [scene]
+        name = "gradient"
+
+        [scene.gradient]
+        speed = 1.0
+        palette = "sunset"
         "#;
         let config: RenderConfig = toml::from_str(toml_content).unwrap();
         assert!(config.validate().is_err());
@@ -203,7 +254,13 @@ mod tests {
         fps = 24.0
         duration = 0.0
         seed = 42
-        scene = "sine_wave"
+        
+        [scene]
+        name = "gradient"
+
+        [scene.gradient]
+        speed = 1.0
+        palette = "sunset"
         "#;
         let config: RenderConfig = toml::from_str(toml_content).unwrap();
         assert!(config.validate().is_err());
@@ -217,7 +274,13 @@ mod tests {
         fps = 24.0
         duration = 5.0
         seed = 0
-        scene = "sine_wave"
+        
+        [scene]
+        name = "gradient"
+
+        [scene.gradient]
+        speed = 1.0
+        palette = "sunset"
         "#;
         let config: RenderConfig = toml::from_str(toml_content).unwrap();
         assert!(config.validate().is_err());
@@ -231,7 +294,13 @@ mod tests {
         fps = 24.0
         duration = 5.0
         seed = 42
-        scene = ""
+
+        [scene]
+        name = ""
+
+        [scene.gradient]
+        speed = 1.0
+        palette = "sunset"
         "#;
         let config: RenderConfig = toml::from_str(toml_content).unwrap();
         assert!(config.validate().is_err());
