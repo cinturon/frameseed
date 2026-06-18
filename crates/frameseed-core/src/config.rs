@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use crate::scenes::{GradientParams, NoiseCloudsParams};
+use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams};
 use std::{error::Error, fmt::Display, path::Path};
 
 #[derive(Debug)]
@@ -111,6 +111,8 @@ pub struct SceneConfig {
     pub gradient: GradientParams,
     #[serde(default)]
     pub noise_clouds: NoiseCloudsParams,
+    #[serde(default)]
+    pub conway: ConwayParams,
 }
 
 pub fn load_from_path(path: &Path) -> Result<RenderConfig, ConfigError> {
@@ -137,7 +139,7 @@ mod tests {
                 name: "gradient".to_string(),
                 gradient: GradientParams::default(),
                 noise_clouds: NoiseCloudsParams::default(),
-
+                conway: ConwayParams::default(),
             },
         );
         assert_eq!(config.width, 1920);
@@ -160,6 +162,7 @@ mod tests {
                 name: "gradient".to_string(),
                 gradient: GradientParams::default(),
                 noise_clouds: NoiseCloudsParams::default(),
+                conway: ConwayParams::default(),
             },
         );
         assert_eq!(config.total_frames(), 120);
