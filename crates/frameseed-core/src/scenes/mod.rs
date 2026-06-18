@@ -10,5 +10,8 @@ pub use conway::{ConwayScene, ConwayParams};
 mod particles;
 pub use particles::{ParticlesScene, ParticleParams};
 
+mod flow_field;
+pub use flow_field::{FlowFieldScene, FlowFieldParams};
+
 mod registry;
 pub use registry::scene_from_config;
