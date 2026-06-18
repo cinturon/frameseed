@@ -10,6 +10,9 @@ pub use context::RenderContext;
 mod rng;
 pub use rng::seeded_rng;
 
+mod noise;
+pub use noise::value_noise_2d;
+
 mod config;
 pub use config::{RenderConfig, load_from_path};
 
