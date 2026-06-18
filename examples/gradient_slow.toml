@@ -8,5 +8,5 @@ seed = 42
 name = "gradient"
 
 [scene.gradient]
-speed = 1.0
+speed = 0.5
 palette = "sunset"

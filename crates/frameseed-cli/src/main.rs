@@ -3,7 +3,7 @@ use clap::Parser;
 use commands::Cli;
 use commands::Commands;
 use frameseed_core::Frame;
-use frameseed_core::scene_from_name;
+use frameseed_core::scene_from_config;
 use frameseed_core::RenderContext;
 use frameseed_core::frame_path;
 use frameseed_core::load_from_path;
@@ -27,7 +27,7 @@ fn render(config: &Path) -> Result<(), Box<dyn Error>> {
 
     std::fs::create_dir_all("output/sequence")?;
 
-    let scene = scene_from_name(&config.scene)?;
+    let scene = scene_from_config(&config.scene)?;
 
     for i in 0..config.total_frames() {
         let ctx = RenderContext::new(i, config.total_frames(), config.fps, config.seed);
