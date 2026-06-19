@@ -15,7 +15,7 @@ impl Effect for InvertEffect {
         "invert"
     }
 
-    fn apply(&self, frame: &mut Frame, _context: &RenderContext) {
+    fn apply(&mut self, frame: &mut Frame, _context: &RenderContext) {
         for x in 0..frame.width {
             for y in 0..frame.height {
                 if let Some(pixel) = frame.get_pixel(x, y) {

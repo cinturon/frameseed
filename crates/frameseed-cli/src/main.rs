@@ -29,14 +29,14 @@ fn render(config: &Path) -> Result<(), Box<dyn Error>> {
     std::fs::create_dir_all("output/sequence")?;
 
     let scene = scene_from_config(&config.scene)?;
-    let effects = effects_from_config(&config.effects);
+    let mut effects = effects_from_config(&config.effects);
 
     for i in 0..config.total_frames() {
         let ctx = RenderContext::new(i, config.total_frames(), config.fps, config.seed);
         let mut frame = Frame::new(config.width, config.height);
         scene.render(&mut frame, &ctx);
         
-        for effect in &effects {
+        for effect in &mut effects {
             effect.apply(&mut frame, &ctx);
         }
 

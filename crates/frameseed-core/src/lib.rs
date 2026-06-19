@@ -32,7 +32,7 @@ pub trait Scene {
 
 pub trait Effect {
     fn name(&self) -> &str;
-    fn apply(&self, frame: &mut Frame, context: &RenderContext);
+    fn apply(&mut self, frame: &mut Frame, context: &RenderContext);
 }
 
 pub fn welcome_message() -> &'static str {

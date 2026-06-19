@@ -17,7 +17,7 @@ impl Effect for PixelationEffect {
         "pixelation"
     }
 
-    fn apply(&self, frame: &mut Frame, _context: &RenderContext) {
+    fn apply(&mut self, frame: &mut Frame, _context: &RenderContext) {
         let block = self.block_size.max(1);
 
         // Create a new frame with the same dimensions as the input frame

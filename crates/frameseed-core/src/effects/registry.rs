@@ -1,21 +1,31 @@
+use crate::Effect;
 use crate::config::EffectsConfig;
 use crate::effects::InvertEffect;
-use crate::{Effect};
-use crate::effects::{PixelationEffect, PaletteQuantizationEffect, OrderedDitherEffect};
+use crate::effects::{
+    MotionBlurEffect, OrderedDitherEffect, PaletteQuantizationEffect, PixelationEffect,
+};
 
 pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
     let mut pipeline: Vec<Box<dyn Effect>> = Vec::new();
+
+    if let Some(motion_blur) = &effects.motion_blur {
+        pipeline.push(Box::new(MotionBlurEffect::new(motion_blur.strength)));
+    }
     if effects.invert {
         pipeline.push(Box::new(InvertEffect));
     }
-    if let Some(pixelation) = &effects.pixelation && pixelation.block_size > 1 {
+    if let Some(pixelation) = &effects.pixelation
+        && pixelation.block_size > 1
+    {
         pipeline.push(Box::new(PixelationEffect::new(pixelation.block_size)));
     }
     if let Some(dither) = &effects.dither {
         pipeline.push(Box::new(OrderedDitherEffect::new(dither.spread)));
     }
     if let Some(palette) = &effects.palette {
-        pipeline.push(Box::new(PaletteQuantizationEffect::from_name(&palette.name)));
+        pipeline.push(Box::new(PaletteQuantizationEffect::from_name(
+            &palette.name,
+        )));
     }
     pipeline
 }
@@ -23,9 +33,10 @@ pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::effects::PixelationParams;
-    use crate::effects::PaletteQuantizationParams;
     use crate::effects::DitherParams;
+    use crate::effects::PaletteQuantizationParams;
+    use crate::effects::PixelationParams;
+    use crate::effects::MotionBlurParams;
 
     #[test]
     fn test_effects_from_config() {
@@ -36,7 +47,13 @@ mod tests {
 
     #[test]
     fn test_effects_from_config_with_invert() {
-        let effects = EffectsConfig { invert: true, pixelation: None, palette: None, dither: None };
+        let effects = EffectsConfig {
+            invert: true,
+            pixelation: None,
+            palette: None,
+            dither: None,
+            motion_blur: None,
+        };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
         assert_eq!(effects[0].name(), "invert");
@@ -44,7 +61,13 @@ mod tests {
 
     #[test]
     fn test_effects_from_config_with_pixelation() {
-        let effects = EffectsConfig { invert: false, pixelation: Some(PixelationParams { block_size: 8 }), palette: None, dither: None };
+        let effects = EffectsConfig {
+            invert: false,
+            pixelation: Some(PixelationParams { block_size: 8 }),
+            palette: None,
+            dither: None,
+            motion_blur: None,
+        };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
         assert_eq!(effects[0].name(), "pixelation");
@@ -52,7 +75,15 @@ mod tests {
 
     #[test]
     fn test_effects_from_config_with_palette() {
-        let effects = EffectsConfig { invert: false, pixelation: None, palette: Some(PaletteQuantizationParams { name: "cga16".to_string() }), dither: None };
+        let effects = EffectsConfig {
+            invert: false,
+            pixelation: None,
+            palette: Some(PaletteQuantizationParams {
+                name: "cga16".to_string(),
+            }),
+            dither: None,
+            motion_blur: None,
+        };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
         assert_eq!(effects[0].name(), "palette");
@@ -60,9 +91,29 @@ mod tests {
 
     #[test]
     fn test_effects_from_config_with_dither() {
-        let effects = EffectsConfig { invert: false, pixelation: None, palette: None, dither: Some(DitherParams { spread: 48.0 }) };
+        let effects = EffectsConfig {
+            invert: false,
+            pixelation: None,
+            palette: None,
+            dither: Some(DitherParams { spread: 48.0 }),
+            motion_blur: None,
+        };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
         assert_eq!(effects[0].name(), "dither");
+    }
+
+    #[test]
+    fn test_effects_from_config_with_motion_blur() {
+        let effects = EffectsConfig {
+            invert: false,
+            pixelation: None,
+            palette: None,
+            dither: None,
+            motion_blur: Some(MotionBlurParams { strength: 0.5 }),
+        };
+        let effects = effects_from_config(&effects);
+        assert_eq!(effects.len(), 1);
+        assert_eq!(effects[0].name(), "motion_blur");
     }
 }
