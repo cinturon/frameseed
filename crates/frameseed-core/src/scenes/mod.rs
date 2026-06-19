@@ -19,5 +19,8 @@ pub use sdf_shapes::{SdfShapeScene, SdfShapeParams};
 mod mandelbrot;
 pub use mandelbrot::{MandelbrotScene, MandelbrotParams};
 
+mod voronoi;
+pub use voronoi::{VoronoiScene, VoronoiParams};
+
 mod registry;
 pub use registry::scene_from_config;

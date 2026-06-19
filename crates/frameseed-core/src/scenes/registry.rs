@@ -7,6 +7,7 @@ use crate::scenes::ParticlesScene;
 use crate::scenes::FlowFieldScene;
 use crate::scenes::SdfShapeScene;
 use crate::scenes::MandelbrotScene;
+use crate::scenes::VoronoiScene;
 
 pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigError> {
     match scene.name.as_str() {
@@ -31,6 +32,9 @@ pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigEr
         },
         "mandelbrot" => {
             Ok(Box::new(MandelbrotScene::new(scene.mandelbrot.max_iter, scene.mandelbrot.center_re, scene.mandelbrot.center_im, scene.mandelbrot.initial_view_width, scene.mandelbrot.zoom_speed)))
+        },
+        "voronoi" => {
+            Ok(Box::new(VoronoiScene::new(scene.voronoi.seed_count, scene.voronoi.speed, scene.voronoi.edge_width)))
         },
         _ => Err(ConfigError::Invalid(format!("Unknown scene: {}", scene.name))),
     }
