@@ -31,7 +31,11 @@ fn render(config: &Path) -> Result<(), Box<dyn Error>> {
     let scene = scene_from_config(&config.scene)?;
     let mut effects = effects_from_config(&config.effects);
 
-    for i in 0..config.total_frames() {
+    let total_start = std::time::Instant::now();
+    let total_frame_count = config.total_frames();
+    for i in 0..total_frame_count {
+        let frame_start = std::time::Instant::now();
+    
         let ctx = RenderContext::new(i, config.total_frames(), config.fps, config.seed);
         let mut frame = Frame::new(config.width, config.height);
         scene.render(&mut frame, &ctx);
@@ -41,7 +45,16 @@ fn render(config: &Path) -> Result<(), Box<dyn Error>> {
         }
 
         frame.save_png(&frame_path(Path::new("output/sequence"), i + 1))?;
+        let frame_duration = frame_start.elapsed().as_secs_f64() * 1000.0;
+        eprintln!("Frame {}/{}: {:.2} ms", i + 1, total_frame_count, frame_duration);
     }
-
+    let total_duration = total_start.elapsed().as_secs_f64();
+    let avg_frame_duration = total_duration * 1000.0 / total_frame_count as f64;
+    eprintln!("------------------------------------------");
+    eprintln!("Scene: {}", config.scene.name);
+    eprintln!("Total frames: {}", total_frame_count);
+    eprintln!("Total time: {:.2} seconds", total_duration); 
+    eprintln!("Average: {:.1} ms/frame ({:.1} fps)", avg_frame_duration, total_frame_count as f64 / total_duration);
+    eprintln!("------------------------------------------");
     Ok(())
 }
