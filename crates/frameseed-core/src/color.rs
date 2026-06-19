@@ -18,6 +18,10 @@ impl Rgba {
     pub fn white() -> Self {
         Self::new(255, 255, 255, 255)
     }
+
+    pub fn invert(self) -> Self {
+        Self::new(255 - self.r, 255 - self.g, 255 - self.b, self.a)
+    }
 }
 
 pub fn lerp_u8(start: u8, end: u8, t: f32) -> u8 {
