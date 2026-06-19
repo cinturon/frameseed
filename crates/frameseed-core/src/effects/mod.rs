@@ -13,5 +13,8 @@ pub use dither::{OrderedDitherEffect, DitherParams};
 mod motion_blur;
 pub use motion_blur::{MotionBlurEffect, MotionBlurParams};
 
+mod vhs_crt;
+pub use vhs_crt::{VhsCrtEffect, VhsCrtParams};
+
 mod registry;
 pub use registry::effects_from_config;
