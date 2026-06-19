@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams};
+use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams};
 use std::{error::Error, fmt::Display, path::Path};
 
 #[derive(Debug)]
@@ -119,6 +119,8 @@ pub struct SceneConfig {
     pub flow_field: FlowFieldParams,
     #[serde(default)]
     pub sdf_shapes: SdfShapeParams,
+    #[serde(default)]
+    pub mandelbrot: MandelbrotParams,
 }
 
 pub fn load_from_path(path: &Path) -> Result<RenderConfig, ConfigError> {
@@ -149,6 +151,7 @@ mod tests {
                 particles: ParticleParams::default(),
                 flow_field: FlowFieldParams::default(),
                 sdf_shapes: SdfShapeParams::default(),
+                mandelbrot: MandelbrotParams::default(),
             },
         );
         assert_eq!(config.width, 1920);
@@ -175,6 +178,7 @@ mod tests {
                 particles: ParticleParams::default(),
                 flow_field: FlowFieldParams::default(),
                 sdf_shapes: SdfShapeParams::default(),
+                mandelbrot: MandelbrotParams::default(),
             },
         );
         assert_eq!(config.total_frames(), 120);

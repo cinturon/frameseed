@@ -16,5 +16,8 @@ pub use flow_field::{FlowFieldScene, FlowFieldParams};
 mod sdf_shapes;
 pub use sdf_shapes::{SdfShapeScene, SdfShapeParams};
 
+mod mandelbrot;
+pub use mandelbrot::{MandelbrotScene, MandelbrotParams};
+
 mod registry;
 pub use registry::scene_from_config;

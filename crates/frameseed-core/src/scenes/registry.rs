@@ -6,6 +6,7 @@ use crate::scenes::ConwayScene;
 use crate::scenes::ParticlesScene;
 use crate::scenes::FlowFieldScene;
 use crate::scenes::SdfShapeScene;
+use crate::scenes::MandelbrotScene;
 
 pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigError> {
     match scene.name.as_str() {
@@ -27,6 +28,9 @@ pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigEr
         },
         "sdf_shapes" => {
             Ok(Box::new(SdfShapeScene::new(scene.sdf_shapes.circle_radius, scene.sdf_shapes.box_half_width, scene.sdf_shapes.box_half_height, scene.sdf_shapes.speed)))
+        },
+        "mandelbrot" => {
+            Ok(Box::new(MandelbrotScene::new(scene.mandelbrot.max_iter, scene.mandelbrot.center_re, scene.mandelbrot.center_im, scene.mandelbrot.initial_view_width, scene.mandelbrot.zoom_speed)))
         },
         _ => Err(ConfigError::Invalid(format!("Unknown scene: {}", scene.name))),
     }
