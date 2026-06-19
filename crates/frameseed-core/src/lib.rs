@@ -19,12 +19,20 @@ pub use scenes::{scene_from_config, GradientParams, GradientScene, palette_from_
 mod config;
 pub use config::{RenderConfig, load_from_path};
 
+mod effects;
+pub use effects::{effects_from_config, InvertEffect};
+
 
 use std::path::Path;
 
 pub trait Scene {
     fn name(&self) -> &str;
     fn render(&self, frame: &mut Frame, context: &RenderContext);
+}
+
+pub trait Effect {
+    fn name(&self) -> &str;
+    fn apply(&self, frame: &mut Frame, context: &RenderContext);
 }
 
 pub fn welcome_message() -> &'static str {

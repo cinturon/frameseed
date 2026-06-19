@@ -1,0 +1,15 @@
+width = 256
+height = 64
+fps = 24.0
+duration = 5.0
+seed = 42
+
+[scene]
+name = "gradient"
+
+[scene.gradient]
+speed = 1.0
+palette = "sunset"
+
+[effects]
+invert = true

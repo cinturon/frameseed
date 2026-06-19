@@ -54,6 +54,8 @@ pub struct RenderConfig {
     pub duration: f32,
     pub seed: u64,
     pub scene: SceneConfig,
+    #[serde(default)]
+    pub effects: EffectsConfig,
 }
 
 impl RenderConfig {
@@ -64,6 +66,7 @@ impl RenderConfig {
         duration: f32,
         seed: u64,
         scene: SceneConfig,
+        effects: EffectsConfig,
     ) -> Self {
         Self {
             width,
@@ -72,6 +75,7 @@ impl RenderConfig {
             duration,
             seed,
             scene,
+            effects,
         }
     }
 
@@ -125,6 +129,12 @@ pub struct SceneConfig {
     pub voronoi: VoronoiParams,
 }
 
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct EffectsConfig {
+    #[serde(default)]
+    pub invert: bool,
+}
+
 pub fn load_from_path(path: &Path) -> Result<RenderConfig, ConfigError> {
     let contents = std::fs::read_to_string(path)?;
     let config: RenderConfig = toml::from_str(&contents)?;
@@ -156,6 +166,7 @@ mod tests {
                 mandelbrot: MandelbrotParams::default(),
                 voronoi: VoronoiParams::default(),
             },
+            EffectsConfig::default(),
         );
         assert_eq!(config.width, 1920);
         assert_eq!(config.height, 1080);
@@ -184,6 +195,7 @@ mod tests {
                 mandelbrot: MandelbrotParams::default(),
                 voronoi: VoronoiParams::default(),
             },
+            EffectsConfig::default(),
         );
         assert_eq!(config.total_frames(), 120);
     }
