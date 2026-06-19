@@ -20,7 +20,7 @@ impl Effect for PaletteQuantizationEffect {
         "palette"
     }
 
-    fn apply(&self, frame: &mut Frame, _context: &RenderContext) {
+    fn apply(&mut self, frame: &mut Frame, _context: &RenderContext) {
         
         for y in 0..frame.height {
             for x in 0..frame.width {

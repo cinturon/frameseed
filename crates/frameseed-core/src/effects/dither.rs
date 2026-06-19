@@ -16,7 +16,7 @@ impl Effect for OrderedDitherEffect {
         "dither"
     }
 
-    fn apply(&self, frame: &mut Frame, _context: &RenderContext) {
+    fn apply(&mut self, frame: &mut Frame, _context: &RenderContext) {
         for y in 0..frame.height {
             for x in 0..frame.width {
                 if let Some(pixel) = frame.get_pixel(x, y) {
