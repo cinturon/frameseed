@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams, VoronoiParams};
-use crate::effects::{PixelationParams, PaletteQuantizationParams};
+use crate::effects::{PixelationParams, PaletteQuantizationParams, DitherParams};
 use std::{error::Error, fmt::Display, path::Path};
 
 #[derive(Debug)]
@@ -138,6 +138,8 @@ pub struct EffectsConfig {
     pub pixelation: Option<PixelationParams>,
     #[serde(default)]
     pub palette: Option<PaletteQuantizationParams>,
+    #[serde(default)]
+    pub dither: Option<DitherParams>,
 }
 
 pub fn load_from_path(path: &Path) -> Result<RenderConfig, ConfigError> {
