@@ -3,6 +3,7 @@ use crate::config::EffectsConfig;
 use crate::effects::InvertEffect;
 use crate::effects::{
     MotionBlurEffect, OrderedDitherEffect, PaletteQuantizationEffect, PixelationEffect,
+    VhsCrtEffect,
 };
 
 pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
@@ -27,6 +28,15 @@ pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
             &palette.name,
         )));
     }
+
+    if let Some(vhs_crt) = &effects.vhs_crt {
+        pipeline.push(Box::new(VhsCrtEffect::new(
+            vhs_crt.scanlines_strength,
+            vhs_crt.chromatic_offset,
+            vhs_crt.noise_amount,
+            vhs_crt.warp_amount,
+        )));
+    }
     pipeline
 }
 
@@ -34,9 +44,10 @@ pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
 mod tests {
     use super::*;
     use crate::effects::DitherParams;
+    use crate::effects::MotionBlurParams;
     use crate::effects::PaletteQuantizationParams;
     use crate::effects::PixelationParams;
-    use crate::effects::MotionBlurParams;
+    use crate::effects::VhsCrtParams;
 
     #[test]
     fn test_effects_from_config() {
@@ -53,6 +64,7 @@ mod tests {
             palette: None,
             dither: None,
             motion_blur: None,
+            vhs_crt: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -67,6 +79,7 @@ mod tests {
             palette: None,
             dither: None,
             motion_blur: None,
+            vhs_crt: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -83,6 +96,7 @@ mod tests {
             }),
             dither: None,
             motion_blur: None,
+            vhs_crt: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -97,6 +111,7 @@ mod tests {
             palette: None,
             dither: Some(DitherParams { spread: 48.0 }),
             motion_blur: None,
+            vhs_crt: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -111,9 +126,30 @@ mod tests {
             palette: None,
             dither: None,
             motion_blur: Some(MotionBlurParams { strength: 0.5 }),
+            vhs_crt: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
         assert_eq!(effects[0].name(), "motion_blur");
+    }
+
+    #[test]
+    fn test_effects_from_config_with_vhs_crt() {
+        let effects = EffectsConfig {
+            invert: false,
+            pixelation: None,
+            palette: None,
+            dither: None,
+            motion_blur: None,
+            vhs_crt: Some(VhsCrtParams {
+                scanlines_strength: 0.5,
+                chromatic_offset: 2.0,
+                noise_amount: 0.08,
+                warp_amount: 2.5,
+            }),
+        };
+        let effects = effects_from_config(&effects);
+        assert_eq!(effects.len(), 1);
+        assert_eq!(effects[0].name(), "vhs_crt");
     }
 }
