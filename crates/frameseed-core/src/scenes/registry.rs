@@ -5,6 +5,7 @@ use crate::scenes::NoiseCloudsScene;
 use crate::scenes::ConwayScene;
 use crate::scenes::ParticlesScene;
 use crate::scenes::FlowFieldScene;
+use crate::scenes::SdfShapeScene;
 
 pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigError> {
     match scene.name.as_str() {
@@ -23,6 +24,9 @@ pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigEr
         },
         "flow_field" => {
             Ok(Box::new(FlowFieldScene::new(scene.flow_field.count, scene.flow_field.speed, scene.flow_field.scale, scene.flow_field.fps)))
+        },
+        "sdf_shapes" => {
+            Ok(Box::new(SdfShapeScene::new(scene.sdf_shapes.circle_radius, scene.sdf_shapes.box_half_width, scene.sdf_shapes.box_half_height, scene.sdf_shapes.speed)))
         },
         _ => Err(ConfigError::Invalid(format!("Unknown scene: {}", scene.name))),
     }

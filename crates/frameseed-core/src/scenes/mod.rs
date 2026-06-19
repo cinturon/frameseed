@@ -13,5 +13,8 @@ pub use particles::{ParticlesScene, ParticleParams};
 mod flow_field;
 pub use flow_field::{FlowFieldScene, FlowFieldParams};
 
+mod sdf_shapes;
+pub use sdf_shapes::{SdfShapeScene, SdfShapeParams};
+
 mod registry;
 pub use registry::scene_from_config;
