@@ -1,0 +1,15 @@
+width = 256
+height = 256
+fps = 24.0
+duration = 5.0
+seed = 42
+
+[scene]
+name = "gradient"
+
+[scene.gradient]
+palette = "sunset"
+speed = 1.0
+
+[effects.palette]
+name = "cga16"
