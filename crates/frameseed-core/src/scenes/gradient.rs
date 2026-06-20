@@ -1,5 +1,5 @@
 use crate::{Frame, RenderContext, Rgba, Scene};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub struct GradientScene {
     pub start_color: Rgba,
@@ -17,7 +17,7 @@ impl GradientScene {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct GradientParams {
     #[serde(default = "default_speed")]
     pub speed: f32,

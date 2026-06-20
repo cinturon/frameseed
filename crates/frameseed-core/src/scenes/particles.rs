@@ -1,7 +1,7 @@
 use crate::seeded_rng;
 use crate::{Frame, RenderContext, Rgba, Scene};
 use rand::Rng;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub struct Particle {
     pub x: f32,
@@ -11,14 +11,14 @@ pub struct Particle {
     pub lifetime: f32,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ParticleKind {
     Snow,
     Rain,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct ParticlesScene {
     pub count: u32,
     pub speed: f32,
@@ -56,7 +56,7 @@ impl Scene for ParticlesScene {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct ParticleParams {
     #[serde(default = "default_count")]
     pub count: u32,

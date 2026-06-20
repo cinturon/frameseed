@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams, VoronoiParams};
 use crate::effects::{PixelationParams, PaletteQuantizationParams, DitherParams, MotionBlurParams, VhsCrtParams};
 use std::{error::Error, fmt::Display, path::Path};
@@ -47,7 +47,7 @@ impl From<&str> for ConfigError {
         ConfigError::Invalid(e.to_string())
     }
 }
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct RenderConfig {
     pub width: u32,
     pub height: u32,
@@ -109,7 +109,7 @@ impl RenderConfig {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct SceneConfig {
     pub name: String,
     #[serde(default)]
@@ -130,7 +130,7 @@ pub struct SceneConfig {
     pub voronoi: VoronoiParams,
 }
 
-#[derive(Debug, Deserialize, Clone, Default)]
+#[derive(Debug, Deserialize, Clone, Default, Serialize)]
 pub struct EffectsConfig {
     #[serde(default)]
     pub invert: bool,

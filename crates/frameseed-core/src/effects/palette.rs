@@ -1,5 +1,5 @@
 use crate::{Frame, RenderContext, Effect, Rgba};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 
 pub struct PaletteQuantizationEffect {
@@ -33,7 +33,7 @@ impl Effect for PaletteQuantizationEffect {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct PaletteQuantizationParams {
     #[serde(default = "default_palette_name")]
     pub name: String,

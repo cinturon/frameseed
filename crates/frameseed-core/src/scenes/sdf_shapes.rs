@@ -1,7 +1,7 @@
 use std::f32::consts::TAU;
 
 use crate::{Frame, RenderContext, Scene, Rgba};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 
 pub struct SdfShapeScene {
@@ -56,7 +56,7 @@ impl Scene for SdfShapeScene {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct SdfShapeParams {
     #[serde(default = "default_circle_radius")]
     pub circle_radius: f32,

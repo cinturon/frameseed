@@ -1,5 +1,5 @@
 use crate::{Frame, RenderContext, Scene, Rgba};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub struct MandelbrotScene {
     pub max_iter: u32,
@@ -41,7 +41,7 @@ impl Scene for MandelbrotScene {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct MandelbrotParams {
     #[serde(default = "default_max_iter")]
     pub max_iter: u32,

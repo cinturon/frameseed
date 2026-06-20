@@ -1,5 +1,5 @@
 use crate::{Frame, RenderContext, Effect, Rgba};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub struct PixelationEffect{
     pub block_size: u32,
@@ -40,7 +40,7 @@ impl Effect for PixelationEffect {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct PixelationParams {
     #[serde(default = "default_block_size")]
     pub block_size: u32,

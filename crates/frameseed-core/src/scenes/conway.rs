@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use crate::{Frame, RenderContext, Scene, seeded_rng, Rgba};
 use rand::Rng;
 
@@ -26,7 +26,7 @@ impl Scene for ConwayScene {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct ConwayParams {
     #[serde(default = "default_cell_size")]
     pub cell_size: u32,
