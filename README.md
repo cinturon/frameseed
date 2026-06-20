@@ -110,6 +110,32 @@ frameseed/
 
 Architecture details: [docs/architecture.md](docs/architecture.md).
 
+## Packaging the desktop app
+
+Build a standalone app bundle you can share without requiring Rust on the recipient machine:
+
+```bash
+cd crates/frameseed-app
+cargo tauri build
+```
+
+Artifacts are written to `crates/frameseed-app/target/release/bundle/`:
+
+| Platform | Output |
+|----------|--------|
+| macOS | `bundle/macos/Frameseed.app` and `.dmg` |
+| Linux | `bundle/deb/`, `bundle/appimage/` |
+| Windows | `bundle/msi/`, `bundle/nsis/` |
+
+The bundled app includes the UI and render engine. **FFmpeg must still be installed** on the target machine for MP4/GIF export from the app.
+
+For local development without packaging:
+
+```bash
+cd crates/frameseed-app
+cargo tauri dev
+```
+
 ## Tests
 
 ```bash
