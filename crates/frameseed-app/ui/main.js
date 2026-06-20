@@ -160,48 +160,62 @@ function hideOverlay() {
 }
 
 // ── Export state ─────────────────────────────────────────────────────────────
-function setExportRunning(running) {
-  exportRunning = running;
-  exportButton.disabled = running;
-  progressContainer.hidden = !running;
-  if (!running) {
-    progressBarFill.style.width = "0%";
-  }
+function setExportBusy(busy) {
+  exportRunning = busy;
+  exportButton.disabled = busy;
+}
+
+function showProgress(text, cls = "") {
+  progressContainer.hidden = false;
+  progressBarFill.style.width = "0%";
+  renderStatus.textContent = text;
+  renderStatus.className = cls;
 }
 
 function updateRenderProgress(event) {
   const { phase, current, total } = event.payload;
   const percent = total > 0 ? Math.round((current / total) * 100) : 0;
   progressBarFill.style.width = `${percent}%`;
-  renderStatus.textContent = `${phase}: ${current}/${total}`;
+  renderStatus.textContent = `${phase}: ${current} / ${total}`;
   renderStatus.className = "";
 }
 
 async function queueExport() {
-  const config = buildConfigFromForm();
-  if (!config || exportRunning) return;
+  if (exportRunning) return;
 
-  progressContainer.hidden = false;
+  let config;
   try {
-    setExportRunning(true);
-    progressBarFill.style.width = "0%";
-    renderStatus.textContent = "Choose save location…";
-    renderStatus.className = "";
+    config = buildConfigFromForm();
+  } catch (err) {
+    console.error("buildConfigFromForm error:", err);
+    showProgress(`Config error: ${err.message}`, "error");
+    return;
+  }
+
+  if (!config) {
+    showProgress("Load a preset first.", "error");
+    return;
+  }
+
+  setExportBusy(true);
+  showProgress("Opening save dialog…");
+
+  try {
     await invoke("export_render", {
       request: { config, output_format: exportFormatSelect.value },
     });
   } catch (error) {
-    setExportRunning(false);
+    setExportBusy(false);
     renderStatus.textContent = `Error: ${error}`;
     renderStatus.className = "error";
-    console.error("Error exporting:", error);
+    console.error("Export error:", error);
   }
 }
 
 async function setupRenderEvents() {
   await listen("render-progress", (event) => updateRenderProgress(event));
   await listen("render-complete", (event) => {
-    setExportRunning(false);
+    setExportBusy(false);
     progressBarFill.style.width = "100%";
     const path = event.payload.output_path || "";
     const filename = path.split("/").pop() || path;
@@ -209,13 +223,14 @@ async function setupRenderEvents() {
     renderStatus.className = "success";
   });
   await listen("render-error", (event) => {
-    setExportRunning(false);
+    setExportBusy(false);
     renderStatus.textContent = `Error: ${event.payload.message}`;
     renderStatus.className = "error";
   });
   await listen("export-cancelled", () => {
-    setExportRunning(false);
-    renderStatus.textContent = "Export cancelled";
+    setExportBusy(false);
+    progressBarFill.style.width = "0%";
+    renderStatus.textContent = "Export cancelled.";
     renderStatus.className = "";
   });
 }
@@ -500,6 +515,6 @@ liveInputs.forEach((el) => {
   el.addEventListener("change", scheduleRefresh);
 });
 
-loadInitialState()
-  .then(() => setupRenderEvents())
-  .catch(console.error);
+// Register render events independently so they work even if preset load fails.
+setupRenderEvents().catch(console.error);
+loadInitialState().catch(console.error);
