@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-
 #[derive(clap::ValueEnum, Clone)]
 pub enum OutputFormat {
     Mp4,
@@ -22,5 +21,11 @@ pub enum Commands {
         config: PathBuf,
         #[arg(long, default_value = "mp4")]
         output_format: OutputFormat,
+        #[arg(long)]
+        contact_sheet: bool,
+        #[arg(long, default_value = "12")]
+        contact_sheet_step: u32,
+        #[arg(long, default_value = "5")]
+        contact_sheet_cols: u32,
     },
 }
