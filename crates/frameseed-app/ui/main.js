@@ -1,122 +1,226 @@
 const invoke = window.__TAURI__.core.invoke;
 const listen = window.__TAURI__.event.listen;
 
-const presetSelect = document.getElementById("preset");
-const seedInput = document.getElementById("seed");
-const widthInput = document.getElementById("width");
-const heightInput = document.getElementById("height");
-const fpsInput = document.getElementById("fps");
-const durationInput = document.getElementById("duration");
-const frameIndexInput = document.getElementById("frame-index");
-const frameIndexLabel = document.getElementById("frame-index-label");
-const refreshButton = document.getElementById("refresh");
-const previewImage = document.getElementById("preview");
-const exportButton = document.getElementById("export");
+// ── DOM refs ─────────────────────────────────────────────────────────────────
+const presetSelect       = document.getElementById("preset");
+const seedInput          = document.getElementById("seed");
+const randomizeSeedBtn   = document.getElementById("randomize-seed");
+const widthInput         = document.getElementById("width");
+const heightInput        = document.getElementById("height");
+const fpsInput           = document.getElementById("fps");
+const durationInput      = document.getElementById("duration");
+const frameIndexInput    = document.getElementById("frame-index");
+const frameIndexLabel    = document.getElementById("frame-index-label");
+const refreshButton      = document.getElementById("refresh");
+const previewImage       = document.getElementById("preview");
+const previewEmpty       = document.getElementById("preview-empty");
+const previewOverlay     = document.getElementById("preview-overlay");
+const previewOverlayText = document.getElementById("preview-overlay-text");
+const previewInfo        = document.getElementById("preview-info");
+const exportButton       = document.getElementById("export");
 const exportFormatSelect = document.getElementById("export-format");
-const renderProgress = document.getElementById("render-progress");
-const renderStatus = document.getElementById("render-status");
+const progressContainer  = document.getElementById("progress-container");
+const progressBarFill    = document.getElementById("progress-bar-fill");
+const renderStatus       = document.getElementById("render-status");
 
-const gradientSpeedInput = document.getElementById("gradient-speed");
-const gradientPaletteInput = document.getElementById("gradient-palette");
-const noiseSpeedInput = document.getElementById("noise-speed");
-const noiseScaleInput = document.getElementById("noise-scale");
-const particlesCountInput = document.getElementById("particles-count");
-const particlesSpeedInput = document.getElementById("particles-speed");
-const particlesKindInput = document.getElementById("particles-kind");
-const particlesFpsInput = document.getElementById("particles-fps");
-const conwayCellSizeInput = document.getElementById("conway-cell-size");
-const conwayDensityInput = document.getElementById("conway-density");
-const flowCountInput = document.getElementById("flow-count");
-const flowSpeedInput = document.getElementById("flow-speed");
-const flowScaleInput = document.getElementById("flow-scale");
-const flowFpsInput = document.getElementById("flow-fps");
-const sdfCircleRadiusInput = document.getElementById("sdf-circle-radius");
-const sdfBoxHalfWidthInput = document.getElementById("sdf-box-half-width");
-const sdfBoxHalfHeightInput = document.getElementById("sdf-box-half-height");
-const sdfSpeedInput = document.getElementById("sdf-speed");
-const mandelbrotMaxIterInput = document.getElementById("mandelbrot-max-iter");
-const mandelbrotCenterReInput = document.getElementById("mandelbrot-center-re");
-const mandelbrotCenterImInput = document.getElementById("mandelbrot-center-im");
-const mandelbrotViewWidthInput = document.getElementById("mandelbrot-view-width");
-const mandelbrotZoomSpeedInput = document.getElementById("mandelbrot-zoom-speed");
-const voronoiSeedCountInput = document.getElementById("voronoi-seed-count");
-const voronoiSpeedInput = document.getElementById("voronoi-speed");
-const voronoiEdgeWidthInput = document.getElementById("voronoi-edge-width");
-
-const panels = {
-  gradient: document.getElementById("scene-gradient"),
-  noise_clouds: document.getElementById("scene-noise-clouds"),
-  particles: document.getElementById("scene-particles"),
-  conway: document.getElementById("scene-conway"),
-  flow_field: document.getElementById("scene-flow-field"),
-  sdf_shapes: document.getElementById("scene-sdf-shapes"),
-  mandelbrot: document.getElementById("scene-mandelbrot"),
-  voronoi: document.getElementById("scene-voronoi"),
+// Scene param inputs
+const inputs = {
+  // gradient
+  gradientSpeed:       document.getElementById("gradient-speed"),
+  gradientPalette:     document.getElementById("gradient-palette"),
+  gradientDirection:   document.getElementById("gradient-direction"),
+  // noise clouds
+  noiseSpeed:          document.getElementById("noise-speed"),
+  noiseScale:          document.getElementById("noise-scale"),
+  noiseColored:        document.getElementById("noise-colored"),
+  // particles
+  particlesCount:      document.getElementById("particles-count"),
+  particlesSpeed:      document.getElementById("particles-speed"),
+  particlesKind:       document.getElementById("particles-kind"),
+  // conway
+  conwayCellSize:      document.getElementById("conway-cell-size"),
+  conwayDensity:       document.getElementById("conway-density"),
+  // flow field
+  flowCount:           document.getElementById("flow-count"),
+  flowSpeed:           document.getElementById("flow-speed"),
+  flowScale:           document.getElementById("flow-scale"),
+  // sdf shapes
+  sdfCircleRadius:     document.getElementById("sdf-circle-radius"),
+  sdfBoxHalfWidth:     document.getElementById("sdf-box-half-width"),
+  sdfBoxHalfHeight:    document.getElementById("sdf-box-half-height"),
+  sdfSpeed:            document.getElementById("sdf-speed"),
+  // mandelbrot
+  mandelbrotMaxIter:   document.getElementById("mandelbrot-max-iter"),
+  mandelbrotZoomSpeed: document.getElementById("mandelbrot-zoom-speed"),
+  mandelbrotCenterRe:  document.getElementById("mandelbrot-center-re"),
+  mandelbrotCenterIm:  document.getElementById("mandelbrot-center-im"),
+  // voronoi
+  voronoiSeedCount:    document.getElementById("voronoi-seed-count"),
+  voronoiSpeed:        document.getElementById("voronoi-speed"),
+  voronoiEdgeWidth:    document.getElementById("voronoi-edge-width"),
+  // plasma
+  plasmaSpeed:         document.getElementById("plasma-speed"),
+  plasmaScale:         document.getElementById("plasma-scale"),
+  // lissajous
+  lissajousA:          document.getElementById("lissajous-a"),
+  lissajousB:          document.getElementById("lissajous-b"),
+  lissajousSpeed:      document.getElementById("lissajous-speed"),
+  lissajousTrail:      document.getElementById("lissajous-trail"),
+  // sine wave
+  sineSpeed:           document.getElementById("sine-speed"),
+  // starfield
+  starfieldCount:      document.getElementById("starfield-count"),
+  starfieldSpeed:      document.getElementById("starfield-speed"),
+  // tunnel
+  tunnelSpeed:         document.getElementById("tunnel-speed"),
+  tunnelRings:         document.getElementById("tunnel-rings"),
 };
 
-let currentConfig = null;
-let refreshTimer = null;
-let exportRunning = false;
+// Scene panels
+const panels = {
+  gradient:     document.getElementById("scene-gradient"),
+  noise_clouds: document.getElementById("scene-noise-clouds"),
+  particles:    document.getElementById("scene-particles"),
+  conway:       document.getElementById("scene-conway"),
+  flow_field:   document.getElementById("scene-flow-field"),
+  sdf_shapes:   document.getElementById("scene-sdf-shapes"),
+  mandelbrot:   document.getElementById("scene-mandelbrot"),
+  voronoi:      document.getElementById("scene-voronoi"),
+  plasma:       document.getElementById("scene-plasma"),
+  lissajous:    document.getElementById("scene-lissajous"),
+  sine_wave:    document.getElementById("scene-sine-wave"),
+  starfield:    document.getElementById("scene-starfield"),
+  tunnel:       document.getElementById("scene-tunnel"),
+};
 
+// ── Value badges ─────────────────────────────────────────────────────────────
+const badges = {
+  "gradient-speed":        document.getElementById("gradient-speed-val"),
+  "noise-speed":           document.getElementById("noise-speed-val"),
+  "noise-scale":           document.getElementById("noise-scale-val"),
+  "particles-count":       document.getElementById("particles-count-val"),
+  "particles-speed":       document.getElementById("particles-speed-val"),
+  "conway-cell-size":      document.getElementById("conway-cell-size-val"),
+  "conway-density":        document.getElementById("conway-density-val"),
+  "flow-count":            document.getElementById("flow-count-val"),
+  "flow-speed":            document.getElementById("flow-speed-val"),
+  "flow-scale":            document.getElementById("flow-scale-val"),
+  "sdf-circle-radius":     document.getElementById("sdf-circle-radius-val"),
+  "sdf-box-half-width":    document.getElementById("sdf-box-half-width-val"),
+  "sdf-box-half-height":   document.getElementById("sdf-box-half-height-val"),
+  "sdf-speed":             document.getElementById("sdf-speed-val"),
+  "mandelbrot-max-iter":   document.getElementById("mandelbrot-max-iter-val"),
+  "mandelbrot-zoom-speed": document.getElementById("mandelbrot-zoom-speed-val"),
+  "voronoi-seed-count":    document.getElementById("voronoi-seed-count-val"),
+  "voronoi-speed":         document.getElementById("voronoi-speed-val"),
+  "voronoi-edge-width":    document.getElementById("voronoi-edge-width-val"),
+  "plasma-speed":          document.getElementById("plasma-speed-val"),
+  "plasma-scale":          document.getElementById("plasma-scale-val"),
+  "lissajous-a":           document.getElementById("lissajous-a-val"),
+  "lissajous-b":           document.getElementById("lissajous-b-val"),
+  "lissajous-speed":       document.getElementById("lissajous-speed-val"),
+  "lissajous-trail":       document.getElementById("lissajous-trail-val"),
+  "sine-speed":            document.getElementById("sine-speed-val"),
+  "starfield-count":       document.getElementById("starfield-count-val"),
+  "starfield-speed":       document.getElementById("starfield-speed-val"),
+  "tunnel-speed":          document.getElementById("tunnel-speed-val"),
+  "tunnel-rings":          document.getElementById("tunnel-rings-val"),
+};
+
+// Wire up badges — each range input syncs its badge on input
+document.querySelectorAll("input[type=range]").forEach((el) => {
+  const badge = badges[el.id];
+  if (badge) {
+    el.addEventListener("input", () => { badge.textContent = el.value; });
+  }
+});
+
+// ── State ────────────────────────────────────────────────────────────────────
+let currentConfig = null;
+let refreshTimer  = null;
+let exportRunning = false;
+let previewing    = false;
+
+// ── Collapsible sections ─────────────────────────────────────────────────────
+document.querySelectorAll(".section-toggle").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const section = btn.closest(".collapsible");
+    const open = section.classList.toggle("open");
+    btn.setAttribute("aria-expanded", String(open));
+  });
+});
+
+// ── Overlay helpers ──────────────────────────────────────────────────────────
+function showOverlay(text = "Rendering…") {
+  previewOverlay.hidden = false;
+  previewOverlayText.textContent = text;
+}
+function hideOverlay() {
+  previewOverlay.hidden = true;
+}
+
+// ── Export state ─────────────────────────────────────────────────────────────
 function setExportRunning(running) {
   exportRunning = running;
   exportButton.disabled = running;
+  progressContainer.hidden = !running;
+  if (!running) {
+    progressBarFill.style.width = "0%";
+  }
 }
 
 function updateRenderProgress(event) {
   const { phase, current, total } = event.payload;
   const percent = total > 0 ? Math.round((current / total) * 100) : 0;
-  renderProgress.value = String(percent);
-  renderProgress.max = "100";
+  progressBarFill.style.width = `${percent}%`;
   renderStatus.textContent = `${phase}: ${current}/${total}`;
+  renderStatus.className = "";
 }
 
 async function queueExport() {
   const config = buildConfigFromForm();
-  if (!config || exportRunning) {
-    return;
-  }
+  if (!config || exportRunning) return;
 
+  progressContainer.hidden = false;
   try {
     setExportRunning(true);
-    renderProgress.value = "0";
+    progressBarFill.style.width = "0%";
     renderStatus.textContent = "Choose save location…";
+    renderStatus.className = "";
     await invoke("export_render", {
-      request: {
-        config,
-        output_format: exportFormatSelect.value,
-      },
+      request: { config, output_format: exportFormatSelect.value },
     });
   } catch (error) {
     setExportRunning(false);
     renderStatus.textContent = `Error: ${error}`;
+    renderStatus.className = "error";
     console.error("Error exporting:", error);
   }
 }
 
 async function setupRenderEvents() {
-  await listen("render-progress", (event) => {
-    updateRenderProgress(event);
-  });
-
+  await listen("render-progress", (event) => updateRenderProgress(event));
   await listen("render-complete", (event) => {
     setExportRunning(false);
-    renderProgress.value = "100";
-    renderStatus.textContent = `Done: ${event.payload.output_path}`;
+    progressBarFill.style.width = "100%";
+    const path = event.payload.output_path || "";
+    const filename = path.split("/").pop() || path;
+    renderStatus.textContent = `Saved: ${filename}`;
+    renderStatus.className = "success";
   });
-
   await listen("render-error", (event) => {
     setExportRunning(false);
     renderStatus.textContent = `Error: ${event.payload.message}`;
+    renderStatus.className = "error";
   });
-
   await listen("export-cancelled", () => {
     setExportRunning(false);
-    renderProgress.value = "0";
     renderStatus.textContent = "Export cancelled";
+    renderStatus.className = "";
   });
 }
 
+// ── Presets ──────────────────────────────────────────────────────────────────
 async function loadPresets() {
   const entries = await invoke("list_gallery");
   presetSelect.replaceChildren();
@@ -128,15 +232,13 @@ async function loadPresets() {
   });
 }
 
+// ── Scene panels ─────────────────────────────────────────────────────────────
 function showScenePanel(name) {
-  Object.values(panels).forEach((panel) => {
-    panel.hidden = true;
-  });
-  if (panels[name]) {
-    panels[name].hidden = false;
-  }
+  Object.values(panels).forEach((p) => { p.hidden = true; });
+  if (panels[name]) panels[name].hidden = false;
 }
 
+// ── Frame slider ─────────────────────────────────────────────────────────────
 function totalFrames(config) {
   return Math.max(1, Math.ceil(config.duration * config.fps));
 }
@@ -144,136 +246,217 @@ function totalFrames(config) {
 function updateFrameSliderMax(config) {
   const maxFrame = totalFrames(config) - 1;
   frameIndexInput.max = String(maxFrame);
-  const frameIndex = Math.min(Number(frameIndexInput.value) || 0, maxFrame);
-  frameIndexInput.value = String(frameIndex);
-  frameIndexLabel.textContent = String(frameIndex);
+  const current = Math.min(Number(frameIndexInput.value) || 0, maxFrame);
+  frameIndexInput.value = String(current);
+  frameIndexLabel.textContent = String(current);
 }
 
+// ── Sync form ↔ config ───────────────────────────────────────────────────────
 function syncFormFromConfig(config) {
-  seedInput.value = String(config.seed);
-  widthInput.value = String(config.width);
-  heightInput.value = String(config.height);
-  fpsInput.value = String(config.fps);
+  seedInput.value    = String(config.seed);
+  widthInput.value   = String(config.width);
+  heightInput.value  = String(config.height);
+  fpsInput.value     = String(config.fps);
   durationInput.value = String(config.duration);
 
-  gradientSpeedInput.value = String(config.scene.gradient.speed);
-  gradientPaletteInput.value = config.scene.gradient.palette || "default";
+  const s = config.scene;
 
-  noiseSpeedInput.value = String(config.scene.noise_clouds.speed);
-  noiseScaleInput.value = String(config.scene.noise_clouds.scale);
+  // gradient
+  inputs.gradientSpeed.value     = String(s.gradient.speed);
+  inputs.gradientPalette.value   = s.gradient.palette || "";
+  inputs.gradientDirection.value = (s.gradient.direction || "horizontal").toLowerCase();
 
-  particlesCountInput.value = String(config.scene.particles.count);
-  particlesSpeedInput.value = String(config.scene.particles.speed);
-  particlesKindInput.value = config.scene.particles.kind;
-  particlesFpsInput.value = String(config.scene.particles.fps);
+  // noise clouds
+  inputs.noiseSpeed.value   = String(s.noise_clouds.speed);
+  inputs.noiseScale.value   = String(s.noise_clouds.scale);
+  inputs.noiseColored.checked = !!s.noise_clouds.colored;
 
-  conwayCellSizeInput.value = String(config.scene.conway.cell_size);
-  conwayDensityInput.value = String(config.scene.conway.density);
+  // particles
+  inputs.particlesCount.value = String(s.particles.count);
+  inputs.particlesSpeed.value = String(s.particles.speed);
+  inputs.particlesKind.value  = s.particles.kind || "snow";
 
-  flowCountInput.value = String(config.scene.flow_field.count);
-  flowSpeedInput.value = String(config.scene.flow_field.speed);
-  flowScaleInput.value = String(config.scene.flow_field.scale);
-  flowFpsInput.value = String(config.scene.flow_field.fps);
+  // conway
+  inputs.conwayCellSize.value = String(s.conway.cell_size);
+  inputs.conwayDensity.value  = String(s.conway.density);
 
-  sdfCircleRadiusInput.value = String(config.scene.sdf_shapes.circle_radius);
-  sdfBoxHalfWidthInput.value = String(config.scene.sdf_shapes.box_half_width);
-  sdfBoxHalfHeightInput.value = String(config.scene.sdf_shapes.box_half_height);
-  sdfSpeedInput.value = String(config.scene.sdf_shapes.speed);
+  // flow field
+  inputs.flowCount.value = String(s.flow_field.count);
+  inputs.flowSpeed.value = String(s.flow_field.speed);
+  inputs.flowScale.value = String(s.flow_field.scale);
 
-  mandelbrotMaxIterInput.value = String(config.scene.mandelbrot.max_iter);
-  mandelbrotCenterReInput.value = String(config.scene.mandelbrot.center_re);
-  mandelbrotCenterImInput.value = String(config.scene.mandelbrot.center_im);
-  mandelbrotViewWidthInput.value = String(config.scene.mandelbrot.initial_view_width);
-  mandelbrotZoomSpeedInput.value = String(config.scene.mandelbrot.zoom_speed);
+  // sdf shapes
+  inputs.sdfCircleRadius.value   = String(s.sdf_shapes.circle_radius);
+  inputs.sdfBoxHalfWidth.value   = String(s.sdf_shapes.box_half_width);
+  inputs.sdfBoxHalfHeight.value  = String(s.sdf_shapes.box_half_height);
+  inputs.sdfSpeed.value          = String(s.sdf_shapes.speed);
 
-  voronoiSeedCountInput.value = String(config.scene.voronoi.seed_count);
-  voronoiSpeedInput.value = String(config.scene.voronoi.speed);
-  voronoiEdgeWidthInput.value = String(config.scene.voronoi.edge_width);
+  // mandelbrot
+  inputs.mandelbrotMaxIter.value   = String(s.mandelbrot.max_iter);
+  inputs.mandelbrotZoomSpeed.value = String(s.mandelbrot.zoom_speed);
+  inputs.mandelbrotCenterRe.value  = String(s.mandelbrot.center_re);
+  inputs.mandelbrotCenterIm.value  = String(s.mandelbrot.center_im);
+
+  // voronoi
+  inputs.voronoiSeedCount.value = String(s.voronoi.seed_count);
+  inputs.voronoiSpeed.value     = String(s.voronoi.speed);
+  inputs.voronoiEdgeWidth.value = String(s.voronoi.edge_width);
+
+  // plasma
+  if (s.plasma) {
+    inputs.plasmaSpeed.value = String(s.plasma.speed);
+    inputs.plasmaScale.value = String(s.plasma.scale);
+  }
+
+  // lissajous
+  if (s.lissajous) {
+    inputs.lissajousA.value     = String(s.lissajous.a);
+    inputs.lissajousB.value     = String(s.lissajous.b);
+    inputs.lissajousSpeed.value = String(s.lissajous.speed);
+    inputs.lissajousTrail.value = String(s.lissajous.trail_frames);
+  }
+
+  // sine wave
+  if (s.sine_wave) {
+    inputs.sineSpeed.value = String(s.sine_wave.speed);
+  }
+
+  // starfield
+  if (s.starfield) {
+    inputs.starfieldCount.value = String(s.starfield.count);
+    inputs.starfieldSpeed.value = String(s.starfield.speed);
+  }
+
+  // tunnel
+  if (s.tunnel) {
+    inputs.tunnelSpeed.value = String(s.tunnel.speed);
+    inputs.tunnelRings.value = String(s.tunnel.rings);
+  }
+
+  // Sync all badges
+  Object.entries(badges).forEach(([id, badge]) => {
+    const el = document.getElementById(id);
+    if (el && badge) badge.textContent = el.value;
+  });
 }
 
 function buildConfigFromForm() {
-  if (!currentConfig) {
-    return null;
-  }
+  if (!currentConfig) return null;
 
-  currentConfig.seed = Number(seedInput.value);
-  currentConfig.width = Number(widthInput.value);
-  currentConfig.height = Number(heightInput.value);
-  currentConfig.fps = Number(fpsInput.value);
+  currentConfig.seed     = Number(seedInput.value);
+  currentConfig.width    = Number(widthInput.value);
+  currentConfig.height   = Number(heightInput.value);
+  currentConfig.fps      = Number(fpsInput.value);
   currentConfig.duration = Number(durationInput.value);
 
-  currentConfig.scene.gradient.speed = Number(gradientSpeedInput.value);
-  currentConfig.scene.gradient.palette = gradientPaletteInput.value;
+  const s = currentConfig.scene;
 
-  currentConfig.scene.noise_clouds.speed = Number(noiseSpeedInput.value);
-  currentConfig.scene.noise_clouds.scale = Number(noiseScaleInput.value);
+  s.gradient.speed     = Number(inputs.gradientSpeed.value);
+  s.gradient.palette   = inputs.gradientPalette.value || null;
+  s.gradient.direction = inputs.gradientDirection.value;
 
-  currentConfig.scene.particles.count = Number(particlesCountInput.value);
-  currentConfig.scene.particles.speed = Number(particlesSpeedInput.value);
-  currentConfig.scene.particles.kind = particlesKindInput.value;
-  currentConfig.scene.particles.fps = Number(particlesFpsInput.value);
+  s.noise_clouds.speed   = Number(inputs.noiseSpeed.value);
+  s.noise_clouds.scale   = Number(inputs.noiseScale.value);
+  s.noise_clouds.colored = inputs.noiseColored.checked;
 
-  currentConfig.scene.conway.cell_size = Number(conwayCellSizeInput.value);
-  currentConfig.scene.conway.density = Number(conwayDensityInput.value);
+  s.particles.count = Number(inputs.particlesCount.value);
+  s.particles.speed = Number(inputs.particlesSpeed.value);
+  s.particles.kind  = inputs.particlesKind.value;
 
-  currentConfig.scene.flow_field.count = Number(flowCountInput.value);
-  currentConfig.scene.flow_field.speed = Number(flowSpeedInput.value);
-  currentConfig.scene.flow_field.scale = Number(flowScaleInput.value);
-  currentConfig.scene.flow_field.fps = Number(flowFpsInput.value);
+  s.conway.cell_size = Number(inputs.conwayCellSize.value);
+  s.conway.density   = Number(inputs.conwayDensity.value);
 
-  currentConfig.scene.sdf_shapes.circle_radius = Number(sdfCircleRadiusInput.value);
-  currentConfig.scene.sdf_shapes.box_half_width = Number(sdfBoxHalfWidthInput.value);
-  currentConfig.scene.sdf_shapes.box_half_height = Number(sdfBoxHalfHeightInput.value);
-  currentConfig.scene.sdf_shapes.speed = Number(sdfSpeedInput.value);
+  s.flow_field.count = Number(inputs.flowCount.value);
+  s.flow_field.speed = Number(inputs.flowSpeed.value);
+  s.flow_field.scale = Number(inputs.flowScale.value);
 
-  currentConfig.scene.mandelbrot.max_iter = Number(mandelbrotMaxIterInput.value);
-  currentConfig.scene.mandelbrot.center_re = Number(mandelbrotCenterReInput.value);
-  currentConfig.scene.mandelbrot.center_im = Number(mandelbrotCenterImInput.value);
-  currentConfig.scene.mandelbrot.initial_view_width = Number(mandelbrotViewWidthInput.value);
-  currentConfig.scene.mandelbrot.zoom_speed = Number(mandelbrotZoomSpeedInput.value);
+  s.sdf_shapes.circle_radius  = Number(inputs.sdfCircleRadius.value);
+  s.sdf_shapes.box_half_width  = Number(inputs.sdfBoxHalfWidth.value);
+  s.sdf_shapes.box_half_height = Number(inputs.sdfBoxHalfHeight.value);
+  s.sdf_shapes.speed           = Number(inputs.sdfSpeed.value);
 
-  currentConfig.scene.voronoi.seed_count = Number(voronoiSeedCountInput.value);
-  currentConfig.scene.voronoi.speed = Number(voronoiSpeedInput.value);
-  currentConfig.scene.voronoi.edge_width = Number(voronoiEdgeWidthInput.value);
+  s.mandelbrot.max_iter   = Number(inputs.mandelbrotMaxIter.value);
+  s.mandelbrot.zoom_speed = Number(inputs.mandelbrotZoomSpeed.value);
+  s.mandelbrot.center_re  = Number(inputs.mandelbrotCenterRe.value);
+  s.mandelbrot.center_im  = Number(inputs.mandelbrotCenterIm.value);
+
+  s.voronoi.seed_count = Number(inputs.voronoiSeedCount.value);
+  s.voronoi.speed      = Number(inputs.voronoiSpeed.value);
+  s.voronoi.edge_width = Number(inputs.voronoiEdgeWidth.value);
+
+  if (s.plasma) {
+    s.plasma.speed = Number(inputs.plasmaSpeed.value);
+    s.plasma.scale = Number(inputs.plasmaScale.value);
+  }
+  if (s.lissajous) {
+    s.lissajous.a            = Number(inputs.lissajousA.value);
+    s.lissajous.b            = Number(inputs.lissajousB.value);
+    s.lissajous.speed        = Number(inputs.lissajousSpeed.value);
+    s.lissajous.trail_frames = Number(inputs.lissajousTrail.value);
+  }
+  if (s.sine_wave) {
+    s.sine_wave.speed = Number(inputs.sineSpeed.value);
+  }
+  if (s.starfield) {
+    s.starfield.count = Number(inputs.starfieldCount.value);
+    s.starfield.speed = Number(inputs.starfieldSpeed.value);
+  }
+  if (s.tunnel) {
+    s.tunnel.speed = Number(inputs.tunnelSpeed.value);
+    s.tunnel.rings = Number(inputs.tunnelRings.value);
+  }
 
   return currentConfig;
 }
 
-async function onPresetChange(slug) {
-  currentConfig = await invoke("preset_config", { preset: slug });
-  syncFormFromConfig(currentConfig);
-  showScenePanel(currentConfig.scene.name);
-  updateFrameSliderMax(currentConfig);
-  await refreshPreview();
-}
-
+// ── Preview ───────────────────────────────────────────────────────────────────
 async function refreshPreview() {
   const config = buildConfigFromForm();
-  if (!config) {
-    return;
-  }
+  if (!config || previewing) return;
+
+  previewing = true;
+  showOverlay("Rendering preview…");
 
   try {
     updateFrameSliderMax(config);
+    const frameIndex = Number(frameIndexInput.value);
     const base64 = await invoke("preview_frame", {
-      request: {
-        config,
-        frame_index: Number(frameIndexInput.value),
-      },
+      request: { config, frame_index: frameIndex },
     });
     previewImage.src = `data:image/png;base64,${base64}`;
+    previewImage.classList.add("loaded");
+    previewEmpty.classList.add("hidden");
+    previewInfo.textContent =
+      `${config.width}×${config.height}  frame ${frameIndex + 1}/${totalFrames(config)}  seed ${config.seed}`;
   } catch (error) {
     console.error("Error refreshing preview:", error);
+  } finally {
+    previewing = false;
+    hideOverlay();
   }
 }
 
 function scheduleRefresh() {
   clearTimeout(refreshTimer);
-  refreshTimer = setTimeout(() => {
-    refreshPreview();
-  }, 150);
+  refreshTimer = setTimeout(refreshPreview, 200);
 }
 
+// ── Preset load ───────────────────────────────────────────────────────────────
+async function onPresetChange(slug) {
+  showOverlay("Loading preset…");
+  try {
+    currentConfig = await invoke("preset_config", { preset: slug });
+    syncFormFromConfig(currentConfig);
+    showScenePanel(currentConfig.scene.name);
+    updateFrameSliderMax(currentConfig);
+    await refreshPreview();
+  } catch (e) {
+    hideOverlay();
+    console.error("Error loading preset:", e);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 async function loadInitialState() {
   await loadPresets();
   if (presetSelect.value) {
@@ -281,68 +464,42 @@ async function loadInitialState() {
   }
 }
 
-presetSelect.addEventListener("change", () => {
-  onPresetChange(presetSelect.value).catch((error) => {
-    console.error("Error loading preset:", error);
-  });
-});
+// ── Event wiring ──────────────────────────────────────────────────────────────
+presetSelect.addEventListener("change", () =>
+  onPresetChange(presetSelect.value).catch(console.error)
+);
 
 frameIndexInput.addEventListener("input", () => {
   frameIndexLabel.textContent = frameIndexInput.value;
   scheduleRefresh();
 });
 
-refreshButton.addEventListener("click", (event) => {
-  event.preventDefault();
+refreshButton.addEventListener("click", (e) => {
+  e.preventDefault();
   refreshPreview();
 });
 
-exportButton.addEventListener("click", (event) => {
-  event.preventDefault();
+exportButton.addEventListener("click", (e) => {
+  e.preventDefault();
   queueExport();
 });
 
-const liveInputs = [
-  seedInput,
-  widthInput,
-  heightInput,
-  fpsInput,
-  durationInput,
-  gradientSpeedInput,
-  gradientPaletteInput,
-  noiseSpeedInput,
-  noiseScaleInput,
-  particlesCountInput,
-  particlesSpeedInput,
-  particlesKindInput,
-  particlesFpsInput,
-  conwayCellSizeInput,
-  conwayDensityInput,
-  flowCountInput,
-  flowSpeedInput,
-  flowScaleInput,
-  flowFpsInput,
-  sdfCircleRadiusInput,
-  sdfBoxHalfWidthInput,
-  sdfBoxHalfHeightInput,
-  sdfSpeedInput,
-  mandelbrotMaxIterInput,
-  mandelbrotCenterReInput,
-  mandelbrotCenterImInput,
-  mandelbrotViewWidthInput,
-  mandelbrotZoomSpeedInput,
-  voronoiSeedCountInput,
-  voronoiSpeedInput,
-  voronoiEdgeWidthInput,
-];
+randomizeSeedBtn.addEventListener("click", () => {
+  seedInput.value = String(Math.floor(Math.random() * 1_000_000_000) + 1);
+  scheduleRefresh();
+});
 
-liveInputs.forEach((input) => {
-  input.addEventListener("input", scheduleRefresh);
-  input.addEventListener("change", scheduleRefresh);
+// All live inputs (range + select + number) trigger a debounced refresh
+const liveInputs = [
+  seedInput, widthInput, heightInput, fpsInput, durationInput,
+  ...Object.values(inputs),
+];
+liveInputs.forEach((el) => {
+  if (!el) return;
+  el.addEventListener("input", scheduleRefresh);
+  el.addEventListener("change", scheduleRefresh);
 });
 
 loadInitialState()
   .then(() => setupRenderEvents())
-  .catch((error) => {
-    console.error("Error loading app:", error);
-  });
+  .catch(console.error);
