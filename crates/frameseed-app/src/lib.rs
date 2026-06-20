@@ -1,13 +1,12 @@
 use frameseed_core::{
-    effects_from_config, frame_to_base64, load_preset, scene_from_config, Frame, RenderContext,
-    Rgba,
+    effects_from_config, frame_to_base64, load_preset, scene_from_config, Frame, RenderConfig,
+    RenderContext, Rgba,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize)]
 struct PreviewRequest {
-    preset: String,
-    seed: u64,
+    config: RenderConfig,
     frame_index: Option<u32>,
 }
 
@@ -23,6 +22,11 @@ struct GalleryItem {
 }
 
 #[tauri::command]
+fn preset_config(preset: String) -> Result<RenderConfig, String> {
+    load_preset(&preset).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 fn list_gallery() -> Vec<GalleryItem> {
     frameseed_core::gallery_entries()
         .iter()
@@ -35,8 +39,9 @@ fn list_gallery() -> Vec<GalleryItem> {
 
 #[tauri::command]
 fn preview_frame(request: PreviewRequest) -> Result<String, String> {
-    let mut config = load_preset(&request.preset).map_err(|e| e.to_string())?;
-    config.seed = request.seed;
+    request.config.validate().map_err(|e| e.to_string())?;
+
+    let config = request.config;
 
     let frame_index = request.frame_index.unwrap_or(0);
     let total_frames = config.total_frames();
@@ -46,7 +51,7 @@ fn preview_frame(request: PreviewRequest) -> Result<String, String> {
 
     let mut frame = Frame::new(config.width, config.height);
     frame.clear(Rgba::black());
-    
+
     let context = RenderContext::new(frame_index, total_frames, config.fps, config.seed);
 
     scene.render(&mut frame, &context);
@@ -61,7 +66,12 @@ fn preview_frame(request: PreviewRequest) -> Result<String, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![welcome, list_gallery, preview_frame])
+        .invoke_handler(tauri::generate_handler![
+            welcome,
+            list_gallery,
+            preset_config,
+            preview_frame
+        ])
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -80,6 +90,16 @@ pub fn run() {
 mod tests {
     use super::*;
 
+    fn preview_with_preset(preset: &str, seed: u64) -> String {
+        let mut config = load_preset(preset).expect("load preset");
+        config.seed = seed;
+        preview_frame(PreviewRequest {
+            config,
+            frame_index: None,
+        })
+        .expect("preview")
+    }
+
     #[test]
     fn gallery_lists_twelve_presets_with_slugs() {
         let items = list_gallery();
@@ -89,28 +109,41 @@ mod tests {
     }
 
     #[test]
-    fn preview_frame_changes_with_seed_and_preset() {
-        let noise_42 = preview_frame(PreviewRequest {
-            preset: "noise_clouds".into(),
-            seed: 42,
-            frame_index: None,
-        })
-        .expect("noise preview");
-        let noise_99 = preview_frame(PreviewRequest {
-            preset: "noise_clouds".into(),
-            seed: 99,
-            frame_index: None,
-        })
-        .expect("noise preview other seed");
-        let gradient_42 = preview_frame(PreviewRequest {
-            preset: "gradient".into(),
-            seed: 42,
-            frame_index: None,
-        })
-        .expect("gradient preview");
+    fn preset_config_loads_gallery_preset() {
+        let config = preset_config("noise_clouds".into()).expect("preset config");
+        assert_eq!(config.scene.name, "noise_clouds");
+        assert_eq!(config.seed, 42);
+    }
 
-        assert!(!noise_42.is_empty());
-        assert_ne!(noise_42, noise_99, "seed change should change preview");
-        assert_ne!(gradient_42, noise_42, "preset change should change preview");
+    #[test]
+    fn preview_frame_changes_with_width_and_preset() {
+        let mut narrow = load_preset("gradient").expect("load preset");
+        narrow.width = 128;
+        let small = preview_frame(PreviewRequest {
+            config: narrow,
+            frame_index: None,
+        })
+        .expect("small preview");
+
+        let mut wide = load_preset("gradient").expect("load preset");
+        wide.width = 256;
+        let large = preview_frame(PreviewRequest {
+            config: wide,
+            frame_index: None,
+        })
+        .expect("large preview");
+
+        let noise = preview_with_preset("noise_clouds", 42);
+
+        assert!(!small.is_empty());
+        assert_ne!(small, large, "width change should change preview");
+        assert_ne!(small, noise, "preset change should change preview");
+    }
+
+    #[test]
+    fn preview_frame_changes_with_seed() {
+        let seed_42 = preview_with_preset("conway", 42);
+        let seed_99 = preview_with_preset("conway", 99);
+        assert_ne!(seed_42, seed_99, "seed change should change preview");
     }
 }
