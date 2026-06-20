@@ -1,19 +1,32 @@
 use crate::{Frame, RenderContext, Rgba, Scene};
+use crate::color::lerp_rgba;
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum GradientDirection {
+    Horizontal,
+    Vertical,
+    Radial,
+    Diagonal,
+}
+
+impl Default for GradientDirection {
+    fn default() -> Self {
+        GradientDirection::Horizontal
+    }
+}
 
 pub struct GradientScene {
     pub start_color: Rgba,
     pub end_color: Rgba,
     pub speed: f32,
+    pub direction: GradientDirection,
 }
 
 impl GradientScene {
-    pub fn new(start_color: Rgba, end_color: Rgba, speed: f32) -> Self {
-        Self {
-            start_color,
-            end_color,
-            speed,
-        }
+    pub fn new(start_color: Rgba, end_color: Rgba, speed: f32, direction: GradientDirection) -> Self {
+        Self { start_color, end_color, speed, direction }
     }
 }
 
@@ -29,6 +42,8 @@ pub struct GradientParams {
     /// Optional hex override for the end color, e.g. "#ffc857". Takes precedence over `palette`.
     #[serde(default)]
     pub end_color: Option<String>,
+    #[serde(default)]
+    pub direction: GradientDirection,
 }
 
 impl Default for GradientParams {
@@ -38,6 +53,7 @@ impl Default for GradientParams {
             palette: String::new(),
             start_color: None,
             end_color: None,
+            direction: GradientDirection::default(),
         }
     }
 }
@@ -53,7 +69,39 @@ impl Scene for GradientScene {
 
     fn render(&self, frame: &mut Frame, context: &RenderContext) {
         let offset = context.normalized_time * self.speed;
-        frame.fill_sliding_horizontal_gradient(self.start_color, self.end_color, offset)
+        let start = self.start_color;
+        let end = self.end_color;
+        let w = frame.width as f32;
+        let h = frame.height as f32;
+
+        match self.direction {
+            GradientDirection::Horizontal => {
+                frame.fill_sliding_horizontal_gradient(start, end, offset);
+            }
+            GradientDirection::Vertical => {
+                frame.parallel_for_each_pixel(move |_x, y| {
+                    let t = (y as f32 / (h - 1.0) + offset).fract();
+                    lerp_rgba(start, end, t)
+                });
+            }
+            GradientDirection::Radial => {
+                let cx = w * 0.5;
+                let cy = h * 0.5;
+                let max_r = (cx * cx + cy * cy).sqrt();
+                frame.parallel_for_each_pixel(move |x, y| {
+                    let dx = x as f32 - cx;
+                    let dy = y as f32 - cy;
+                    let t = ((dx * dx + dy * dy).sqrt() / max_r + offset).fract();
+                    lerp_rgba(start, end, t)
+                });
+            }
+            GradientDirection::Diagonal => {
+                frame.parallel_for_each_pixel(move |x, y| {
+                    let t = (x as f32 / w * 0.5 + y as f32 / h * 0.5 + offset).fract();
+                    lerp_rgba(start, end, t)
+                });
+            }
+        }
     }
 }
 
@@ -90,7 +138,7 @@ mod tests {
         let mut frame = Frame::new(width, height);
         let ctx = RenderContext::new(frame_index, total_frames, 24.0, 42);
         let (start_color, end_color) = palette_from_name("sunset");
-        let scene = GradientScene::new(start_color, end_color, speed);
+        let scene = GradientScene::new(start_color, end_color, speed, GradientDirection::Horizontal);
         scene.render(&mut frame, &ctx);
         frame
     }

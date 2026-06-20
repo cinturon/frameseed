@@ -1,5 +1,5 @@
 mod gradient;
-pub use gradient::{GradientScene, GradientParams, palette_from_name, KNOWN_PALETTES};
+pub use gradient::{GradientScene, GradientParams, GradientDirection, palette_from_name, KNOWN_PALETTES};
 
 mod noise_clouds;
 pub use noise_clouds::{NoiseCloudsScene, NoiseCloudsParams};

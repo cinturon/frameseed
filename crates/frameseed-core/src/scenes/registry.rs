@@ -38,7 +38,7 @@ pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigEr
             let end_color = scene.gradient.end_color.as_deref()
                 .and_then(crate::Rgba::from_hex)
                 .unwrap_or(palette_end);
-            Ok(Box::new(GradientScene::new(start_color, end_color, scene.gradient.speed)))
+            Ok(Box::new(GradientScene::new(start_color, end_color, scene.gradient.speed, scene.gradient.direction.clone())))
         },
         "noise_clouds" => {
             Ok(Box::new(NoiseCloudsScene::new(scene.noise_clouds.speed, scene.noise_clouds.scale)))
