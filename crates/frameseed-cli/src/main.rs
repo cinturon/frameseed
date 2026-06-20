@@ -13,6 +13,7 @@ use frameseed_core::render_preview_frame;
 use frameseed_core::save_preset;
 use frameseed_core::scene_from_config;
 use frameseed_core::{EffectsConfig, RenderConfig, SceneConfig};
+use frameseed_core::KNOWN_PALETTES;
 use frameseed_encoder::create_contact_sheet;
 use frameseed_encoder::{export_video, ExportFormat};
 use std::error::Error;
@@ -75,6 +76,11 @@ fn run() -> Result<(), Box<dyn Error>> {
         }
         Commands::ListPresets => {
             for name in list_presets()? {
+                println!("{name}");
+            }
+        }
+        Commands::ListPalettes => {
+            for name in KNOWN_PALETTES {
                 println!("{name}");
             }
         }

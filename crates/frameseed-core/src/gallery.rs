@@ -71,7 +71,12 @@ pub fn gallery_entries() -> &'static [GalleryEntry] {
             slug: "capstone",
             title: "Capstone — Drift",
             description: "45s flow-field short with blur, palette, and VHS",
-        }
+        },
+        GalleryEntry {
+            slug: "plasma",
+            title: "Plasma",
+            description: "classic demoscene plasma using layered sine waves",
+        },
     ]
 }
 

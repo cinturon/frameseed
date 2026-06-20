@@ -51,10 +51,21 @@ impl Scene for GradientScene {
 
 pub fn palette_from_name(name: &str) -> (Rgba, Rgba) {
     match name {
-        "sunset" => (Rgba::new(255, 94, 77, 255), Rgba::new(255, 200, 87, 255)),
-        _ => (Rgba::black(), Rgba::white()),
+        "sunset"   => (Rgba::new(255,  94,  77, 255), Rgba::new(255, 200,  87, 255)),
+        "ocean"    => (Rgba::new(  0,  32,  96, 255), Rgba::new( 32, 178, 170, 255)),
+        "forest"   => (Rgba::new( 10,  60,  10, 255), Rgba::new(144, 238, 144, 255)),
+        "fire"     => (Rgba::new(255,  69,   0, 255), Rgba::new(255, 215,   0, 255)),
+        "purple"   => (Rgba::new( 75,   0, 130, 255), Rgba::new(238, 130, 238, 255)),
+        "ice"      => (Rgba::new(173, 216, 230, 255), Rgba::new(255, 255, 255, 255)),
+        "rose"     => (Rgba::new(255,  20, 147, 255), Rgba::new(255, 182, 193, 255)),
+        "midnight" => (Rgba::new(  0,   0,  50, 255), Rgba::new( 25,  25, 112, 255)),
+        _          => (Rgba::black(), Rgba::white()),
     }
 }
+
+pub const KNOWN_PALETTES: &[&str] = &[
+    "sunset", "ocean", "forest", "fire", "purple", "ice", "rose", "midnight",
+];
 
 #[cfg(test)]
 mod tests {

@@ -14,7 +14,7 @@ mod noise;
 pub use noise::value_noise_2d;
 
 mod scenes;
-pub use scenes::{scene_from_config, GradientParams, GradientScene, MandelbrotScene, palette_from_name};
+pub use scenes::{scene_from_config, GradientParams, GradientScene, MandelbrotScene, palette_from_name, KNOWN_PALETTES};
 
 mod config;
 pub use config::{RenderConfig, load_from_path, EffectsConfig, SceneConfig};

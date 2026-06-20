@@ -110,7 +110,7 @@ mod tests {
     use crate::config::{EffectsConfig, SceneConfig};
     use crate::scenes::{
         ConwayParams, FlowFieldParams, GradientParams, MandelbrotParams, NoiseCloudsParams,
-        ParticleParams, SdfShapeParams, VoronoiParams,
+        ParticleParams, PlasmaParams, SdfShapeParams, VoronoiParams,
     };
     use std::sync::{Arc, Mutex};
 
@@ -125,6 +125,7 @@ mod tests {
             sdf_shapes: SdfShapeParams::default(),
             mandelbrot: MandelbrotParams::default(),
             voronoi: VoronoiParams::default(),
+            plasma: PlasmaParams::default(),
         }
     }
 

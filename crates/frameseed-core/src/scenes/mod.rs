@@ -1,5 +1,5 @@
 mod gradient;
-pub use gradient::{GradientScene, GradientParams, palette_from_name};
+pub use gradient::{GradientScene, GradientParams, palette_from_name, KNOWN_PALETTES};
 
 mod noise_clouds;
 pub use noise_clouds::{NoiseCloudsScene, NoiseCloudsParams};
@@ -21,6 +21,9 @@ pub use mandelbrot::{MandelbrotScene, MandelbrotParams};
 
 mod voronoi;
 pub use voronoi::{VoronoiScene, VoronoiParams};
+
+mod plasma;
+pub use plasma::{PlasmaScene, PlasmaParams};
 
 mod registry;
 pub use registry::scene_from_config;

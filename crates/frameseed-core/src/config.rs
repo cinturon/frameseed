@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams, VoronoiParams};
+use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams, VoronoiParams, PlasmaParams};
 use crate::effects::{PixelationParams, PaletteQuantizationParams, DitherParams, MotionBlurParams, VhsCrtParams};
 use std::{error::Error, fmt::Display, path::Path};
 
@@ -141,6 +141,7 @@ impl SceneConfig {
             sdf_shapes: SdfShapeParams::default(),
             mandelbrot: MandelbrotParams::default(),
             voronoi: VoronoiParams::default(),
+            plasma: PlasmaParams::default(),
         }
     }
 }
@@ -164,6 +165,8 @@ pub struct SceneConfig {
     pub mandelbrot: MandelbrotParams,
     #[serde(default)]
     pub voronoi: VoronoiParams,
+    #[serde(default)]
+    pub plasma: PlasmaParams,
 }
 
 #[derive(Debug, Deserialize, Clone, Default, Serialize)]
@@ -212,6 +215,7 @@ mod tests {
                 sdf_shapes: SdfShapeParams::default(),
                 mandelbrot: MandelbrotParams::default(),
                 voronoi: VoronoiParams::default(),
+                plasma: PlasmaParams::default(),
             },
             EffectsConfig::default(),
         );
@@ -241,6 +245,7 @@ mod tests {
                 sdf_shapes: SdfShapeParams::default(),
                 mandelbrot: MandelbrotParams::default(),
                 voronoi: VoronoiParams::default(),
+                plasma: PlasmaParams::default(),
             },
             EffectsConfig::default(),
         );

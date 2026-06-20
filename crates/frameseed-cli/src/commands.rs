@@ -36,6 +36,7 @@ pub enum Commands {
     },
     ListScenes,
     ListPresets,
+    ListPalettes,
     Preview {
         #[arg(long, conflicts_with_all = ["preset", "config"])]
         scene: Option<String>,
