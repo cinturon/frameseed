@@ -28,6 +28,9 @@ pub use presets::{list_presets, load_preset, preset_path, save_preset};
 mod gallery;
 pub use gallery::{gallery_entries, GalleryEntry};
 
+mod base64;
+pub use base64::frame_to_base64;
+
 
 use std::path::Path;
 

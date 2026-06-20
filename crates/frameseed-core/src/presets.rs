@@ -1,12 +1,15 @@
 use crate::config::{ConfigError, RenderConfig};
 use crate::load_from_path;
-use std::path::{Path, PathBuf};
 use std::fs::create_dir_all;
+use std::path::PathBuf;
 
-pub const PRESETS_DIR: &str = "presets";
+/// Repo-root `presets/` directory, anchored from `frameseed-core`'s manifest path.
+pub fn presets_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../presets")
+}
 
 pub fn preset_path(name: &str) -> PathBuf {
-    Path::new(PRESETS_DIR).join(format!("{}.toml", name))
+    presets_dir().join(format!("{name}.toml"))
 }
 
 pub fn load_preset(name: &str) -> Result<RenderConfig, ConfigError> {
@@ -15,7 +18,7 @@ pub fn load_preset(name: &str) -> Result<RenderConfig, ConfigError> {
 
 pub fn list_presets() -> Result<Vec<String>, ConfigError> {
     let mut names = Vec::new();
-    for entry in std::fs::read_dir(PRESETS_DIR)? {
+    for entry in std::fs::read_dir(presets_dir())? {
         let entry = entry?;
         let path = entry.path();
         if path.extension().is_some_and(|ext| ext == "toml") {
@@ -29,7 +32,7 @@ pub fn list_presets() -> Result<Vec<String>, ConfigError> {
 }
 
 pub fn save_preset(name: &str, config: &RenderConfig) -> Result<(), ConfigError> {
-    create_dir_all(PRESETS_DIR)?;
+    create_dir_all(presets_dir())?;
     let path = preset_path(name);
     let contents = toml::to_string_pretty(config).map_err(|e| ConfigError::Invalid(e.to_string()))?;
     std::fs::write(path, contents)?;
