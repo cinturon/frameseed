@@ -6,3 +6,6 @@ pub use ffmpeg::ffmpeg_exists;
 
 mod contact_sheet;
 pub use contact_sheet::create_contact_sheet;
+
+mod export;
+pub use export::{export_video, ExportError, ExportFormat};

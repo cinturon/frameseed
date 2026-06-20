@@ -2,12 +2,156 @@ use frameseed_core::{
     effects_from_config, frame_to_base64, load_preset, scene_from_config, Frame, RenderConfig,
     RenderContext, Rgba,
 };
+use frameseed_encoder::{export_video, ExportFormat};
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
+use tauri::{AppHandle, Emitter, State};
 
 #[derive(Deserialize)]
 struct PreviewRequest {
     config: RenderConfig,
     frame_index: Option<u32>,
+}
+
+#[derive(Deserialize)]
+struct QueueRenderRequest {
+    config: RenderConfig,
+    output_format: String,
+}
+
+#[derive(Clone, Serialize)]
+struct RenderProgressEvent {
+    phase: String,
+    current: u32,
+    total: u32,
+}
+
+#[derive(Clone, Serialize)]
+struct RenderCompleteEvent {
+    output_path: String,
+    job_dir: String,
+}
+
+#[derive(Clone, Serialize)]
+struct RenderErrorEvent {
+    message: String,
+}
+
+struct RenderState {
+    running: Arc<Mutex<bool>>,
+}
+
+impl RenderState {
+    fn new() -> Self {
+        Self {
+            running: Arc::new(Mutex::new(false)),
+        }
+    }
+}
+
+fn render_job_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../output/renders")
+}
+
+fn next_job_dir(base: &PathBuf) -> PathBuf {
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_secs())
+        .unwrap_or(0);
+    base.join(format!("render_{stamp}"))
+}
+
+fn finish_render(state: &RenderState, running: bool) {
+    if let Ok(mut guard) = state.running.lock() {
+        *guard = running;
+    }
+}
+
+fn run_export_job(app: AppHandle, state: RenderState, config: RenderConfig, format: String) {
+    std::thread::spawn(move || {
+        let result = (|| -> Result<PathBuf, String> {
+            config.validate().map_err(|error| error.to_string())?;
+            let export_format = ExportFormat::parse(&format).map_err(|error| error.to_string())?;
+
+            let base_dir = render_job_dir();
+            std::fs::create_dir_all(&base_dir).map_err(|error| error.to_string())?;
+            let job_dir = next_job_dir(&base_dir);
+            std::fs::create_dir_all(&job_dir).map_err(|error| error.to_string())?;
+
+            let output_path = export_video(&config, &job_dir, export_format, |phase, current, total| {
+                let _ = app.emit(
+                    "render-progress",
+                    RenderProgressEvent {
+                        phase: phase.to_string(),
+                        current,
+                        total,
+                    },
+                );
+            })
+            .map_err(|error| error.to_string())?;
+
+            Ok(output_path)
+        })();
+
+        match result {
+            Ok(output_path) => {
+                let job_dir = output_path
+                    .parent()
+                    .map(|path| path.display().to_string())
+                    .unwrap_or_default();
+                let _ = app.emit(
+                    "render-complete",
+                    RenderCompleteEvent {
+                        output_path: output_path.display().to_string(),
+                        job_dir,
+                    },
+                );
+            }
+            Err(message) => {
+                let _ = app.emit("render-error", RenderErrorEvent { message });
+            }
+        }
+
+        finish_render(&state, false);
+    });
+}
+
+#[tauri::command]
+fn queue_render(
+    app: AppHandle,
+    state: State<'_, RenderState>,
+    request: QueueRenderRequest,
+) -> Result<(), String> {
+    {
+        let mut running = state
+            .running
+            .lock()
+            .map_err(|_| "Render queue lock poisoned".to_string())?;
+        if *running {
+            return Err("A render is already in progress".into());
+        }
+        *running = true;
+    }
+
+    run_export_job(
+        app,
+        RenderState {
+            running: state.running.clone(),
+        },
+        request.config,
+        request.output_format,
+    );
+    Ok(())
+}
+
+#[tauri::command]
+fn render_queue_running(state: State<'_, RenderState>) -> Result<bool, String> {
+    let running = state
+        .running
+        .lock()
+        .map_err(|_| "Render queue lock poisoned".to_string())?;
+    Ok(*running)
 }
 
 #[tauri::command]
@@ -70,8 +214,11 @@ pub fn run() {
             welcome,
             list_gallery,
             preset_config,
-            preview_frame
+            preview_frame,
+            queue_render,
+            render_queue_running
         ])
+        .manage(RenderState::new())
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(

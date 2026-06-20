@@ -32,6 +32,23 @@ button {
   margin-left: 0.5rem;
 }
 
+#render-progress {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+#render-status {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #bdbdbd;
+}
+
+#export-panel button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 #preview {
   display: block;
   max-width: 100%;

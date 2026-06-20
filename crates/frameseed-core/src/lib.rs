@@ -31,6 +31,9 @@ pub use gallery::{gallery_entries, GalleryEntry};
 mod base64;
 pub use base64::frame_to_base64;
 
+mod render;
+pub use render::{render_sequence, RenderError};
+
 
 use std::path::Path;
 
