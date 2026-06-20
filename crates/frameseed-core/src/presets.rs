@@ -13,7 +13,13 @@ pub fn preset_path(name: &str) -> PathBuf {
 }
 
 pub fn load_preset(name: &str) -> Result<RenderConfig, ConfigError> {
-    load_from_path(&preset_path(name))
+    let path = preset_path(name);
+    if !path.exists() {
+        return Err(ConfigError::Invalid(format!(
+            "Preset '{name}' not found. Run `frameseed list-presets` to see available presets."
+        )));
+    }
+    load_from_path(&path)
 }
 
 pub fn list_presets() -> Result<Vec<String>, ConfigError> {

@@ -2,7 +2,7 @@ use frameseed_core::{
     effects_from_config, frame_to_base64, load_preset, scene_from_config, Frame, RenderConfig,
     RenderContext, Rgba,
 };
-use frameseed_encoder::{export_video, ExportFormat};
+use frameseed_encoder::{export_video, ExportError, ExportFormat};
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -41,6 +41,14 @@ struct RenderErrorEvent {
 
 #[derive(Clone, Serialize)]
 struct ExportCancelled;
+
+fn user_message(error: impl std::fmt::Display) -> String {
+    error.to_string()
+}
+
+fn export_error_message(error: ExportError) -> String {
+    error.to_string()
+}
 
 struct RenderState {
     running: Arc<Mutex<bool>>,
@@ -98,7 +106,7 @@ fn run_export_job(
 ) {
     std::thread::spawn(move || {
         let result = (|| -> Result<PathBuf, String> {
-            config.validate().map_err(|error| error.to_string())?;
+            config.validate().map_err(user_message)?;
 
             let base_dir = render_job_dir();
             std::fs::create_dir_all(&base_dir).map_err(|error| error.to_string())?;
@@ -121,7 +129,7 @@ fn run_export_job(
                     );
                 },
             )
-            .map_err(|error| error.to_string())
+            .map_err(export_error_message)
         })();
 
         match result {
@@ -183,8 +191,8 @@ fn export_render(
     state: State<'_, RenderState>,
     request: ExportRenderRequest,
 ) -> Result<(), String> {
-    request.config.validate().map_err(|error| error.to_string())?;
-    let format = ExportFormat::parse(&request.output_format).map_err(|error| error.to_string())?;
+    request.config.validate().map_err(user_message)?;
+    let format = ExportFormat::parse(&request.output_format).map_err(user_message)?;
 
     let Some(output_path) = export_dialog(&app, format)? else {
         let _ = app.emit("export-cancelled", ExportCancelled);
@@ -216,7 +224,7 @@ struct GalleryItem {
 
 #[tauri::command]
 fn preset_config(preset: String) -> Result<RenderConfig, String> {
-    load_preset(&preset).map_err(|e| e.to_string())
+    load_preset(&preset).map_err(user_message)
 }
 
 #[tauri::command]
@@ -232,14 +240,14 @@ fn list_gallery() -> Vec<GalleryItem> {
 
 #[tauri::command]
 fn preview_frame(request: PreviewRequest) -> Result<String, String> {
-    request.config.validate().map_err(|e| e.to_string())?;
+    request.config.validate().map_err(user_message)?;
 
     let config = request.config;
 
     let frame_index = request.frame_index.unwrap_or(0);
     let total_frames = config.total_frames();
 
-    let scene = scene_from_config(&config.scene).map_err(|e| e.to_string())?;
+    let scene = scene_from_config(&config.scene).map_err(user_message)?;
     let mut effects = effects_from_config(&config.effects);
 
     let mut frame = Frame::new(config.width, config.height);
@@ -252,7 +260,7 @@ fn preview_frame(request: PreviewRequest) -> Result<String, String> {
         effect.apply(&mut frame, &context);
     }
 
-    let base64 = frame_to_base64(&frame).map_err(|e| e.to_string())?;
+    let base64 = frame_to_base64(&frame).map_err(user_message)?;
     Ok(base64)
 }
 

@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 
-use crate::{encode_gif, encode_png_sequence};
+use crate::{encode_gif, encode_png_sequence, FfmpegError};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExportFormat {
@@ -26,16 +26,19 @@ pub enum ExportError {
     Render(RenderError),
     Io(std::io::Error),
     InvalidFormat(String),
-    Encode(String),
+    Ffmpeg(FfmpegError),
 }
 
 impl Display for ExportError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             ExportError::Render(e) => write!(f, "{e}"),
-            ExportError::Io(e) => write!(f, "IO error: {e}"),
-            ExportError::InvalidFormat(value) => write!(f, "Unsupported export format: {value}"),
-            ExportError::Encode(message) => write!(f, "Encode failed: {message}"),
+            ExportError::Io(e) => write!(f, "Could not write export files: {e}"),
+            ExportError::InvalidFormat(value) => write!(
+                f,
+                "Unsupported export format '{value}'. Use `mp4` or `gif`."
+            ),
+            ExportError::Ffmpeg(error) => write!(f, "{error}"),
         }
     }
 }
@@ -51,6 +54,12 @@ impl From<RenderError> for ExportError {
 impl From<std::io::Error> for ExportError {
     fn from(value: std::io::Error) -> Self {
         ExportError::Io(value)
+    }
+}
+
+impl From<FfmpegError> for ExportError {
+    fn from(value: FfmpegError) -> Self {
+        ExportError::Ffmpeg(value)
     }
 }
 
@@ -97,6 +106,6 @@ where
         ),
     };
 
-    encode_result.map_err(|error| ExportError::Encode(error.to_string()))?;
+    encode_result?;
     Ok(output_path.to_path_buf())
 }
