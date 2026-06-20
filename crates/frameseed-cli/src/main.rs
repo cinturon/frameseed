@@ -9,6 +9,7 @@ use frameseed_core::RenderContext;
 use frameseed_core::Rgba;
 use frameseed_core::effects_from_config;
 use frameseed_core::frame_path;
+use frameseed_core::gallery_entries;
 use frameseed_core::list_presets;
 use frameseed_core::load_from_path;
 use frameseed_core::preset_path;
@@ -56,6 +57,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                 eprintln!("Preset saved: {name}");
             }
         },
+        Commands::ListScenes => {
+            for entry in gallery_entries() {
+                println!("{:<20} {}", entry.title, entry.description);
+                println!("  preset: {}", entry.slug);
+            }
+        }
     }
 
     Ok(())

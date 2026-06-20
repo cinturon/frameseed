@@ -1,0 +1,17 @@
+width = 256
+height = 256
+fps = 24.0
+duration = 4.0
+seed = 77
+
+[scene]
+name = "particles"
+
+[scene.particles]
+count = 350
+speed = 0.6
+kind = "snow"
+fps = 24.0
+
+[effects.motion_blur]
+strength = 0.65
