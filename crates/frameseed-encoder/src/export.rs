@@ -57,6 +57,7 @@ impl From<std::io::Error> for ExportError {
 pub fn export_video<F>(
     config: &RenderConfig,
     job_dir: &Path,
+    output_path: &Path,
     format: ExportFormat,
     mut on_progress: F,
 ) -> Result<PathBuf, ExportError>
@@ -72,24 +73,24 @@ where
 
     on_progress("encoding", config.total_frames(), config.total_frames());
 
+    if let Some(parent) = output_path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+
     let frame_count = config.total_frames();
     let pattern = sequence_dir.join("frame_%06d.png");
-    let output_path = match format {
-        ExportFormat::Mp4 => job_dir.join("video.mp4"),
-        ExportFormat::Gif => job_dir.join("animation.gif"),
-    };
 
     let encode_result = match format {
         ExportFormat::Mp4 => encode_png_sequence(
             &pattern,
-            &output_path,
+            output_path,
             config.fps,
             1,
             frame_count,
         ),
         ExportFormat::Gif => encode_gif(
             &pattern,
-            &output_path,
+            output_path,
             config.fps,
             1,
             frame_count,
@@ -97,5 +98,5 @@ where
     };
 
     encode_result.map_err(|error| ExportError::Encode(error.to_string()))?;
-    Ok(output_path)
+    Ok(output_path.to_path_buf())
 }

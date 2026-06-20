@@ -79,7 +79,12 @@ fn render(
     let job_dir = Path::new("output");
     let total_start = Instant::now();
 
-    let output_path = export_video(&config, job_dir, export_format, |phase, current, total| {
+    let output_path = match export_format {
+        ExportFormat::Mp4 => job_dir.join("video.mp4"),
+        ExportFormat::Gif => job_dir.join("animation.gif"),
+    };
+
+    let output_path = export_video(&config, job_dir, &output_path, export_format, |phase, current, total| {
         if phase == "rendering" {
             eprintln!("Frame {current}/{total}");
         } else if phase == "encoding" {

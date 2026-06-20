@@ -4,9 +4,10 @@ use frameseed_core::{
 };
 use frameseed_encoder::{export_video, ExportFormat};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, State};
+use tauri_plugin_dialog::DialogExt;
 
 #[derive(Deserialize)]
 struct PreviewRequest {
@@ -15,7 +16,7 @@ struct PreviewRequest {
 }
 
 #[derive(Deserialize)]
-struct QueueRenderRequest {
+struct ExportRenderRequest {
     config: RenderConfig,
     output_format: String,
 }
@@ -38,6 +39,9 @@ struct RenderErrorEvent {
     message: String,
 }
 
+#[derive(Clone, Serialize)]
+struct ExportCancelled;
+
 struct RenderState {
     running: Arc<Mutex<bool>>,
 }
@@ -54,7 +58,7 @@ fn render_job_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../output/renders")
 }
 
-fn next_job_dir(base: &PathBuf) -> PathBuf {
+fn next_job_dir(base: &Path) -> PathBuf {
     let stamp = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map(|duration| duration.as_secs())
@@ -68,42 +72,68 @@ fn finish_render(state: &RenderState, running: bool) {
     }
 }
 
-fn run_export_job(app: AppHandle, state: RenderState, config: RenderConfig, format: String) {
+fn export_dialog(app: &AppHandle, format: ExportFormat) -> Result<Option<PathBuf>, String> {
+    let (title, filter_name, extension, default_name) = match format {
+        ExportFormat::Mp4 => ("Export MP4", "MP4 Video", "mp4", "frameseed.mp4"),
+        ExportFormat::Gif => ("Export GIF", "GIF Animation", "gif", "frameseed.gif"),
+    };
+
+    let selection = app
+        .dialog()
+        .file()
+        .set_title(title)
+        .set_file_name(default_name)
+        .add_filter(filter_name, &[extension])
+        .blocking_save_file();
+
+    Ok(selection.map(|path| path.into_path().map_err(|error| error.to_string())).transpose()?)
+}
+
+fn run_export_job(
+    app: AppHandle,
+    state: RenderState,
+    config: RenderConfig,
+    format: ExportFormat,
+    output_path: PathBuf,
+) {
     std::thread::spawn(move || {
         let result = (|| -> Result<PathBuf, String> {
             config.validate().map_err(|error| error.to_string())?;
-            let export_format = ExportFormat::parse(&format).map_err(|error| error.to_string())?;
 
             let base_dir = render_job_dir();
             std::fs::create_dir_all(&base_dir).map_err(|error| error.to_string())?;
             let job_dir = next_job_dir(&base_dir);
             std::fs::create_dir_all(&job_dir).map_err(|error| error.to_string())?;
 
-            let output_path = export_video(&config, &job_dir, export_format, |phase, current, total| {
-                let _ = app.emit(
-                    "render-progress",
-                    RenderProgressEvent {
-                        phase: phase.to_string(),
-                        current,
-                        total,
-                    },
-                );
-            })
-            .map_err(|error| error.to_string())?;
-
-            Ok(output_path)
+            export_video(
+                &config,
+                &job_dir,
+                &output_path,
+                format,
+                |phase, current, total| {
+                    let _ = app.emit(
+                        "render-progress",
+                        RenderProgressEvent {
+                            phase: phase.to_string(),
+                            current,
+                            total,
+                        },
+                    );
+                },
+            )
+            .map_err(|error| error.to_string())
         })();
 
         match result {
-            Ok(output_path) => {
-                let job_dir = output_path
+            Ok(saved_path) => {
+                let job_dir = saved_path
                     .parent()
                     .map(|path| path.display().to_string())
                     .unwrap_or_default();
                 let _ = app.emit(
                     "render-complete",
                     RenderCompleteEvent {
-                        output_path: output_path.display().to_string(),
+                        output_path: saved_path.display().to_string(),
                         job_dir,
                     },
                 );
@@ -117,11 +147,12 @@ fn run_export_job(app: AppHandle, state: RenderState, config: RenderConfig, form
     });
 }
 
-#[tauri::command]
-fn queue_render(
+fn begin_export(
     app: AppHandle,
-    state: State<'_, RenderState>,
-    request: QueueRenderRequest,
+    state: &RenderState,
+    config: RenderConfig,
+    format: ExportFormat,
+    output_path: PathBuf,
 ) -> Result<(), String> {
     {
         let mut running = state
@@ -139,10 +170,28 @@ fn queue_render(
         RenderState {
             running: state.running.clone(),
         },
-        request.config,
-        request.output_format,
+        config,
+        format,
+        output_path,
     );
     Ok(())
+}
+
+#[tauri::command]
+fn export_render(
+    app: AppHandle,
+    state: State<'_, RenderState>,
+    request: ExportRenderRequest,
+) -> Result<(), String> {
+    request.config.validate().map_err(|error| error.to_string())?;
+    let format = ExportFormat::parse(&request.output_format).map_err(|error| error.to_string())?;
+
+    let Some(output_path) = export_dialog(&app, format)? else {
+        let _ = app.emit("export-cancelled", ExportCancelled);
+        return Ok(());
+    };
+
+    begin_export(app, &state, request.config, format, output_path)
 }
 
 #[tauri::command]
@@ -210,12 +259,13 @@ fn preview_frame(request: PreviewRequest) -> Result<String, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             welcome,
             list_gallery,
             preset_config,
             preview_frame,
-            queue_render,
+            export_render,
             render_queue_running
         ])
         .manage(RenderState::new())

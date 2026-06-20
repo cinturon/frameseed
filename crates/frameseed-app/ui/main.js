@@ -80,8 +80,8 @@ async function queueExport() {
   try {
     setExportRunning(true);
     renderProgress.value = "0";
-    renderStatus.textContent = "Queued…";
-    await invoke("queue_render", {
+    renderStatus.textContent = "Choose save location…";
+    await invoke("export_render", {
       request: {
         config,
         output_format: exportFormatSelect.value,
@@ -90,7 +90,7 @@ async function queueExport() {
   } catch (error) {
     setExportRunning(false);
     renderStatus.textContent = `Error: ${error}`;
-    console.error("Error queueing render:", error);
+    console.error("Error exporting:", error);
   }
 }
 
@@ -108,6 +108,12 @@ async function setupRenderEvents() {
   await listen("render-error", (event) => {
     setExportRunning(false);
     renderStatus.textContent = `Error: ${event.payload.message}`;
+  });
+
+  await listen("export-cancelled", () => {
+    setExportRunning(false);
+    renderProgress.value = "0";
+    renderStatus.textContent = "Export cancelled";
   });
 }
 
