@@ -1,0 +1,12 @@
+width = 640
+height = 360
+fps = 24.0
+duration = 8.0
+seed = 44
+
+[scene]
+name = "tunnel"
+
+[scene.tunnel]
+speed = 1.0
+rings = 10

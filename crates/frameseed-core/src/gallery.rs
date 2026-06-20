@@ -102,6 +102,11 @@ pub fn gallery_entries() -> &'static [GalleryEntry] {
             title: "Ocean Gradient",
             description: "diagonal ocean palette gradient with slow drift",
         },
+        GalleryEntry {
+            slug: "tunnel",
+            title: "Tunnel",
+            description: "classic demoscene color tunnel with hue rotation",
+        },
     ]
 }
 

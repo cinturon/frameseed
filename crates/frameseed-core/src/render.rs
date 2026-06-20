@@ -111,7 +111,7 @@ mod tests {
     use crate::scenes::{
         ConwayParams, FlowFieldParams, GradientParams, LissajousParams, MandelbrotParams,
         NoiseCloudsParams, ParticleParams, PlasmaParams, SdfShapeParams, SineWaveParams,
-        StarfieldParams, VoronoiParams,
+        StarfieldParams, TunnelParams, VoronoiParams,
     };
     use std::sync::{Arc, Mutex};
 
@@ -130,6 +130,7 @@ mod tests {
             lissajous: LissajousParams::default(),
             sine_wave: SineWaveParams::default(),
             starfield: StarfieldParams::default(),
+            tunnel: TunnelParams::default(),
         }
     }
 

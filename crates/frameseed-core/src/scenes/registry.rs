@@ -12,6 +12,7 @@ use crate::scenes::PlasmaScene;
 use crate::scenes::LissajousScene;
 use crate::scenes::SineWaveScene;
 use crate::scenes::StarfieldScene;
+use crate::scenes::TunnelScene;
 
 pub const KNOWN_SCENES: &[&str] = &[
     "gradient",
@@ -26,6 +27,7 @@ pub const KNOWN_SCENES: &[&str] = &[
     "lissajous",
     "sine_wave",
     "starfield",
+    "tunnel",
 ];
 
 pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigError> {
@@ -73,6 +75,9 @@ pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigEr
         },
         "starfield" => {
             Ok(Box::new(StarfieldScene::new(scene.starfield.count, scene.starfield.speed)))
+        },
+        "tunnel" => {
+            Ok(Box::new(TunnelScene::new(scene.tunnel.speed, scene.tunnel.rings)))
         },
         _ => Err(ConfigError::Invalid(format!(
             "Unknown scene '{}'. Run `frameseed list-scenes` to see available scenes: {}",
