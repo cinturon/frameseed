@@ -31,5 +31,8 @@ pub use lissajous::{LissajousScene, LissajousParams};
 mod sine_wave;
 pub use sine_wave::{SineWaveScene, SineWaveParams};
 
+mod starfield;
+pub use starfield::{StarfieldScene, StarfieldParams};
+
 mod registry;
 pub use registry::{scene_from_config, KNOWN_SCENES};

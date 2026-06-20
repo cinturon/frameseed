@@ -82,6 +82,11 @@ pub fn gallery_entries() -> &'static [GalleryEntry] {
             title: "Lissajous",
             description: "animated Lissajous curves with phosphor trail",
         },
+        GalleryEntry {
+            slug: "starfield",
+            title: "Starfield",
+            description: "3D starfield with depth-based brightness and size",
+        },
     ]
 }
 

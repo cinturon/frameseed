@@ -111,7 +111,7 @@ mod tests {
     use crate::scenes::{
         ConwayParams, FlowFieldParams, GradientParams, LissajousParams, MandelbrotParams,
         NoiseCloudsParams, ParticleParams, PlasmaParams, SdfShapeParams, SineWaveParams,
-        VoronoiParams,
+        StarfieldParams, VoronoiParams,
     };
     use std::sync::{Arc, Mutex};
 
@@ -129,6 +129,7 @@ mod tests {
             plasma: PlasmaParams::default(),
             lissajous: LissajousParams::default(),
             sine_wave: SineWaveParams::default(),
+            starfield: StarfieldParams::default(),
         }
     }
 

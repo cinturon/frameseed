@@ -1,0 +1,12 @@
+width = 640
+height = 360
+fps = 24.0
+duration = 8.0
+seed = 33
+
+[scene]
+name = "starfield"
+
+[scene.starfield]
+count = 300
+speed = 0.6
