@@ -11,6 +11,7 @@ use frameseed_core::frame_path;
 use frameseed_core::load_from_path;
 use frameseed_core::scene_from_config;
 use frameseed_encoder::{encode_gif, encode_png_sequence};
+use frameseed_encoder::create_contact_sheet;
 use std::error::Error;
 use std::path::Path;
 
@@ -21,15 +22,30 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::Render {
             config,
             output_format,
+            contact_sheet,
+            contact_sheet_step,
+            contact_sheet_cols,
         } => {
-            render(&config, output_format)?;
+            render(
+                &config,
+                output_format,
+                contact_sheet,
+                contact_sheet_step,
+                contact_sheet_cols,
+            )?;
         }
     }
 
     Ok(())
 }
 
-fn render(config: &Path, output_format: OutputFormat) -> Result<(), Box<dyn Error>> {
+fn render(
+    config: &Path,
+    output_format: OutputFormat,
+    contact_sheet: bool,
+    contact_sheet_step: u32,
+    contact_sheet_cols: u32,
+) -> Result<(), Box<dyn Error>> {
     let config = load_from_path(config)?;
 
     std::fs::create_dir_all("output/sequence")?;
@@ -79,25 +95,34 @@ fn render(config: &Path, output_format: OutputFormat) -> Result<(), Box<dyn Erro
     let frame_count = config.total_frames();
 
     match output_format {
-        OutputFormat::Mp4 => {
-            encode_png_sequence(
-                pattern,
-                Path::new("output/video.mp4"),
-                config.fps,
-                1,
-                frame_count,
-            )
-        }
-        OutputFormat::Gif => {
-            encode_gif(
-                pattern,
-                Path::new("output/animation.gif"),
-                config.fps,
-                1,
-                frame_count,
-            )
-        }
+        OutputFormat::Mp4 => encode_png_sequence(
+            pattern,
+            Path::new("output/video.mp4"),
+            config.fps,
+            1,
+            frame_count,
+        ),
+        OutputFormat::Gif => encode_gif(
+            pattern,
+            Path::new("output/animation.gif"),
+            config.fps,
+            1,
+            frame_count,
+        ),
     }?;
+
+    if contact_sheet {
+        create_contact_sheet(
+            Path::new("output/sequence"),
+            Path::new("output/contact_sheet.png"),
+            frame_count,
+            config.fps,
+            contact_sheet_step,
+            contact_sheet_cols,
+            128,
+        )?;
+        eprintln!("Contact sheet created at {}", Path::new("output/contact_sheet.png").display());
+    }
 
     Ok(())
 }

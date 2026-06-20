@@ -2,7 +2,7 @@ use std::error::Error;
 use std::path::Path;
 use std::process::Command;
 
-fn ffmpeg_exists() -> Result<(), Box<dyn Error>> {
+pub fn ffmpeg_exists() -> Result<(), Box<dyn Error>> {
     let status = Command::new("ffmpeg").arg("-version").output()?;
     if !status.status.success() {
         return Err(Box::new(std::io::Error::new(
