@@ -136,6 +136,10 @@ cd crates/frameseed-app
 cargo tauri dev
 ```
 
+## Portfolio case study
+
+Project narrative for employers and portfolio sites: [docs/case-study.md](docs/case-study.md).
+
 ## Tests
 
 ```bash
