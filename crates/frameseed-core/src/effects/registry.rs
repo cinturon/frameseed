@@ -2,8 +2,8 @@ use crate::Effect;
 use crate::config::EffectsConfig;
 use crate::effects::InvertEffect;
 use crate::effects::{
-    MotionBlurEffect, OrderedDitherEffect, PaletteQuantizationEffect, PixelationEffect,
-    VhsCrtEffect,
+    BoxBlurEffect, MotionBlurEffect, OrderedDitherEffect, PaletteQuantizationEffect,
+    PixelationEffect, VhsCrtEffect,
 };
 
 pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
@@ -37,6 +37,9 @@ pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
             vhs_crt.warp_amount,
         )));
     }
+    if let Some(blur) = &effects.blur {
+        pipeline.push(Box::new(BoxBlurEffect::new(blur.radius)));
+    }
     pipeline
 }
 
@@ -65,6 +68,7 @@ mod tests {
             dither: None,
             motion_blur: None,
             vhs_crt: None,
+            blur: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -80,6 +84,7 @@ mod tests {
             dither: None,
             motion_blur: None,
             vhs_crt: None,
+            blur: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -97,6 +102,7 @@ mod tests {
             dither: None,
             motion_blur: None,
             vhs_crt: None,
+            blur: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -112,6 +118,7 @@ mod tests {
             dither: Some(DitherParams { spread: 48.0 }),
             motion_blur: None,
             vhs_crt: None,
+            blur: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -127,6 +134,7 @@ mod tests {
             dither: None,
             motion_blur: Some(MotionBlurParams { strength: 0.5 }),
             vhs_crt: None,
+            blur: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -147,6 +155,7 @@ mod tests {
                 noise_amount: 0.08,
                 warp_amount: 2.5,
             }),
+            blur: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);

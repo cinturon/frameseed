@@ -1,6 +1,9 @@
 mod invert;
 pub use invert::InvertEffect;
 
+mod blur;
+pub use blur::{BoxBlurEffect, BlurParams};
+
 mod pixelation;
 pub use pixelation::{PixelationEffect, PixelationParams};
 
