@@ -8,6 +8,7 @@ use frameseed_core::effects_from_config;
 use frameseed_core::RenderContext;
 use frameseed_core::frame_path;
 use frameseed_core::load_from_path;
+use frameseed_core::Rgba;
 use std::error::Error;
 use std::path::Path;
 
@@ -33,11 +34,14 @@ fn render(config: &Path) -> Result<(), Box<dyn Error>> {
 
     let total_start = std::time::Instant::now();
     let total_frame_count = config.total_frames();
+
+    let mut frame = Frame::new(config.width, config.height);
+
     for i in 0..total_frame_count {
         let frame_start = std::time::Instant::now();
+        frame.clear(Rgba::black());
     
         let ctx = RenderContext::new(i, config.total_frames(), config.fps, config.seed);
-        let mut frame = Frame::new(config.width, config.height);
         scene.render(&mut frame, &ctx);
         
         for effect in &mut effects {

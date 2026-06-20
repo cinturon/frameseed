@@ -1,8 +1,7 @@
 use crate::color::{Rgba, lerp_rgba};
 use image::RgbaImage;
-use std::path::Path;
 use rayon::prelude::*;
-
+use std::path::Path;
 
 #[derive(Debug, Clone)]
 pub struct Frame {
@@ -116,7 +115,7 @@ impl Frame {
     pub fn fill_sine_wave(&mut self, color: Rgba, time: f32, frequency: f32) {
         use std::f32::consts::TAU;
         let phase = TAU * time;
-        
+
         for y in 0..self.height {
             for x in 0..self.width {
                 let nx = x as f32 / (self.width - 1) as f32;
@@ -127,19 +126,25 @@ impl Frame {
         }
     }
 
-    pub fn parallel_for_each_pixel<F>(&mut self, callback :F) where F: Fn(u32, u32) -> Rgba + Send + Sync, {
+    pub fn parallel_for_each_pixel<F>(&mut self, callback: F)
+    where
+        F: Fn(u32, u32) -> Rgba + Send + Sync,
+    {
         let width = self.width;
         self.pixels
-        .par_iter_mut()
-        .enumerate()
-        .for_each(|(index, pixel)| {
-            let x = (index as u32) % width;
-            let y = (index as u32) / width;
-            *pixel = callback(x, y);
-        });
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(index, pixel)| {
+                let x = (index as u32) % width;
+                let y = (index as u32) / width;
+                *pixel = callback(x, y);
+            });
+    }
+
+    pub fn clear(&mut self, color: Rgba) {
+        self.pixels.fill(color);
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -202,19 +207,24 @@ mod tests {
         let mut serial = Frame::new(16, 16);
         for y in 0..16 {
             for x in 0..16 {
-                serial.set_pixel(
-                    x,
-                    y,
-                    Rgba::new((x * 16) as u8, (y * 16) as u8, 128, 255),
-                );
+                serial.set_pixel(x, y, Rgba::new((x * 16) as u8, (y * 16) as u8, 128, 255));
             }
         }
 
         let mut parallel = Frame::new(16, 16);
-        parallel.parallel_for_each_pixel(|x, y| {
-            Rgba::new((x * 16) as u8, (y * 16) as u8, 128, 255)
-        });
+        parallel
+            .parallel_for_each_pixel(|x, y| Rgba::new((x * 16) as u8, (y * 16) as u8, 128, 255));
 
         assert_eq!(serial.pixels, parallel.pixels);
+    }
+
+    #[test]
+    fn clear_resets_all_pixels_without_reallocating() {
+        let mut frame = Frame::new(4, 4);
+        frame.set_pixel(0, 0, Rgba::white());
+        let capacity = frame.pixels.capacity();
+        frame.clear(Rgba::black());
+        assert_eq!(frame.get_pixel(0, 0), Some(Rgba::black()));
+        assert_eq!(frame.pixels.capacity(), capacity);
     }
 }
