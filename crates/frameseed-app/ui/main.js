@@ -367,7 +367,7 @@ function buildConfigFromForm() {
   const s = currentConfig.scene;
 
   s.gradient.speed     = Number(inputs.gradientSpeed.value);
-  s.gradient.palette   = inputs.gradientPalette.value || null;
+  s.gradient.palette   = inputs.gradientPalette.value || "";
   s.gradient.direction = inputs.gradientDirection.value;
 
   s.noise_clouds.speed   = Number(inputs.noiseSpeed.value);
