@@ -39,13 +39,10 @@ impl Scene for VoronoiScene {
 
         update_seeds(&mut seeds, time, self.speed, frame.width, frame.height);
 
-        for y in 0..frame.height {
-            for x in 0..frame.width {
-                let (index, distance_squared) = nearest_seed_index(&seeds, x as f32, y as f32);
-                let color = color_for_cell(seeds[index].hue, distance_squared, self.edge_width);
-                frame.set_pixel(x, y, color);
-            }
-        }
+        frame.parallel_for_each_pixel(move |x, y| {
+            let (index, distance_squared) = nearest_seed_index(&seeds, x as f32, y as f32);
+            color_for_cell(seeds[index].hue, distance_squared, self.edge_width)
+        });
     }
 }
 

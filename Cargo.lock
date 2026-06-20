@@ -412,6 +412,7 @@ dependencies = [
  "image",
  "rand",
  "rand_chacha",
+ "rayon",
  "serde",
  "toml",
 ]

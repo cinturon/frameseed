@@ -28,18 +28,16 @@ impl Scene for MandelbrotScene {
         let half_width = frame.width as f32 * 0.5;
         let half_height = frame.height as f32 * 0.5;
 
-
-        for y in 0..frame.height {
-            for x in 0..frame.width {
-                let c_re = self.center_re + (x as f32 - half_width) * scale;
-                let c_im = self.center_im + (y as f32 - half_height) * scale;
-                
-                let count = mandelbrot_iteration(c_re, c_im, self.max_iter);
-                
-                let color = iteration_to_color(count, self.max_iter);
-                frame.set_pixel(x, y, color);
-            }
-        }
+        let max_iter = self.max_iter;
+        let center_re = self.center_re;
+        let center_im = self.center_im;
+        
+        frame.parallel_for_each_pixel(move |x, y| {
+            let c_re = center_re + (x as f32 - half_width) * scale;
+            let c_im = center_im + (y as f32 - half_height) * scale;
+            let count = mandelbrot_iteration(c_re, c_im, max_iter);
+            iteration_to_color(count, max_iter)
+        });
     }
 }
 
@@ -141,6 +139,36 @@ mod tests {
         frame
     }
 
+    fn render_mandelbrot_serial(
+        width: u32,
+        height: u32,
+        frame_index: u32,
+        max_iter: u32,
+        center_re: f32,
+        center_im: f32,
+        initial_view_width: f32,
+        zoom_speed: f32,
+    ) -> Frame {
+        let mut frame = Frame::new(width, height);
+        let context = RenderContext::new(frame_index, 120, 24.0, 42);
+        let time = context.normalized_time * zoom_speed;
+        let view_width = initial_view_width * (0.5_f32.powf(time));
+        let scale = view_width / frame.width as f32;
+        let half_width = frame.width as f32 * 0.5;
+        let half_height = frame.height as f32 * 0.5;
+
+        for y in 0..frame.height {
+            for x in 0..frame.width {
+                let c_re = center_re + (x as f32 - half_width) * scale;
+                let c_im = center_im + (y as f32 - half_height) * scale;
+                let count = mandelbrot_iteration(c_re, c_im, max_iter);
+                frame.set_pixel(x, y, iteration_to_color(count, max_iter));
+            }
+        }
+
+        frame
+    }
+
     #[test]
     fn origin_is_inside_set() {
         assert_eq!(mandelbrot_iteration(0.0, 0.0, 100), 100);
@@ -164,6 +192,13 @@ mod tests {
         let frame0a = render_mandelbrot_frame(100, 100, 0, 100, -0.5, 0.0, 3.0, 1.0);
         let frame0b = render_mandelbrot_frame(100, 100, 0, 100, -0.5, 0.0, 3.0, 1.0);
         assert_eq!(frame0a.get_pixel(99, 50), frame0b.get_pixel(99, 50));
+    }
+
+    #[test]
+    fn parallel_render_matches_serial() {
+        let serial = render_mandelbrot_serial(64, 64, 42, 100, -0.5, 0.0, 3.0, 1.0);
+        let parallel = render_mandelbrot_frame(64, 64, 42, 100, -0.5, 0.0, 3.0, 1.0);
+        assert_eq!(serial.pixels, parallel.pixels);
     }
 
     #[test]
