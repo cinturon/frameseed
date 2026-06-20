@@ -17,7 +17,7 @@ use frameseed_core::KNOWN_PALETTES;
 use frameseed_encoder::create_contact_sheet;
 use frameseed_encoder::{export_video, ExportFormat};
 use std::error::Error;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 fn parse_seed(s: &str) -> Result<u64, Box<dyn Error>> {
@@ -51,6 +51,7 @@ fn run() -> Result<(), Box<dyn Error>> {
             preset,
             seed,
             output_format,
+            output,
             contact_sheet,
             contact_sheet_step,
             contact_sheet_cols,
@@ -69,6 +70,7 @@ fn run() -> Result<(), Box<dyn Error>> {
                 &config_path,
                 seed_override,
                 output_format,
+                output,
                 contact_sheet,
                 contact_sheet_step,
                 contact_sheet_cols,
@@ -166,6 +168,7 @@ fn render(
     config_path: &Path,
     seed_override: Option<u64>,
     output_format: OutputFormat,
+    output_override: Option<PathBuf>,
     contact_sheet: bool,
     contact_sheet_step: u32,
     contact_sheet_cols: u32,
@@ -182,10 +185,10 @@ fn render(
     let job_dir = Path::new("output");
     let total_start = Instant::now();
 
-    let output_path = match export_format {
+    let output_path = output_override.unwrap_or_else(|| match export_format {
         ExportFormat::Mp4 => job_dir.join("video.mp4"),
         ExportFormat::Gif => job_dir.join("animation.gif"),
-    };
+    });
 
     let output_path = export_video(&config, job_dir, &output_path, export_format, |phase, current, total| {
         if phase == "rendering" {

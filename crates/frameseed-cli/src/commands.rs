@@ -26,6 +26,9 @@ pub enum Commands {
         seed: Option<String>,
         #[arg(long, default_value = "mp4")]
         output_format: OutputFormat,
+        /// Output file path. Defaults to output/video.mp4 or output/animation.gif.
+        #[arg(long)]
+        output: Option<PathBuf>,
         #[arg(long)]
         contact_sheet: bool,
         #[arg(long, default_value = "12")]
