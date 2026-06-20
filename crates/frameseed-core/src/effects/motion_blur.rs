@@ -1,5 +1,5 @@
 use crate::{Frame, RenderContext, Effect, lerp_rgba};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub struct MotionBlurEffect {
     strength: f32,
@@ -33,7 +33,7 @@ impl Effect for MotionBlurEffect {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct MotionBlurParams {
     #[serde(default = "default_strength")]
     pub strength: f32,

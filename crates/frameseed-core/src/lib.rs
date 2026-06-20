@@ -22,6 +22,8 @@ pub use config::{RenderConfig, load_from_path};
 mod effects;
 pub use effects::{effects_from_config, InvertEffect};
 
+mod presets;
+pub use presets::{list_presets, load_preset, preset_path, save_preset};
 
 use std::path::Path;
 

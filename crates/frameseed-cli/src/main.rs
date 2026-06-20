@@ -3,15 +3,19 @@ use clap::Parser;
 use commands::Cli;
 use commands::Commands;
 use commands::OutputFormat;
+use commands::PresetsCommands;
 use frameseed_core::Frame;
 use frameseed_core::RenderContext;
 use frameseed_core::Rgba;
 use frameseed_core::effects_from_config;
 use frameseed_core::frame_path;
+use frameseed_core::list_presets;
 use frameseed_core::load_from_path;
+use frameseed_core::preset_path;
+use frameseed_core::save_preset;
 use frameseed_core::scene_from_config;
-use frameseed_encoder::{encode_gif, encode_png_sequence};
 use frameseed_encoder::create_contact_sheet;
+use frameseed_encoder::{encode_gif, encode_png_sequence};
 use std::error::Error;
 use std::path::Path;
 
@@ -21,32 +25,50 @@ fn main() -> Result<(), Box<dyn Error>> {
     match cli.command {
         Commands::Render {
             config,
+            preset,
             output_format,
             contact_sheet,
             contact_sheet_step,
             contact_sheet_cols,
         } => {
+            let config_path = match (config, preset) {
+                (Some(path), None) => path,
+                (None, Some(name)) => preset_path(&name),
+                _ => return Err("Provide either --config or --preset".into()),
+            };
             render(
-                &config,
+                &config_path,
                 output_format,
                 contact_sheet,
                 contact_sheet_step,
                 contact_sheet_cols,
             )?;
         }
+        Commands::Presets { command } => match command {
+            PresetsCommands::List => {
+                for name in list_presets()? {
+                    println!("{name}");
+                }
+            }
+            PresetsCommands::Save { name, config } => {
+                let cfg = load_from_path(&config)?;
+                save_preset(&name, &cfg)?;
+                eprintln!("Preset saved: {name}");
+            }
+        },
     }
 
     Ok(())
 }
 
 fn render(
-    config: &Path,
+    config_path: &Path,
     output_format: OutputFormat,
     contact_sheet: bool,
     contact_sheet_step: u32,
     contact_sheet_cols: u32,
 ) -> Result<(), Box<dyn Error>> {
-    let config = load_from_path(config)?;
+    let config = load_from_path(config_path)?;
 
     std::fs::create_dir_all("output/sequence")?;
 
@@ -121,7 +143,10 @@ fn render(
             contact_sheet_cols,
             128,
         )?;
-        eprintln!("Contact sheet created at {}", Path::new("output/contact_sheet.png").display());
+        eprintln!(
+            "Contact sheet created at {}",
+            Path::new("output/contact_sheet.png").display()
+        );
     }
 
     Ok(())

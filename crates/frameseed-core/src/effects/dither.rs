@@ -1,5 +1,5 @@
 use crate::{Frame, RenderContext, Effect, Rgba};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub struct OrderedDitherEffect {
     pub spread: f32,
@@ -29,7 +29,7 @@ impl Effect for OrderedDitherEffect {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct DitherParams {
     #[serde(default = "default_spread")]
     pub spread: f32

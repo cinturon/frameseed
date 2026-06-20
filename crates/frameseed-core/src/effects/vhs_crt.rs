@@ -2,7 +2,7 @@ use std::f32::consts::TAU;
 
 use crate::{Effect, Frame, RenderContext, Rgba, seeded_rng};
 use rand::Rng;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub struct VhsCrtEffect {
     pub scanlines_strength: f32,
@@ -45,7 +45,7 @@ impl Effect for VhsCrtEffect {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct VhsCrtParams {
     #[serde(default = "default_scanlines_strength")]
     pub scanlines_strength: f32,

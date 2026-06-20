@@ -17,8 +17,10 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     Render {
-        #[arg(long)]
-        config: PathBuf,
+        #[arg(long, conflicts_with = "preset")]
+        config: Option<PathBuf>,
+        #[arg(long, conflicts_with = "config")]
+        preset: Option<String>,
         #[arg(long, default_value = "mp4")]
         output_format: OutputFormat,
         #[arg(long)]
@@ -27,5 +29,20 @@ pub enum Commands {
         contact_sheet_step: u32,
         #[arg(long, default_value = "5")]
         contact_sheet_cols: u32,
+    },
+    Presets {
+        #[command(subcommand)]
+        command: PresetsCommands,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum PresetsCommands {
+    List,
+    Save {
+        #[arg(long)]
+        name: String,
+        #[arg(long)]
+        config: PathBuf,
     },
 }

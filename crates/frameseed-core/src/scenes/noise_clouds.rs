@@ -1,5 +1,5 @@
 use crate::{Frame, RenderContext, Rgba, Scene, value_noise_2d};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 
 pub struct NoiseCloudsScene {
@@ -39,7 +39,7 @@ impl Scene for NoiseCloudsScene {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct NoiseCloudsParams {
     #[serde(default = "default_speed")]
     pub speed: f32,

@@ -3,7 +3,7 @@ use crate::seeded_rng;
 use crate::value_noise_2d;
 use crate::{Frame, RenderContext, Scene};
 use rand::Rng;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::f32::consts::TAU;
 
 pub struct FlowFieldParticle {
@@ -61,7 +61,7 @@ impl Scene for FlowFieldScene {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct FlowFieldParams {
     #[serde(default = "default_count")]
     pub count: u32,

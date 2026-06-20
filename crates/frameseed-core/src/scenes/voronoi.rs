@@ -1,7 +1,7 @@
 use crate::seeded_rng;
 use crate::{Frame, RenderContext, Rgba, Scene};
 use rand::Rng;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::f32::consts::TAU;
 
 struct VoronoiSeed {
@@ -46,7 +46,7 @@ impl Scene for VoronoiScene {
     }
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct VoronoiParams {
     #[serde(default = "default_seed_count")]
     pub seed_count: u32,
