@@ -77,6 +77,11 @@ pub fn gallery_entries() -> &'static [GalleryEntry] {
             title: "Plasma",
             description: "classic demoscene plasma using layered sine waves",
         },
+        GalleryEntry {
+            slug: "lissajous",
+            title: "Lissajous",
+            description: "animated Lissajous curves with phosphor trail",
+        },
     ]
 }
 

@@ -25,5 +25,8 @@ pub use voronoi::{VoronoiScene, VoronoiParams};
 mod plasma;
 pub use plasma::{PlasmaScene, PlasmaParams};
 
+mod lissajous;
+pub use lissajous::{LissajousScene, LissajousParams};
+
 mod registry;
 pub use registry::scene_from_config;

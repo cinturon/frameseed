@@ -109,8 +109,8 @@ mod tests {
     use super::*;
     use crate::config::{EffectsConfig, SceneConfig};
     use crate::scenes::{
-        ConwayParams, FlowFieldParams, GradientParams, MandelbrotParams, NoiseCloudsParams,
-        ParticleParams, PlasmaParams, SdfShapeParams, VoronoiParams,
+        ConwayParams, FlowFieldParams, GradientParams, LissajousParams, MandelbrotParams,
+        NoiseCloudsParams, ParticleParams, PlasmaParams, SdfShapeParams, VoronoiParams,
     };
     use std::sync::{Arc, Mutex};
 
@@ -126,6 +126,7 @@ mod tests {
             mandelbrot: MandelbrotParams::default(),
             voronoi: VoronoiParams::default(),
             plasma: PlasmaParams::default(),
+            lissajous: LissajousParams::default(),
         }
     }
 
