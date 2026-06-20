@@ -1353,6 +1353,7 @@ dependencies = [
 name = "frameseed-core"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "criterion",
  "image",
  "rand 0.9.4",
