@@ -110,7 +110,8 @@ mod tests {
     use crate::config::{EffectsConfig, SceneConfig};
     use crate::scenes::{
         ConwayParams, FlowFieldParams, GradientParams, LissajousParams, MandelbrotParams,
-        NoiseCloudsParams, ParticleParams, PlasmaParams, SdfShapeParams, VoronoiParams,
+        NoiseCloudsParams, ParticleParams, PlasmaParams, SdfShapeParams, SineWaveParams,
+        VoronoiParams,
     };
     use std::sync::{Arc, Mutex};
 
@@ -127,6 +128,7 @@ mod tests {
             voronoi: VoronoiParams::default(),
             plasma: PlasmaParams::default(),
             lissajous: LissajousParams::default(),
+            sine_wave: SineWaveParams::default(),
         }
     }
 

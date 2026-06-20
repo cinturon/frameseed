@@ -10,6 +10,7 @@ use crate::scenes::MandelbrotScene;
 use crate::scenes::VoronoiScene;
 use crate::scenes::PlasmaScene;
 use crate::scenes::LissajousScene;
+use crate::scenes::SineWaveScene;
 
 pub const KNOWN_SCENES: &[&str] = &[
     "gradient",
@@ -22,6 +23,7 @@ pub const KNOWN_SCENES: &[&str] = &[
     "voronoi",
     "plasma",
     "lissajous",
+    "sine_wave",
 ];
 
 pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigError> {
@@ -57,6 +59,9 @@ pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigEr
         "lissajous" => {
             let p = &scene.lissajous;
             Ok(Box::new(LissajousScene::new(p.a, p.b, p.delta, p.speed, p.thickness, p.trail_frames)))
+        },
+        "sine_wave" => {
+            Ok(Box::new(SineWaveScene::new(scene.sine_wave.speed)))
         },
         _ => Err(ConfigError::Invalid(format!(
             "Unknown scene '{}'. Run `frameseed list-scenes` to see available scenes: {}",

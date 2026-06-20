@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams, VoronoiParams, PlasmaParams, LissajousParams};
+use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams, VoronoiParams, PlasmaParams, LissajousParams, SineWaveParams};
 use crate::effects::{PixelationParams, PaletteQuantizationParams, DitherParams, MotionBlurParams, VhsCrtParams, BlurParams};
 use std::{error::Error, fmt::Display, path::Path};
 
@@ -125,6 +125,14 @@ impl RenderConfig {
                 "Scene name is missing. Add `[scene]` with `name = \"gradient\"` (or another scene from `frameseed list-scenes`).".into(),
             ));
         }
+        let known = crate::scenes::KNOWN_SCENES;
+        if !known.contains(&self.scene.name.as_str()) {
+            return Err(ConfigError::Invalid(format!(
+                "Unknown scene '{}'. Available scenes: {}. Run `frameseed list-scenes` for details.",
+                self.scene.name,
+                known.join(", ")
+            )));
+        }
         Ok(())
     }
 }
@@ -143,6 +151,7 @@ impl SceneConfig {
             voronoi: VoronoiParams::default(),
             plasma: PlasmaParams::default(),
             lissajous: LissajousParams::default(),
+            sine_wave: SineWaveParams::default(),
         }
     }
 }
@@ -170,6 +179,8 @@ pub struct SceneConfig {
     pub plasma: PlasmaParams,
     #[serde(default)]
     pub lissajous: LissajousParams,
+    #[serde(default)]
+    pub sine_wave: SineWaveParams,
 }
 
 #[derive(Debug, Deserialize, Clone, Default, Serialize)]
@@ -222,6 +233,7 @@ mod tests {
                 voronoi: VoronoiParams::default(),
                 plasma: PlasmaParams::default(),
             lissajous: LissajousParams::default(),
+            sine_wave: SineWaveParams::default(),
             },
             EffectsConfig::default(),
         );
@@ -253,6 +265,7 @@ mod tests {
                 voronoi: VoronoiParams::default(),
                 plasma: PlasmaParams::default(),
             lissajous: LissajousParams::default(),
+            sine_wave: SineWaveParams::default(),
             },
             EffectsConfig::default(),
         );
