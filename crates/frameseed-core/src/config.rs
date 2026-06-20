@@ -109,6 +109,22 @@ impl RenderConfig {
     }
 }
 
+impl SceneConfig {
+    pub fn with_name(name: impl Into<String>) -> Self {
+        Self {
+            name: name.into(),
+            gradient: GradientParams::default(),
+            noise_clouds: NoiseCloudsParams::default(),
+            conway: ConwayParams::default(),
+            particles: ParticleParams::default(),
+            flow_field: FlowFieldParams::default(),
+            sdf_shapes: SdfShapeParams::default(),
+            mandelbrot: MandelbrotParams::default(),
+            voronoi: VoronoiParams::default(),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct SceneConfig {
     pub name: String,

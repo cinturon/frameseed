@@ -73,6 +73,37 @@ where
     Ok(())
 }
 
+/// Render a single preview frame to a PNG file.
+pub fn render_preview_frame(
+    config: &RenderConfig,
+    frame_index: u32,
+    output_path: &Path,
+) -> Result<(), RenderError> {
+    config.validate()?;
+
+    let scene = scene_from_config(&config.scene)?;
+    let mut effects = effects_from_config(&config.effects);
+    let total_frames = config.total_frames().max(1);
+    let index = frame_index.min(total_frames.saturating_sub(1));
+
+    let mut frame = Frame::new(config.width, config.height);
+    frame.clear(Rgba::black());
+    let ctx = RenderContext::new(index, total_frames, config.fps, config.seed);
+    scene.render(&mut frame, &ctx);
+    for effect in &mut effects {
+        effect.apply(&mut frame, &ctx);
+    }
+
+    if let Some(parent) = output_path.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent)?;
+        }
+    }
+    frame.save_png(output_path)?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

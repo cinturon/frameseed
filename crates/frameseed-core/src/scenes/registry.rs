@@ -9,6 +9,17 @@ use crate::scenes::SdfShapeScene;
 use crate::scenes::MandelbrotScene;
 use crate::scenes::VoronoiScene;
 
+pub const KNOWN_SCENES: &[&str] = &[
+    "gradient",
+    "noise_clouds",
+    "conway",
+    "particles",
+    "flow_field",
+    "sdf_shapes",
+    "mandelbrot",
+    "voronoi",
+];
+
 pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigError> {
     match scene.name.as_str() {
         "gradient" => {
@@ -36,6 +47,10 @@ pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigEr
         "voronoi" => {
             Ok(Box::new(VoronoiScene::new(scene.voronoi.seed_count, scene.voronoi.speed, scene.voronoi.edge_width)))
         },
-        _ => Err(ConfigError::Invalid(format!("Unknown scene: {}", scene.name))),
+        _ => Err(ConfigError::Invalid(format!(
+            "Unknown scene '{}'. Run `frameseed list-scenes` to see available scenes: {}",
+            scene.name,
+            KNOWN_SCENES.join(", ")
+        ))),
     }
 }
