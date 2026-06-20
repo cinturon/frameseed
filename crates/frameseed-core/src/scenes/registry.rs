@@ -31,7 +31,13 @@ pub const KNOWN_SCENES: &[&str] = &[
 pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigError> {
     match scene.name.as_str() {
         "gradient" => {
-            let (start_color, end_color) = palette_from_name(&scene.gradient.palette);
+            let (palette_start, palette_end) = palette_from_name(&scene.gradient.palette);
+            let start_color = scene.gradient.start_color.as_deref()
+                .and_then(crate::Rgba::from_hex)
+                .unwrap_or(palette_start);
+            let end_color = scene.gradient.end_color.as_deref()
+                .and_then(crate::Rgba::from_hex)
+                .unwrap_or(palette_end);
             Ok(Box::new(GradientScene::new(start_color, end_color, scene.gradient.speed)))
         },
         "noise_clouds" => {

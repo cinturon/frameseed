@@ -23,6 +23,12 @@ pub struct GradientParams {
     pub speed: f32,
     #[serde(default)]
     pub palette: String,
+    /// Optional hex override for the start color, e.g. "#ff5e4d". Takes precedence over `palette`.
+    #[serde(default)]
+    pub start_color: Option<String>,
+    /// Optional hex override for the end color, e.g. "#ffc857". Takes precedence over `palette`.
+    #[serde(default)]
+    pub end_color: Option<String>,
 }
 
 impl Default for GradientParams {
@@ -30,6 +36,8 @@ impl Default for GradientParams {
         Self {
             speed: 1.0,
             palette: String::new(),
+            start_color: None,
+            end_color: None,
         }
     }
 }

@@ -22,6 +22,23 @@ impl Rgba {
     pub fn invert(self) -> Self {
         Self::new(255 - self.r, 255 - self.g, 255 - self.b, self.a)
     }
+
+    /// Parse a hex color string like `"#ff5e4d"` or `"ff5e4d"` (with or without `#`).
+    pub fn from_hex(hex: &str) -> Option<Self> {
+        let hex = hex.trim_start_matches('#');
+        if hex.len() != 6 {
+            return None;
+        }
+        let r = u8::from_str_radix(&hex[0..2], 16).ok()?;
+        let g = u8::from_str_radix(&hex[2..4], 16).ok()?;
+        let b = u8::from_str_radix(&hex[4..6], 16).ok()?;
+        Some(Self::new(r, g, b, 255))
+    }
+
+    /// Format as a lowercase hex string like `"#ff5e4d"`.
+    pub fn to_hex(self) -> String {
+        format!("#{:02x}{:02x}{:02x}", self.r, self.g, self.b)
+    }
 }
 
 pub fn lerp_u8(start: u8, end: u8, t: f32) -> u8 {
@@ -37,6 +54,28 @@ pub fn lerp_rgba(start: Rgba, end: Rgba, t: f32) -> Rgba {
         b: lerp_u8(start.b, end.b, t),
         a: lerp_u8(start.a, end.a, t),
     }
+}
+
+#[test]
+fn from_hex_with_hash() {
+    assert_eq!(Rgba::from_hex("#ff5e4d"), Some(Rgba::new(255, 94, 77, 255)));
+}
+
+#[test]
+fn from_hex_without_hash() {
+    assert_eq!(Rgba::from_hex("ffc857"), Some(Rgba::new(255, 200, 87, 255)));
+}
+
+#[test]
+fn from_hex_invalid_returns_none() {
+    assert_eq!(Rgba::from_hex("xyz"), None);
+    assert_eq!(Rgba::from_hex("#12345"), None);
+}
+
+#[test]
+fn to_hex_roundtrip() {
+    let c = Rgba::new(255, 94, 77, 255);
+    assert_eq!(Rgba::from_hex(&c.to_hex()), Some(c));
 }
 
 #[test]
