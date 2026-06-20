@@ -140,6 +140,14 @@ cargo tauri dev
 
 Project narrative for employers and portfolio sites: [docs/case-study.md](docs/case-study.md).
 
+## Capstone film
+
+Flagship 45-second reproducible short: [docs/capstone.md](docs/capstone.md) · preset `capstone` · seed `506200`
+
+```bash
+cargo run --release -p frameseed-cli -- render --preset capstone --contact-sheet
+```
+
 ## Tests
 
 ```bash
