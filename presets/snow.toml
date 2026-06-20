@@ -1,0 +1,14 @@
+width = 256
+height = 256
+fps = 24.0
+duration = 4.0
+seed = 42
+
+[scene]
+name = "particles"
+
+[scene.particles]
+count = 200
+speed = 1.0
+kind = "snow"
+fps = 24.0

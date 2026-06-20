@@ -25,6 +25,10 @@ pub use effects::{effects_from_config, InvertEffect};
 mod presets;
 pub use presets::{list_presets, load_preset, preset_path, save_preset};
 
+mod gallery;
+pub use gallery::{gallery_entries, GalleryEntry};
+
+
 use std::path::Path;
 
 pub trait Scene {

@@ -34,6 +34,7 @@ pub enum Commands {
         #[command(subcommand)]
         command: PresetsCommands,
     },
+    ListScenes,
 }
 
 #[derive(Subcommand)]
