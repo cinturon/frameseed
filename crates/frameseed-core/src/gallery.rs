@@ -66,6 +66,11 @@ pub fn gallery_entries() -> &'static [GalleryEntry] {
             slug: "pixeled_sunset",
             title: "Pixelated Sunset",
             description: "A pixelated sunset scene",
+        },
+        GalleryEntry {
+            slug: "capstone",
+            title: "Capstone — Drift",
+            description: "45s flow-field short with blur, palette, and VHS",
         }
     ]
 }
