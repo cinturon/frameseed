@@ -17,7 +17,7 @@ mod scenes;
 pub use scenes::{scene_from_config, GradientParams, GradientScene, MandelbrotScene, palette_from_name};
 
 mod config;
-pub use config::{RenderConfig, load_from_path};
+pub use config::{RenderConfig, load_from_path, EffectsConfig, SceneConfig};
 
 mod effects;
 pub use effects::{effects_from_config, InvertEffect};

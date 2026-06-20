@@ -11,13 +11,18 @@ pub struct RenderContext {
 }
 
 impl RenderContext {
-    
     pub fn new(frame_index: u32, total_frames: u32, fps: f32, seed: u64) -> Self {
         let time_seconds = frame_index as f32 / fps;
         let normalized_time = if total_frames <= 1 {
             0.0
         } else {
             frame_index as f32 / (total_frames - 1) as f32
+        };
+
+        let seed = if seed == 0 {
+            1
+        } else {
+            seed
         };
 
         Self {
@@ -35,7 +40,7 @@ impl RenderContext {
 }
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use rand::Rng;
 
     use super::*;
@@ -51,13 +56,13 @@ mod tests{
     }
 
     #[test]
-    fn last_frame_is_one(){
+    fn last_frame_is_one() {
         let ctx = RenderContext::new(119, 120, 24.0, 42);
         assert!((ctx.normalized_time - 1.0).abs() < f32::EPSILON);
     }
 
     #[test]
-    fn first_frame_normalized_time(){
+    fn first_frame_normalized_time() {
         let ctx = RenderContext::new(0, 120, 24.0, 42);
         assert!((ctx.normalized_time - 0.0).abs() < f32::EPSILON);
         assert!((ctx.time_seconds - 0.0).abs() < f32::EPSILON);
@@ -71,6 +76,12 @@ mod tests{
     }
 
     #[test]
+    fn zero_seed_is_coerced_to_one() {
+        let ctx = RenderContext::new(0, 120, 24.0, 0);
+        assert_eq!(ctx.seed, 1);
+    }
+
+    #[test]
     fn consecutive_draws_from_one_seedproduces_different_output() {
         let ctx = RenderContext::new(0, 120, 24.0, 42);
         let mut rng = ctx.rng();
@@ -78,6 +89,4 @@ mod tests{
         let second = rng.random::<f32>();
         assert_ne!(first, second);
     }
-
-    
 }

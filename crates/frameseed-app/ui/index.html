@@ -6,23 +6,103 @@
     <title>FrameSeed</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  
-  <body>
 
+  <body>
     <main>
       <h1>FrameSeed</h1>
-      <label>
-        Preset
-        <select id="preset"></select>
-      </label>
-      <label>
-        Seed
-        <input id="seed" type="number" value="42" />
-      </label>
-      <button id="refresh">Preview</button>
-      <img id="preview" alt="Preview frame" width="256" height="256" />
+
+      <img id="preview" alt="Preview" />
+
+      <label>Preset <select id="preset"></select></label>
+
+      <fieldset id="global-params">
+        <legend>Render</legend>
+        <label>Seed <input id="seed" type="number" min="1" step="1" /></label>
+        <label>Width <input id="width" type="number" min="1" step="1" /></label>
+        <label>Height <input id="height" type="number" min="1" step="1" /></label>
+        <label>FPS <input id="fps" type="number" min="0.1" step="0.1" /></label>
+        <label>Duration (s) <input id="duration" type="number" min="0.1" step="0.1" /></label>
+        <label
+          >Frame <span id="frame-index-label">0</span>
+          <input id="frame-index" type="range" min="0" max="0" step="1" value="0"
+        /></label>
+      </fieldset>
+
+      <fieldset id="scene-gradient" class="scene-panel" hidden>
+        <legend>Gradient</legend>
+        <label>Speed <input id="gradient-speed" type="number" min="0.1" step="0.1" /></label>
+        <label
+          >Palette
+          <select id="gradient-palette">
+            <option value="sunset">sunset</option>
+            <option value="default">default</option>
+          </select></label
+        >
+      </fieldset>
+
+      <fieldset id="scene-noise-clouds" class="scene-panel" hidden>
+        <legend>Noise Clouds</legend>
+        <label>Speed <input id="noise-speed" type="number" min="0.1" step="0.1" /></label>
+        <label>Scale <input id="noise-scale" type="number" min="0.001" step="0.001" /></label>
+      </fieldset>
+
+      <fieldset id="scene-particles" class="scene-panel" hidden>
+        <legend>Particles</legend>
+        <label>Count <input id="particles-count" type="number" min="1" step="1" /></label>
+        <label>Speed <input id="particles-speed" type="number" min="0.1" step="0.1" /></label>
+        <label
+          >Kind
+          <select id="particles-kind">
+            <option value="snow">snow</option>
+            <option value="rain">rain</option>
+          </select></label
+        >
+        <label>FPS <input id="particles-fps" type="number" min="1" step="1" /></label>
+      </fieldset>
+
+      <fieldset id="scene-conway" class="scene-panel" hidden>
+        <legend>Conway</legend>
+        <label>Cell size <input id="conway-cell-size" type="number" min="1" step="1" /></label>
+        <label>Density <input id="conway-density" type="number" min="0.01" max="1" step="0.01" /></label>
+      </fieldset>
+
+      <fieldset id="scene-flow-field" class="scene-panel" hidden>
+        <legend>Flow Field</legend>
+        <label>Count <input id="flow-count" type="number" min="1" step="1" /></label>
+        <label>Speed <input id="flow-speed" type="number" min="1" step="1" /></label>
+        <label>Scale <input id="flow-scale" type="number" min="0.001" step="0.001" /></label>
+        <label>FPS <input id="flow-fps" type="number" min="1" step="1" /></label>
+      </fieldset>
+
+      <fieldset id="scene-sdf-shapes" class="scene-panel" hidden>
+        <legend>SDF Shapes</legend>
+        <label>Circle radius <input id="sdf-circle-radius" type="number" min="0.01" step="0.01" /></label>
+        <label>Box half width <input id="sdf-box-half-width" type="number" min="0.01" step="0.01" /></label>
+        <label>Box half height <input id="sdf-box-half-height" type="number" min="0.01" step="0.01" /></label>
+        <label>Speed <input id="sdf-speed" type="number" min="0.1" step="0.1" /></label>
+      </fieldset>
+
+      <fieldset id="scene-mandelbrot" class="scene-panel" hidden>
+        <legend>Mandelbrot</legend>
+        <label>Max iter <input id="mandelbrot-max-iter" type="number" min="1" step="1" /></label>
+        <label>Center re <input id="mandelbrot-center-re" type="number" step="0.01" /></label>
+        <label>Center im <input id="mandelbrot-center-im" type="number" step="0.01" /></label>
+        <label
+          >View width <input id="mandelbrot-view-width" type="number" min="0.1" step="0.1"
+        /></label>
+        <label>Zoom speed <input id="mandelbrot-zoom-speed" type="number" min="0.1" step="0.1" /></label>
+      </fieldset>
+
+      <fieldset id="scene-voronoi" class="scene-panel" hidden>
+        <legend>Voronoi</legend>
+        <label>Seed count <input id="voronoi-seed-count" type="number" min="1" step="1" /></label>
+        <label>Speed <input id="voronoi-speed" type="number" min="0.1" step="0.1" /></label>
+        <label>Edge width <input id="voronoi-edge-width" type="number" min="0.1" step="0.1" /></label>
+      </fieldset>
+
+      <button id="refresh" type="button">Preview</button>
     </main>
-    
+
     <script type="module" src="main.js"></script>
   </body>
 </html>
