@@ -1,21 +1,51 @@
 use crate::{Frame, RenderContext, Rgba, Scene, value_noise_2d};
 use serde::{Deserialize, Serialize};
 
-
 pub struct NoiseCloudsScene {
     pub speed: f32,
     pub scale: f32,
+    pub colored: bool,
 }
 
 impl NoiseCloudsScene {
-    pub fn new(speed: f32, scale: f32) -> Self {
-        Self { speed, scale }
+    pub fn new(speed: f32, scale: f32, colored: bool) -> Self {
+        Self { speed, scale, colored }
     }
 }
 
-impl NoiseCloudsParams{
+fn noise_to_color(noise: f32, colored: bool) -> Rgba {
+    if colored {
+        // Map noise to hue; use noise from a second offset sample for value
+        let hue = noise;
+        let (r, g, b) = hsv_to_rgb(hue, 0.8, 0.9);
+        Rgba::new(r, g, b, 255)
+    } else {
+        let v = (noise * 255.0) as u8;
+        Rgba::new(v, v, v, 255)
+    }
+}
+
+fn hsv_to_rgb(h: f32, s: f32, v: f32) -> (u8, u8, u8) {
+    let h6 = h * 6.0;
+    let i = h6.floor() as u32 % 6;
+    let f = h6 - h6.floor();
+    let p = v * (1.0 - s);
+    let q = v * (1.0 - f * s);
+    let t = v * (1.0 - (1.0 - f) * s);
+    let (r, g, b) = match i {
+        0 => (v, t, p),
+        1 => (q, v, p),
+        2 => (p, v, t),
+        3 => (p, q, v),
+        4 => (t, p, v),
+        _ => (v, p, q),
+    };
+    ((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
+}
+
+impl NoiseCloudsParams {
     pub fn new(speed: f32, scale: f32) -> Self {
-        Self { speed, scale }
+        Self { speed, scale, colored: false }
     }
 }
 
@@ -25,7 +55,7 @@ impl Scene for NoiseCloudsScene {
     }
 
     fn render(&self, frame: &mut Frame, context: &RenderContext) {
-
+        let colored = self.colored;
         frame.parallel_for_each_pixel(move |x, y| {
             let drift = context.normalized_time * self.speed;
             let noise = value_noise_2d(
@@ -33,8 +63,7 @@ impl Scene for NoiseCloudsScene {
                 y as f32 * self.scale,
                 context.seed,
             );
-            let lightness = (noise * 255.0) as u8;
-            Rgba::new(lightness, lightness, lightness, 255)
+            noise_to_color(noise, colored)
         });
     }
 }
@@ -45,11 +74,13 @@ pub struct NoiseCloudsParams {
     pub speed: f32,
     #[serde(default = "default_scale")]
     pub scale: f32,
+    #[serde(default)]
+    pub colored: bool,
 }
 
 impl Default for NoiseCloudsParams {
     fn default() -> Self {
-        Self { speed: 1.0, scale: 0.05 }
+        Self { speed: 1.0, scale: 0.05, colored: false }
     }
 }
 
@@ -68,7 +99,7 @@ mod tests {
     fn render_noise_clouds_frame(width: u32, height: u32, frame_index: u32, total_frames: u32, speed: f32, scale: f32) -> Frame {
         let mut frame = Frame::new(width, height);
         let context = RenderContext::new(frame_index, total_frames, 24.0, 42);
-        let scene = NoiseCloudsScene::new(speed, scale);
+        let scene = NoiseCloudsScene::new(speed, scale, false);
         scene.render(&mut frame, &context);
         frame
     }

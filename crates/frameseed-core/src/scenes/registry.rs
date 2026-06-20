@@ -43,7 +43,7 @@ pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigEr
             Ok(Box::new(GradientScene::new(start_color, end_color, scene.gradient.speed, scene.gradient.direction.clone())))
         },
         "noise_clouds" => {
-            Ok(Box::new(NoiseCloudsScene::new(scene.noise_clouds.speed, scene.noise_clouds.scale)))
+            Ok(Box::new(NoiseCloudsScene::new(scene.noise_clouds.speed, scene.noise_clouds.scale, scene.noise_clouds.colored)))
         },
         "conway" => {
             Ok(Box::new(ConwayScene::new(scene.conway.cell_size, scene.conway.density)))

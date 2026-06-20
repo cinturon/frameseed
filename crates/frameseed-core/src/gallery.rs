@@ -107,6 +107,11 @@ pub fn gallery_entries() -> &'static [GalleryEntry] {
             title: "Tunnel",
             description: "classic demoscene color tunnel with hue rotation",
         },
+        GalleryEntry {
+            slug: "color_clouds",
+            title: "Color Clouds",
+            description: "noise clouds mapped to hue — slow psychedelic drift",
+        },
     ]
 }
 
