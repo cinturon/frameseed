@@ -3,6 +3,7 @@ members = [
     "crates/frameseed-core",
     "crates/frameseed-cli",
     "crates/frameseed-encoder",
+    "crates/frameseed-app",
 ]
 resolver = "2"
 
