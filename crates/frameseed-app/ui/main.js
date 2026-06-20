@@ -1,4 +1,5 @@
 const invoke = window.__TAURI__.core.invoke;
+const listen = window.__TAURI__.event.listen;
 
 const presetSelect = document.getElementById("preset");
 const seedInput = document.getElementById("seed");
@@ -10,6 +11,10 @@ const frameIndexInput = document.getElementById("frame-index");
 const frameIndexLabel = document.getElementById("frame-index-label");
 const refreshButton = document.getElementById("refresh");
 const previewImage = document.getElementById("preview");
+const exportButton = document.getElementById("export");
+const exportFormatSelect = document.getElementById("export-format");
+const renderProgress = document.getElementById("render-progress");
+const renderStatus = document.getElementById("render-status");
 
 const gradientSpeedInput = document.getElementById("gradient-speed");
 const gradientPaletteInput = document.getElementById("gradient-palette");
@@ -51,6 +56,60 @@ const panels = {
 
 let currentConfig = null;
 let refreshTimer = null;
+let exportRunning = false;
+
+function setExportRunning(running) {
+  exportRunning = running;
+  exportButton.disabled = running;
+}
+
+function updateRenderProgress(event) {
+  const { phase, current, total } = event.payload;
+  const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+  renderProgress.value = String(percent);
+  renderProgress.max = "100";
+  renderStatus.textContent = `${phase}: ${current}/${total}`;
+}
+
+async function queueExport() {
+  const config = buildConfigFromForm();
+  if (!config || exportRunning) {
+    return;
+  }
+
+  try {
+    setExportRunning(true);
+    renderProgress.value = "0";
+    renderStatus.textContent = "Queued…";
+    await invoke("queue_render", {
+      request: {
+        config,
+        output_format: exportFormatSelect.value,
+      },
+    });
+  } catch (error) {
+    setExportRunning(false);
+    renderStatus.textContent = `Error: ${error}`;
+    console.error("Error queueing render:", error);
+  }
+}
+
+async function setupRenderEvents() {
+  await listen("render-progress", (event) => {
+    updateRenderProgress(event);
+  });
+
+  await listen("render-complete", (event) => {
+    setExportRunning(false);
+    renderProgress.value = "100";
+    renderStatus.textContent = `Done: ${event.payload.output_path}`;
+  });
+
+  await listen("render-error", (event) => {
+    setExportRunning(false);
+    renderStatus.textContent = `Error: ${event.payload.message}`;
+  });
+}
 
 async function loadPresets() {
   const entries = await invoke("list_gallery");
@@ -232,6 +291,11 @@ refreshButton.addEventListener("click", (event) => {
   refreshPreview();
 });
 
+exportButton.addEventListener("click", (event) => {
+  event.preventDefault();
+  queueExport();
+});
+
 const liveInputs = [
   seedInput,
   widthInput,
@@ -271,6 +335,8 @@ liveInputs.forEach((input) => {
   input.addEventListener("change", scheduleRefresh);
 });
 
-loadInitialState().catch((error) => {
-  console.error("Error loading app:", error);
-});
+loadInitialState()
+  .then(() => setupRenderEvents())
+  .catch((error) => {
+    console.error("Error loading app:", error);
+  });

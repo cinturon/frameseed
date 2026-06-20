@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 image = "0.25.5"
 font8x8 = "0.3"
+frameseed-core = { path = "../frameseed-core" }
