@@ -4,6 +4,9 @@ pub use invert::InvertEffect;
 mod blur;
 pub use blur::{BoxBlurEffect, BlurParams};
 
+mod brightness_contrast;
+pub use brightness_contrast::{BrightnessContrastEffect, BrightnessContrastParams};
+
 mod pixelation;
 pub use pixelation::{PixelationEffect, PixelationParams};
 

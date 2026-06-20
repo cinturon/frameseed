@@ -2,8 +2,8 @@ use crate::Effect;
 use crate::config::EffectsConfig;
 use crate::effects::InvertEffect;
 use crate::effects::{
-    BoxBlurEffect, MotionBlurEffect, OrderedDitherEffect, PaletteQuantizationEffect,
-    PixelationEffect, VhsCrtEffect,
+    BoxBlurEffect, BrightnessContrastEffect, MotionBlurEffect, OrderedDitherEffect,
+    PaletteQuantizationEffect, PixelationEffect, VhsCrtEffect,
 };
 
 pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
@@ -40,6 +40,9 @@ pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
     if let Some(blur) = &effects.blur {
         pipeline.push(Box::new(BoxBlurEffect::new(blur.radius)));
     }
+    if let Some(bc) = &effects.brightness_contrast {
+        pipeline.push(Box::new(BrightnessContrastEffect::new(bc.brightness, bc.contrast)));
+    }
     pipeline
 }
 
@@ -69,6 +72,7 @@ mod tests {
             motion_blur: None,
             vhs_crt: None,
             blur: None,
+            brightness_contrast: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -85,6 +89,7 @@ mod tests {
             motion_blur: None,
             vhs_crt: None,
             blur: None,
+            brightness_contrast: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -103,6 +108,7 @@ mod tests {
             motion_blur: None,
             vhs_crt: None,
             blur: None,
+            brightness_contrast: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -119,6 +125,7 @@ mod tests {
             motion_blur: None,
             vhs_crt: None,
             blur: None,
+            brightness_contrast: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -135,6 +142,7 @@ mod tests {
             motion_blur: Some(MotionBlurParams { strength: 0.5 }),
             vhs_crt: None,
             blur: None,
+            brightness_contrast: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -156,6 +164,7 @@ mod tests {
                 warp_amount: 2.5,
             }),
             blur: None,
+            brightness_contrast: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);

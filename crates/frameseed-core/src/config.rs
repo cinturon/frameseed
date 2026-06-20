@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams, VoronoiParams, PlasmaParams, LissajousParams, SineWaveParams, StarfieldParams};
-use crate::effects::{PixelationParams, PaletteQuantizationParams, DitherParams, MotionBlurParams, VhsCrtParams, BlurParams};
+use crate::effects::{PixelationParams, PaletteQuantizationParams, DitherParams, MotionBlurParams, VhsCrtParams, BlurParams, BrightnessContrastParams};
 use std::{error::Error, fmt::Display, path::Path};
 
 #[derive(Debug)]
@@ -202,6 +202,8 @@ pub struct EffectsConfig {
     pub vhs_crt: Option<VhsCrtParams>,
     #[serde(default)]
     pub blur: Option<BlurParams>,
+    #[serde(default)]
+    pub brightness_contrast: Option<BrightnessContrastParams>,
 }
 
 pub fn load_from_path(path: &Path) -> Result<RenderConfig, ConfigError> {
