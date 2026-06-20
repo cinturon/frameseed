@@ -17,14 +17,15 @@ impl Effect for OrderedDitherEffect {
     }
 
     fn apply(&mut self, frame: &mut Frame, _context: &RenderContext) {
-        for y in 0..frame.height {
-            for x in 0..frame.width {
-                if let Some(pixel) = frame.get_pixel(x, y) {
-                    let dithered_pixel = dither_pixel(pixel, x, y, self.spread);
-                    frame.set_pixel(x, y, dithered_pixel);
-                }
-            }
-        }   
+        let spread = self.spread;
+        let source_frame = frame.pixels.clone();
+        let width = frame.width;
+
+        frame.parallel_for_each_pixel(move |x, y| {
+            let index = (y * width + x) as usize;
+            let pixel = source_frame[index];
+            dither_pixel(pixel, x, y, spread)
+        });  
     }
 }
 

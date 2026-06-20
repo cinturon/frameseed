@@ -44,20 +44,15 @@ impl Scene for SdfShapeScene {
         let box_half_height = self.box_half_height;
         let box_half_width = self.box_half_width;
 
-        for y in 0..frame.height {
-            for x in 0..frame.width {
-                let px = x as f32 + 0.5;
-                let py = y as f32 + 0.5;
-
-                let circle_d = sdf_circle(px, py, circle_cx, circle_cy, circle_radius);
-                let box_d = sdf_rectangle(px, py, box_cx, box_cy, box_half_width, box_half_height);
-                let d = smin(circle_d, box_d, blend);
-                
-                let v = sdf_to_gray(d, edge);
-                
-                frame.set_pixel(x, y, Rgba::new(v, v, v, 255));
-            }
-        }
+        frame.parallel_for_each_pixel(move |x, y| {
+            let px = x as f32 + 0.5;
+            let py = y as f32 + 0.5;
+            let circle_d = sdf_circle(px, py, circle_cx, circle_cy, circle_radius);
+            let box_d = sdf_rectangle(px, py, box_cx, box_cy, box_half_width, box_half_height);
+            let d = smin(circle_d, box_d, blend);
+            let v = sdf_to_gray(d, edge);
+            Rgba::new(v, v, v, 255)
+        });
     }
 }
 

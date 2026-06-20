@@ -25,18 +25,17 @@ impl Scene for NoiseCloudsScene {
     }
 
     fn render(&self, frame: &mut Frame, context: &RenderContext) {
-        for y in 0..frame.height {
-            for x in 0..frame.width {
-                let drift = context.normalized_time * self.speed;
-                let noise = value_noise_2d(
-                    x as f32 * self.scale + drift,
-                    y as f32 * self.scale,
-                    context.seed,
-                );
-                let lightness = (noise * 255.0) as u8;
-                frame.set_pixel(x, y, Rgba::new(lightness, lightness, lightness, 255));
-            }
-        }
+
+        frame.parallel_for_each_pixel(move |x, y| {
+            let drift = context.normalized_time * self.speed;
+            let noise = value_noise_2d(
+                x as f32 * self.scale + drift,
+                y as f32 * self.scale,
+                context.seed,
+            );
+            let lightness = (noise * 255.0) as u8;
+            Rgba::new(lightness, lightness, lightness, 255)
+        });
     }
 }
 

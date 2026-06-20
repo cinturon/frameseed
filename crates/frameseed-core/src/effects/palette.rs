@@ -21,16 +21,15 @@ impl Effect for PaletteQuantizationEffect {
     }
 
     fn apply(&mut self, frame: &mut Frame, _context: &RenderContext) {
-        
-        for y in 0..frame.height {
-            for x in 0..frame.width {
-                if let Some(pixel) = frame.get_pixel(x, y) {
-                    let nearest = nearest_palette_color(pixel, &self.palette);
-                    frame.set_pixel(x, y, nearest);
-                }
-            }
-        }
+        let palette = self.palette.clone();
+        let source_frame = frame.pixels.clone();
+        let width = frame.width;
 
+        frame.parallel_for_each_pixel(move |x, y| {
+            let index = (y * width + x) as usize;
+            let pixel = source_frame[index];
+            nearest_palette_color(pixel, &palette)
+        });
     }
 }
 
