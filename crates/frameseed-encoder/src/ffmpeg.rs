@@ -1,16 +1,39 @@
 use std::error::Error;
+use std::fmt::{Display, Formatter};
 use std::path::Path;
 use std::process::Command;
 
-pub fn ffmpeg_exists() -> Result<(), Box<dyn Error>> {
-    let status = Command::new("ffmpeg").arg("-version").output()?;
-    if !status.status.success() {
-        return Err(Box::new(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "FFmpeg not found. Install with: brew install ffmpeg or apt install ffmpeg",
-        )));
+#[derive(Debug)]
+pub enum FfmpegError {
+    NotInstalled,
+    EncodeFailed { kind: &'static str },
+    Io(std::io::Error),
+}
+
+impl Display for FfmpegError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            FfmpegError::NotInstalled => write!(
+                f,
+                "FFmpeg is not installed or not on your PATH. Install it with `brew install ffmpeg` (macOS) or `apt install ffmpeg` (Linux), then try again."
+            ),
+            FfmpegError::EncodeFailed { kind } => write!(
+                f,
+                "FFmpeg failed while encoding the {kind}. Check that frame PNGs exist in the sequence folder and rerun the export."
+            ),
+            FfmpegError::Io(error) => write!(f, "Could not run FFmpeg: {error}"),
+        }
     }
-    Ok(())
+}
+
+impl Error for FfmpegError {}
+
+pub fn ffmpeg_exists() -> Result<(), FfmpegError> {
+    let output = Command::new("ffmpeg").arg("-version").output();
+    match output {
+        Ok(status) if status.status.success() => Ok(()),
+        Ok(_) | Err(_) => Err(FfmpegError::NotInstalled),
+    }
 }
 
 pub fn encode_png_sequence(
@@ -19,7 +42,7 @@ pub fn encode_png_sequence(
     fps: f32,
     start_frame: u32,
     frame_count: u32,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), FfmpegError> {
     ffmpeg_exists()?;
 
     let status = Command::new("ffmpeg")
@@ -37,13 +60,11 @@ pub fn encode_png_sequence(
         .arg("-pix_fmt")
         .arg("yuv420p")
         .arg(output_file)
-        .status()?;
+        .status()
+        .map_err(FfmpegError::Io)?;
 
     if !status.success() {
-        return Err(Box::new(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "Failed to encode PNG sequence",
-        )));
+        return Err(FfmpegError::EncodeFailed { kind: "MP4 video" });
     }
     Ok(())
 }
@@ -54,7 +75,7 @@ pub fn encode_gif(
     fps: f32,
     start_frame: u32,
     frame_count: u32,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), FfmpegError> {
     ffmpeg_exists()?;
 
     let status = Command::new("ffmpeg")
@@ -75,13 +96,11 @@ pub fn encode_gif(
         .arg("-loop")
         .arg("0")
         .arg(output_file)
-        .status()?;
+        .status()
+        .map_err(FfmpegError::Io)?;
 
     if !status.success() {
-        return Err(Box::new(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            "Failed to encode GIF",
-        )));
+        return Err(FfmpegError::EncodeFailed { kind: "GIF animation" });
     }
     Ok(())
 }

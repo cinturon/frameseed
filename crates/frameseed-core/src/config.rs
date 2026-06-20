@@ -13,9 +13,19 @@ pub enum ConfigError {
 impl Display for ConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ConfigError::Io(e) => write!(f, "IO error: {}", e),
-            ConfigError::Parse(e) => write!(f, "Parse error: {}", e),
-            ConfigError::Invalid(e) => write!(f, "Invalid configuration: {}", e),
+            ConfigError::Io(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                write!(
+                    f,
+                    "Config file not found ({}). Check the path or run `frameseed list-presets`.",
+                    e
+                )
+            }
+            ConfigError::Io(e) => write!(f, "Could not read config file: {e}"),
+            ConfigError::Parse(e) => write!(
+                f,
+                "Invalid TOML in config file: {e}. Check field names, types, and `[scene]` settings."
+            ),
+            ConfigError::Invalid(message) => write!(f, "{message}"),
         }
     }
 }
@@ -86,24 +96,34 @@ impl RenderConfig {
 
     pub fn validate(&self) -> Result<(), ConfigError> {
         if self.width == 0 {
-            return Err(ConfigError::Invalid("Width must be greater than 0".into()));
+            return Err(ConfigError::Invalid(
+                "Width must be greater than 0. Set `width = 640` (or another positive value) in your config.".into(),
+            ));
         }
         if self.height == 0 {
-            return Err(ConfigError::Invalid("Height must be greater than 0".into()));
+            return Err(ConfigError::Invalid(
+                "Height must be greater than 0. Set `height = 360` (or another positive value) in your config.".into(),
+            ));
         }
         if self.fps <= 0.0 {
-            return Err(ConfigError::Invalid("FPS must be greater than 0".into()));
+            return Err(ConfigError::Invalid(
+                "FPS must be greater than 0. Set `fps = 24.0` (or another positive value) in your config.".into(),
+            ));
         }
         if self.duration <= 0.0 {
             return Err(ConfigError::Invalid(
-                "Duration must be greater than 0".into(),
+                "Duration must be greater than 0. Set `duration = 5.0` for a five-second clip.".into(),
             ));
         }
         if self.seed == 0 {
-            return Err(ConfigError::Invalid("Seed must be greater than 0".into()));
+            return Err(ConfigError::Invalid(
+                "Seed must be greater than 0. Use any positive integer, e.g. `seed = 42`.".into(),
+            ));
         }
         if self.scene.name.is_empty() {
-            return Err(ConfigError::Invalid("Scene must be provided".into()));
+            return Err(ConfigError::Invalid(
+                "Scene name is missing. Add `[scene]` with `name = \"gradient\"` (or another scene from `frameseed list-scenes`).".into(),
+            ));
         }
         Ok(())
     }
