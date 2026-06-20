@@ -21,6 +21,9 @@ pub enum Commands {
         config: Option<PathBuf>,
         #[arg(long, conflicts_with = "config")]
         preset: Option<String>,
+        /// Override the seed from the config file. Pass a number or "random".
+        #[arg(long)]
+        seed: Option<String>,
         #[arg(long, default_value = "mp4")]
         output_format: OutputFormat,
         #[arg(long)]
@@ -44,8 +47,9 @@ pub enum Commands {
         preset: Option<String>,
         #[arg(long, conflicts_with_all = ["scene", "preset"])]
         config: Option<PathBuf>,
-        #[arg(long, default_value_t = 42)]
-        seed: u64,
+        /// Seed value. Pass a number or "random" to pick one at runtime.
+        #[arg(long, default_value = "42")]
+        seed: String,
         #[arg(long)]
         output: PathBuf,
         #[arg(long, default_value_t = 640)]

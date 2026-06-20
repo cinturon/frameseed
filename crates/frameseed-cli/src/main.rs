@@ -20,6 +20,21 @@ use std::error::Error;
 use std::path::Path;
 use std::time::Instant;
 
+fn parse_seed(s: &str) -> Result<u64, Box<dyn Error>> {
+    if s.eq_ignore_ascii_case("random") {
+        let seed = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.subsec_nanos() as u64 ^ d.as_secs())
+            .unwrap_or(42)
+            | 1;
+        eprintln!("Seed: {seed}");
+        Ok(seed)
+    } else {
+        let n: u64 = s.parse().map_err(|_| format!("Invalid seed '{s}': expected a positive integer or 'random'"))?;
+        Ok(n)
+    }
+}
+
 fn main() {
     if let Err(err) = run() {
         eprintln!("Error: {err}");
@@ -34,6 +49,7 @@ fn run() -> Result<(), Box<dyn Error>> {
         Commands::Render {
             config,
             preset,
+            seed,
             output_format,
             contact_sheet,
             contact_sheet_step,
@@ -48,8 +64,10 @@ fn run() -> Result<(), Box<dyn Error>> {
                     );
                 }
             };
+            let seed_override = seed.as_deref().map(parse_seed).transpose()?;
             render(
                 &config_path,
+                seed_override,
                 output_format,
                 contact_sheet,
                 contact_sheet_step,
@@ -94,18 +112,19 @@ fn run() -> Result<(), Box<dyn Error>> {
             height,
             frame_index,
         } => {
+            let seed_u64 = parse_seed(&seed)?;
             let render_config = match (scene.as_deref(), preset.as_deref(), config.as_deref()) {
                 (Some(scene_name), None, None) => {
-                    preview_config_from_scene(scene_name, seed, width, height)?
+                    preview_config_from_scene(scene_name, seed_u64, width, height)?
                 }
                 (None, Some(preset_name), None) => {
                     let mut cfg = load_preset(preset_name)?;
-                    cfg.seed = seed;
+                    cfg.seed = seed_u64;
                     cfg
                 }
                 (None, None, Some(path)) => {
                     let mut cfg = load_from_path(path)?;
-                    cfg.seed = seed;
+                    cfg.seed = seed_u64;
                     cfg
                 }
                 _ => {
@@ -145,12 +164,16 @@ fn preview_config_from_scene(
 
 fn render(
     config_path: &Path,
+    seed_override: Option<u64>,
     output_format: OutputFormat,
     contact_sheet: bool,
     contact_sheet_step: u32,
     contact_sheet_cols: u32,
 ) -> Result<(), Box<dyn Error>> {
-    let config = load_from_path(config_path)?;
+    let mut config = load_from_path(config_path)?;
+    if let Some(seed) = seed_override {
+        config.seed = seed;
+    }
     let export_format = match output_format {
         OutputFormat::Mp4 => ExportFormat::Mp4,
         OutputFormat::Gif => ExportFormat::Gif,
