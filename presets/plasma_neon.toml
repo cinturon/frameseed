@@ -1,0 +1,16 @@
+width = 640
+height = 360
+fps = 24.0
+duration = 8.0
+seed = 13
+
+[scene]
+name = "plasma"
+
+[scene.plasma]
+speed = 1.2
+scale = 4.0
+
+[effects.brightness_contrast]
+brightness = 0.05
+contrast = 1.4

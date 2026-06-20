@@ -1,0 +1,13 @@
+width = 640
+height = 360
+fps = 24.0
+duration = 6.0
+seed = 7
+
+[scene]
+name = "gradient"
+
+[scene.gradient]
+palette = "ocean"
+direction = "diagonal"
+speed = 0.3

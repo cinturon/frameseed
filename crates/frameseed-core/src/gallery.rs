@@ -87,6 +87,21 @@ pub fn gallery_entries() -> &'static [GalleryEntry] {
             title: "Starfield",
             description: "3D starfield with depth-based brightness and size",
         },
+        GalleryEntry {
+            slug: "plasma_neon",
+            title: "Plasma Neon",
+            description: "high-contrast plasma with boosted saturation",
+        },
+        GalleryEntry {
+            slug: "deep_space",
+            title: "Deep Space",
+            description: "dense starfield at high speed with darkened contrast",
+        },
+        GalleryEntry {
+            slug: "ocean_gradient",
+            title: "Ocean Gradient",
+            description: "diagonal ocean palette gradient with slow drift",
+        },
     ]
 }
 
