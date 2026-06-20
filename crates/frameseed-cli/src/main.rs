@@ -7,15 +7,26 @@ use commands::PresetsCommands;
 use frameseed_core::gallery_entries;
 use frameseed_core::list_presets;
 use frameseed_core::load_from_path;
+use frameseed_core::load_preset;
 use frameseed_core::preset_path;
+use frameseed_core::render_preview_frame;
 use frameseed_core::save_preset;
+use frameseed_core::scene_from_config;
+use frameseed_core::{EffectsConfig, RenderConfig, SceneConfig};
 use frameseed_encoder::create_contact_sheet;
 use frameseed_encoder::{export_video, ExportFormat};
 use std::error::Error;
 use std::path::Path;
 use std::time::Instant;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
+    if let Err(err) = run() {
+        eprintln!("Error: {err}");
+        std::process::exit(1);
+    }
+}
+
+fn run() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
 
     match cli.command {
@@ -30,7 +41,11 @@ fn main() -> Result<(), Box<dyn Error>> {
             let config_path = match (config, preset) {
                 (Some(path), None) => path,
                 (None, Some(name)) => preset_path(&name),
-                _ => return Err("Provide either --config or --preset".into()),
+                _ => {
+                    return Err(
+                        "Provide either --config <path.toml> or --preset <name>. Run `frameseed list-presets` to see presets.".into(),
+                    );
+                }
             };
             render(
                 &config_path,
@@ -58,9 +73,68 @@ fn main() -> Result<(), Box<dyn Error>> {
                 println!("  preset: {}", entry.slug);
             }
         }
+        Commands::ListPresets => {
+            for name in list_presets()? {
+                println!("{name}");
+            }
+        }
+        Commands::Preview {
+            scene,
+            preset,
+            config,
+            seed,
+            output,
+            width,
+            height,
+            frame_index,
+        } => {
+            let render_config = match (scene.as_deref(), preset.as_deref(), config.as_deref()) {
+                (Some(scene_name), None, None) => {
+                    preview_config_from_scene(scene_name, seed, width, height)?
+                }
+                (None, Some(preset_name), None) => {
+                    let mut cfg = load_preset(preset_name)?;
+                    cfg.seed = seed;
+                    cfg
+                }
+                (None, None, Some(path)) => {
+                    let mut cfg = load_from_path(path)?;
+                    cfg.seed = seed;
+                    cfg
+                }
+                _ => {
+                    return Err(
+                        "Provide exactly one of --scene, --preset, or --config for preview.".into(),
+                    );
+                }
+            };
+
+            render_preview_frame(&render_config, frame_index, &output)?;
+            eprintln!("Preview saved to {}", output.display());
+        }
     }
 
     Ok(())
+}
+
+fn preview_config_from_scene(
+    scene: &str,
+    seed: u64,
+    width: u32,
+    height: u32,
+) -> Result<RenderConfig, Box<dyn Error>> {
+    let config = RenderConfig::new(
+        width,
+        height,
+        24.0,
+        1.0,
+        seed,
+        SceneConfig::with_name(scene),
+        EffectsConfig::default(),
+    );
+    config.validate()?;
+    scene_from_config(&config.scene)?;
+    Ok(config)
 }
 
 fn render(

@@ -35,6 +35,25 @@ pub enum Commands {
         command: PresetsCommands,
     },
     ListScenes,
+    ListPresets,
+    Preview {
+        #[arg(long, conflicts_with_all = ["preset", "config"])]
+        scene: Option<String>,
+        #[arg(long, conflicts_with_all = ["scene", "config"])]
+        preset: Option<String>,
+        #[arg(long, conflicts_with_all = ["scene", "preset"])]
+        config: Option<PathBuf>,
+        #[arg(long, default_value_t = 42)]
+        seed: u64,
+        #[arg(long)]
+        output: PathBuf,
+        #[arg(long, default_value_t = 640)]
+        width: u32,
+        #[arg(long, default_value_t = 360)]
+        height: u32,
+        #[arg(long, default_value = "0")]
+        frame_index: u32,
+    },
 }
 
 #[derive(Subcommand)]
