@@ -176,7 +176,8 @@ function updateRenderProgress(event) {
   const { phase, current, total } = event.payload;
   const percent = total > 0 ? Math.round((current / total) * 100) : 0;
   progressBarFill.style.width = `${percent}%`;
-  renderStatus.textContent = `${phase}: ${current} / ${total}`;
+  const label = phase === "rendering" ? "Rendering" : "Encoding";
+  renderStatus.textContent = `${label} frame ${current} of ${total} (${percent}%)`;
   renderStatus.className = "";
 }
 

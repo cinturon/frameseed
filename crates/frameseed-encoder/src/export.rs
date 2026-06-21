@@ -99,9 +99,6 @@ where
     })?;
 
     let total = config.total_frames();
-    if let Ok(mut cb) = on_progress.lock() {
-        cb("encoding", total, total);
-    }
 
     // Pipe raw RGBA frames to ffmpeg stdin.
     let size_arg = format!("{}x{}", config.width, config.height);
@@ -136,8 +133,11 @@ where
     let mut child = cmd.spawn().map_err(FfmpegError::Io)?;
     let mut stdin = child.stdin.take().expect("stdin is piped");
 
-    for buf in &buffers {
-        stdin.write_all(buf).map_err(|e| ExportError::Io(e))?;
+    for (i, buf) in buffers.iter().enumerate() {
+        stdin.write_all(buf).map_err(ExportError::Io)?;
+        if let Ok(mut cb) = on_progress.lock() {
+            cb("encoding", (i + 1) as u32, total);
+        }
     }
     drop(stdin);
 
