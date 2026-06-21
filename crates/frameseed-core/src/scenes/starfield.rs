@@ -1,4 +1,4 @@
-use crate::{seeded_rng, Frame, RenderContext, Rgba, Scene};
+use crate::{Frame, RenderContext, Rgba, Scene, seeded_rng};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 

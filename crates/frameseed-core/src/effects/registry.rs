@@ -2,8 +2,9 @@ use crate::Effect;
 use crate::config::EffectsConfig;
 use crate::effects::InvertEffect;
 use crate::effects::{
-    BoxBlurEffect, BrightnessContrastEffect, MotionBlurEffect, OrderedDitherEffect,
-    PaletteQuantizationEffect, PixelationEffect, VhsCrtEffect,
+    BloomEffect, BoxBlurEffect, BrightnessContrastEffect, ChromaticAberrationEffect,
+    MotionBlurEffect, OrderedDitherEffect, PaletteQuantizationEffect, PixelationEffect,
+    PosterizeEffect, VhsCrtEffect, VignetteEffect,
 };
 
 pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
@@ -37,11 +38,35 @@ pub fn effects_from_config(effects: &EffectsConfig) -> Vec<Box<dyn Effect>> {
             vhs_crt.warp_amount,
         )));
     }
+    if let Some(chromatic_aberration) = &effects.chromatic_aberration {
+        pipeline.push(Box::new(ChromaticAberrationEffect::new(
+            chromatic_aberration.offset,
+        )));
+    }
     if let Some(blur) = &effects.blur {
         pipeline.push(Box::new(BoxBlurEffect::new(blur.radius)));
     }
+    if let Some(bloom) = &effects.bloom {
+        pipeline.push(Box::new(BloomEffect::new(
+            bloom.threshold,
+            bloom.intensity,
+            bloom.radius,
+        )));
+    }
+    if let Some(posterize) = &effects.posterize {
+        pipeline.push(Box::new(PosterizeEffect::new(posterize.levels)));
+    }
     if let Some(bc) = &effects.brightness_contrast {
-        pipeline.push(Box::new(BrightnessContrastEffect::new(bc.brightness, bc.contrast)));
+        pipeline.push(Box::new(BrightnessContrastEffect::new(
+            bc.brightness,
+            bc.contrast,
+        )));
+    }
+    if let Some(vignette) = &effects.vignette {
+        pipeline.push(Box::new(VignetteEffect::new(
+            vignette.strength,
+            vignette.radius,
+        )));
     }
     pipeline
 }
@@ -73,6 +98,10 @@ mod tests {
             vhs_crt: None,
             blur: None,
             brightness_contrast: None,
+            bloom: None,
+            chromatic_aberration: None,
+            posterize: None,
+            vignette: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -90,6 +119,10 @@ mod tests {
             vhs_crt: None,
             blur: None,
             brightness_contrast: None,
+            bloom: None,
+            chromatic_aberration: None,
+            posterize: None,
+            vignette: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -109,6 +142,10 @@ mod tests {
             vhs_crt: None,
             blur: None,
             brightness_contrast: None,
+            bloom: None,
+            chromatic_aberration: None,
+            posterize: None,
+            vignette: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -126,6 +163,10 @@ mod tests {
             vhs_crt: None,
             blur: None,
             brightness_contrast: None,
+            bloom: None,
+            chromatic_aberration: None,
+            posterize: None,
+            vignette: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -143,6 +184,10 @@ mod tests {
             vhs_crt: None,
             blur: None,
             brightness_contrast: None,
+            bloom: None,
+            chromatic_aberration: None,
+            posterize: None,
+            vignette: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);
@@ -165,6 +210,10 @@ mod tests {
             }),
             blur: None,
             brightness_contrast: None,
+            bloom: None,
+            chromatic_aberration: None,
+            posterize: None,
+            vignette: None,
         };
         let effects = effects_from_config(&effects);
         assert_eq!(effects.len(), 1);

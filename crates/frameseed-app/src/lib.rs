@@ -1,8 +1,10 @@
 use frameseed_core::{
-    config_to_toml, effects_from_config, frame_to_base64, load_preset, scene_from_config, Frame,
-    RenderConfig, RenderContext, Rgba,
+    analyze_wav, compute_warped_times, config_for_context, config_to_toml, effects_from_config,
+    frame_to_base64, load_preset, scene_from_config, suggest_loop_duration, Frame, RenderConfig,
+    RenderContext, Rgba,
 };
 use frameseed_encoder::{export_video, ExportError, ExportFormat};
+use serde::Serialize as SerdeSerialize;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
@@ -19,8 +21,32 @@ struct PreviewRequest {
 struct ExportRenderRequest {
     config: RenderConfig,
     output_format: String,
-    /// Target video bitrate for MP4 (e.g. "5M", "10M"). `None` lets ffmpeg choose.
+    /// Target video bitrate for MP4/WebM (e.g. "5M", "10M"). `None` lets ffmpeg choose.
     bitrate: Option<String>,
+    /// Absolute path to an audio file to mux into the export.
+    audio_path: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct BatchExportRequest {
+    config: RenderConfig,
+    output_format: String,
+    bitrate: Option<String>,
+    audio_path: Option<String>,
+    seeds: Vec<u64>,
+}
+
+#[derive(Clone, Serialize)]
+struct BatchItemEvent {
+    index: u32,
+    total: u32,
+    seed: u64,
+}
+
+#[derive(Clone, Serialize)]
+struct BatchCompleteEvent {
+    output_dir: String,
+    count: u32,
 }
 
 #[derive(Clone, Serialize)]
@@ -97,7 +123,9 @@ fn export_dialog(app: &AppHandle, format: ExportFormat) -> Result<Option<PathBuf
         .add_filter(filter_name, &[extension])
         .blocking_save_file();
 
-    Ok(selection.map(|path| path.into_path().map_err(|error| error.to_string())).transpose()?)
+    Ok(selection
+        .map(|path| path.into_path().map_err(|error| error.to_string()))
+        .transpose()?)
 }
 
 fn run_export_job(
@@ -107,6 +135,7 @@ fn run_export_job(
     format: ExportFormat,
     output_path: PathBuf,
     bitrate: Option<String>,
+    audio_path: Option<String>,
 ) {
     std::thread::spawn(move || {
         let result = (|| -> Result<PathBuf, String> {
@@ -117,12 +146,15 @@ fn run_export_job(
             let job_dir = next_job_dir(&base_dir);
             std::fs::create_dir_all(&job_dir).map_err(|error| error.to_string())?;
 
+            let audio = audio_path.as_deref().map(std::path::Path::new);
+
             export_video(
                 &config,
                 &job_dir,
                 &output_path,
                 format,
                 bitrate.as_deref(),
+                audio,
                 |phase, current, total| {
                     let _ = app.emit(
                         "render-progress",
@@ -167,6 +199,7 @@ fn begin_export(
     format: ExportFormat,
     output_path: PathBuf,
     bitrate: Option<String>,
+    audio_path: Option<String>,
 ) -> Result<(), String> {
     {
         let mut running = state
@@ -188,6 +221,7 @@ fn begin_export(
         format,
         output_path,
         bitrate,
+        audio_path,
     );
     Ok(())
 }
@@ -204,18 +238,25 @@ async fn export_render(
     // blocking_save_file dispatches to the main thread internally; running it
     // inside spawn_blocking keeps the main thread free to handle the dialog.
     let app_for_dialog = app.clone();
-    let maybe_path = tauri::async_runtime::spawn_blocking(move || {
-        export_dialog(&app_for_dialog, format)
-    })
-    .await
-    .map_err(|e| e.to_string())??;
+    let maybe_path =
+        tauri::async_runtime::spawn_blocking(move || export_dialog(&app_for_dialog, format))
+            .await
+            .map_err(|e| e.to_string())??;
 
     let Some(output_path) = maybe_path else {
         let _ = app.emit("export-cancelled", ExportCancelled);
         return Ok(());
     };
 
-    begin_export(app, &state, request.config, format, output_path, request.bitrate)
+    begin_export(
+        app,
+        &state,
+        request.config,
+        format,
+        output_path,
+        request.bitrate,
+        request.audio_path,
+    )
 }
 
 #[tauri::command]
@@ -263,13 +304,17 @@ fn preview_frame(request: PreviewRequest) -> Result<String, String> {
     let frame_index = request.frame_index.unwrap_or(0);
     let total_frames = config.total_frames();
 
-    let scene = scene_from_config(&config.scene).map_err(user_message)?;
-    let mut effects = effects_from_config(&config.effects);
-
     let mut frame = Frame::new(config.width, config.height);
     frame.clear(Rgba::black());
 
-    let context = RenderContext::new(frame_index, total_frames, config.fps, config.seed);
+    let warped = compute_warped_times(&config);
+    let mut context = RenderContext::new(frame_index, total_frames, config.fps, config.seed);
+    if let Some(&time_seconds) = warped.get(frame_index as usize) {
+        context.time_seconds = time_seconds;
+    }
+    let frame_config = config_for_context(&config, &context);
+    let scene = scene_from_config(&frame_config.scene).map_err(user_message)?;
+    let mut effects = effects_from_config(&frame_config.effects);
 
     scene.render(&mut frame, &context);
     for effect in &mut effects {
@@ -280,14 +325,177 @@ fn preview_frame(request: PreviewRequest) -> Result<String, String> {
     Ok(base64)
 }
 
+#[derive(SerdeSerialize)]
+struct AudioAnalysisResult {
+    beat_times: Vec<f32>,
+    bpm: f32,
+    duration_seconds: f32,
+}
+
+#[tauri::command]
+fn get_loop_duration(config: RenderConfig) -> f32 {
+    suggest_loop_duration(&config)
+}
+
+#[tauri::command]
+fn analyze_audio_file(path: String) -> Result<AudioAnalysisResult, String> {
+    let result = analyze_wav(std::path::Path::new(&path)).map_err(|e| e.to_string())?;
+    Ok(AudioAnalysisResult {
+        beat_times: result.beat_times,
+        bpm: result.bpm,
+        duration_seconds: result.duration_seconds,
+    })
+}
+
+#[tauri::command]
+fn open_audio_file(app: AppHandle) -> Result<Option<String>, String> {
+    let selection = tauri::async_runtime::block_on(async {
+        app.dialog()
+            .file()
+            .set_title("Load audio file")
+            .add_filter("Audio", &["wav", "WAV"])
+            .blocking_pick_file()
+    });
+    Ok(selection
+        .and_then(|p| p.into_path().ok())
+        .map(|p| p.display().to_string()))
+}
+
+#[tauri::command]
+async fn batch_export_render(
+    app: AppHandle,
+    state: State<'_, RenderState>,
+    request: BatchExportRequest,
+) -> Result<(), String> {
+    request.config.validate().map_err(user_message)?;
+    let format = ExportFormat::parse(&request.output_format).map_err(user_message)?;
+
+    let app_for_dialog = app.clone();
+    let maybe_dir = tauri::async_runtime::spawn_blocking(move || {
+        Ok::<_, String>(
+            app_for_dialog
+                .dialog()
+                .file()
+                .set_title("Choose batch export folder")
+                .blocking_pick_folder()
+                .and_then(|p| p.into_path().ok()),
+        )
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    let Some(output_dir) = maybe_dir else {
+        let _ = app.emit("batch-cancelled", ExportCancelled);
+        return Ok(());
+    };
+
+    {
+        let mut running = state
+            .running
+            .lock()
+            .map_err(|_| "Render queue lock poisoned".to_string())?;
+        if *running {
+            return Err("A render is already in progress".into());
+        }
+        *running = true;
+    }
+
+    let seeds = request.seeds;
+    let total = seeds.len() as u32;
+    let config_base = request.config;
+    let bitrate = request.bitrate;
+    let audio_path = request.audio_path;
+    let running = state.running.clone();
+    let ext = match format {
+        ExportFormat::Mp4 => "mp4",
+        ExportFormat::Gif => "gif",
+        ExportFormat::WebM => "webm",
+    };
+
+    std::thread::spawn(move || {
+        let base_dir = render_job_dir();
+
+        for (i, seed) in seeds.iter().enumerate() {
+            let index = i as u32;
+            let _ = app.emit(
+                "batch-item-start",
+                BatchItemEvent {
+                    index,
+                    total,
+                    seed: *seed,
+                },
+            );
+
+            let mut config = config_base.clone();
+            config.seed = *seed;
+
+            let output_path = output_dir.join(format!("frameseed_{seed}.{ext}"));
+            let job_dir = base_dir.join(format!("batch_{seed}"));
+            if let Err(e) = std::fs::create_dir_all(&job_dir) {
+                let _ = app.emit(
+                    "render-error",
+                    RenderErrorEvent {
+                        message: e.to_string(),
+                    },
+                );
+                break;
+            }
+
+            let audio = audio_path.as_deref().map(std::path::Path::new);
+
+            let result = export_video(
+                &config,
+                &job_dir,
+                &output_path,
+                format,
+                bitrate.as_deref(),
+                audio,
+                |phase, current, total_frames| {
+                    let _ = app.emit(
+                        "render-progress",
+                        RenderProgressEvent {
+                            phase: format!("batch {}/{}: {}", index + 1, total, phase),
+                            current,
+                            total: total_frames,
+                        },
+                    );
+                },
+            );
+
+            if let Err(e) = result {
+                let _ = app.emit(
+                    "render-error",
+                    RenderErrorEvent {
+                        message: export_error_message(e),
+                    },
+                );
+                break;
+            }
+        }
+
+        if let Ok(mut guard) = running.lock() {
+            *guard = false;
+        }
+
+        let _ = app.emit(
+            "batch-complete",
+            BatchCompleteEvent {
+                output_dir: output_dir.display().to_string(),
+                count: total,
+            },
+        );
+    });
+
+    Ok(())
+}
+
 #[tauri::command]
 fn render_animation_preview(request: PreviewRequest) -> Result<Vec<String>, String> {
     request.config.validate().map_err(user_message)?;
     let config = request.config;
     let total = config.total_frames();
     let count = 30_u32.min(total);
-    let scene = scene_from_config(&config.scene).map_err(user_message)?;
-    let mut effects = effects_from_config(&config.effects);
+    let warped = compute_warped_times(&config);
     let mut frames = Vec::with_capacity(count as usize);
     for i in 0..count {
         let frame_idx = if count <= 1 {
@@ -297,7 +505,13 @@ fn render_animation_preview(request: PreviewRequest) -> Result<Vec<String>, Stri
         };
         let mut frame = Frame::new(config.width, config.height);
         frame.clear(Rgba::black());
-        let ctx = RenderContext::new(frame_idx, total, config.fps, config.seed);
+        let mut ctx = RenderContext::new(frame_idx, total, config.fps, config.seed);
+        if let Some(&time_seconds) = warped.get(frame_idx as usize) {
+            ctx.time_seconds = time_seconds;
+        }
+        let frame_config = config_for_context(&config, &ctx);
+        let scene = scene_from_config(&frame_config.scene).map_err(user_message)?;
+        let mut effects = effects_from_config(&frame_config.effects);
         scene.render(&mut frame, &ctx);
         for effect in &mut effects {
             effect.apply(&mut frame, &ctx);
@@ -324,7 +538,11 @@ pub fn run() {
             export_render,
             render_queue_running,
             render_animation_preview,
-            export_config_to_toml
+            export_config_to_toml,
+            get_loop_duration,
+            analyze_audio_file,
+            open_audio_file,
+            batch_export_render
         ])
         .manage(RenderState::new())
         .setup(|app| {

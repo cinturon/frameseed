@@ -1,44 +1,56 @@
 mod gradient;
-pub use gradient::{GradientScene, GradientParams, GradientDirection, palette_from_name, KNOWN_PALETTES};
+#[allow(unused_imports)]
+pub use gradient::{
+    GradientDirection, GradientParams, GradientScene, KNOWN_PALETTES, palette_from_name,
+};
 
 mod noise_clouds;
-pub use noise_clouds::{NoiseCloudsScene, NoiseCloudsParams};
+pub use noise_clouds::{NoiseCloudsParams, NoiseCloudsScene};
 
 mod conway;
-pub use conway::{ConwayScene, ConwayParams};
+pub use conway::{ConwayParams, ConwayScene};
 
 mod particles;
-pub use particles::{ParticlesScene, ParticleParams};
+pub use particles::{ParticleParams, ParticlesScene};
 
 mod flow_field;
-pub use flow_field::{FlowFieldScene, FlowFieldParams};
+pub use flow_field::{FlowFieldParams, FlowFieldScene};
 
 mod sdf_shapes;
-pub use sdf_shapes::{SdfShapeScene, SdfShapeParams};
+pub use sdf_shapes::{SdfShapeParams, SdfShapeScene};
 
 mod mandelbrot;
-pub use mandelbrot::{MandelbrotScene, MandelbrotParams};
+pub use mandelbrot::{MandelbrotParams, MandelbrotScene};
 
 mod voronoi;
-pub use voronoi::{VoronoiScene, VoronoiParams};
+pub use voronoi::{VoronoiParams, VoronoiScene};
 
 mod plasma;
-pub use plasma::{PlasmaScene, PlasmaParams};
+pub use plasma::{PlasmaParams, PlasmaScene};
 
 mod lissajous;
-pub use lissajous::{LissajousScene, LissajousParams};
+pub use lissajous::{LissajousParams, LissajousScene};
 
 mod sine_wave;
-pub use sine_wave::{SineWaveScene, SineWaveParams};
+pub use sine_wave::{SineWaveParams, SineWaveScene};
 
 mod starfield;
-pub use starfield::{StarfieldScene, StarfieldParams};
+pub use starfield::{StarfieldParams, StarfieldScene};
 
 mod tunnel;
-pub use tunnel::{TunnelScene, TunnelParams};
+pub use tunnel::{TunnelParams, TunnelScene};
+
+mod kaleidoscope;
+pub use kaleidoscope::{KaleidoscopeParams, KaleidoscopeScene};
+
+mod metaballs;
+pub use metaballs::{MetaballsParams, MetaballsScene};
+
+mod oscilloscope;
+pub use oscilloscope::{OscilloscopeParams, OscilloscopeScene};
 
 mod blend;
-pub use blend::{BlendScene, BlendParams};
+pub use blend::{BlendParams, BlendScene, ConfigScene};
 
 mod registry;
-pub use registry::{scene_from_config, KNOWN_SCENES};
+pub use registry::{KNOWN_SCENES, scene_from_config};

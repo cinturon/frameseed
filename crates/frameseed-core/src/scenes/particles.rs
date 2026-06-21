@@ -28,7 +28,12 @@ pub struct ParticlesScene {
 
 impl ParticlesScene {
     pub fn new(count: u32, speed: f32, kind: ParticleKind, fps: f32) -> Self {
-        Self { count, speed, kind, fps }
+        Self {
+            count,
+            speed,
+            kind,
+            fps,
+        }
     }
 }
 
@@ -49,8 +54,16 @@ impl Scene for ParticlesScene {
             &self.kind,
         );
 
-        for _ in 0..context.frame_index{
-            update_particles(&mut particles, delta_time, frame.width, frame.height, context.seed, self.speed, &self.kind);
+        for _ in 0..context.frame_index {
+            update_particles(
+                &mut particles,
+                delta_time,
+                frame.width,
+                frame.height,
+                context.seed,
+                self.speed,
+                &self.kind,
+            );
         }
         draw_particles(&particles, frame);
     }

@@ -44,10 +44,7 @@ impl Frame {
         // Safety: Rgba is repr(Rust) with fields [r, g, b, a: u8] — no padding,
         // same size and alignment as [u8; 4]. The cast is valid.
         unsafe {
-            std::slice::from_raw_parts(
-                self.pixels.as_ptr() as *const u8,
-                self.pixels.len() * 4,
-            )
+            std::slice::from_raw_parts(self.pixels.as_ptr() as *const u8, self.pixels.len() * 4)
         }
     }
 

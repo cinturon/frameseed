@@ -40,7 +40,8 @@ pub fn list_presets() -> Result<Vec<String>, ConfigError> {
 pub fn save_preset(name: &str, config: &RenderConfig) -> Result<(), ConfigError> {
     create_dir_all(presets_dir())?;
     let path = preset_path(name);
-    let contents = toml::to_string_pretty(config).map_err(|e| ConfigError::Invalid(e.to_string()))?;
+    let contents =
+        toml::to_string_pretty(config).map_err(|e| ConfigError::Invalid(e.to_string()))?;
     std::fs::write(path, contents)?;
     Ok(())
 }

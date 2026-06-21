@@ -19,11 +19,7 @@ impl RenderContext {
             frame_index as f32 / (total_frames - 1) as f32
         };
 
-        let seed = if seed == 0 {
-            1
-        } else {
-            seed
-        };
+        let seed = if seed == 0 { 1 } else { seed };
 
         Self {
             frame_index,

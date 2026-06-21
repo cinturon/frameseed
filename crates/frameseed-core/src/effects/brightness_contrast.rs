@@ -1,4 +1,4 @@
-use crate::{Effect, Frame, RenderContext, Rgba};
+use crate::{Effect, Frame, RenderContext};
 use serde::{Deserialize, Serialize};
 
 pub struct BrightnessContrastEffect {
@@ -8,7 +8,10 @@ pub struct BrightnessContrastEffect {
 
 impl BrightnessContrastEffect {
     pub fn new(brightness: f32, contrast: f32) -> Self {
-        Self { brightness, contrast }
+        Self {
+            brightness,
+            contrast,
+        }
     }
 }
 
@@ -55,12 +58,17 @@ impl Default for BrightnessContrastParams {
     }
 }
 
-fn default_brightness() -> f32 { 0.0 }
-fn default_contrast() -> f32 { 1.0 }
+fn default_brightness() -> f32 {
+    0.0
+}
+fn default_contrast() -> f32 {
+    1.0
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Rgba;
 
     #[test]
     fn brightness_zero_contrast_one_is_noop() {
@@ -87,7 +95,7 @@ mod tests {
     fn high_contrast_pushes_to_extremes() {
         let mut frame = Frame::new(2, 1);
         frame.pixels[0] = Rgba::new(200, 200, 200, 255); // above midpoint
-        frame.pixels[1] = Rgba::new(50, 50, 50, 255);   // below midpoint
+        frame.pixels[1] = Rgba::new(50, 50, 50, 255); // below midpoint
         let ctx = RenderContext::new(0, 1, 24.0, 1);
         BrightnessContrastEffect::new(0.0, 3.0).apply(&mut frame, &ctx);
         assert!(frame.pixels[0].r > 200);

@@ -1,3 +1,4 @@
+use font8x8::BASIC_FONTS;
 use font8x8::UnicodeFonts;
 use image::Rgba;
 use image::RgbaImage;
@@ -5,7 +6,6 @@ use image::imageops;
 use std::error::Error;
 use std::path::Path;
 use std::path::PathBuf;
-use font8x8::BASIC_FONTS;
 
 fn sampled_frame_indices(total_frames: u32, step: u32) -> Vec<u32> {
     if total_frames == 0 {
@@ -39,7 +39,7 @@ fn draw_label(sheet: &mut RgbaImage, x: u32, y: u32, w: u32, h: u32, text: &str)
             sheet.put_pixel(px, py, Rgba([48, 48, 48, 255]));
         }
     }
-    
+
     let text_color = Rgba([220, 220, 220, 255]);
     draw_text(sheet, x + 4, y + 4, text, text_color);
 }
@@ -72,7 +72,6 @@ pub fn create_contact_sheet(
     cols: u32,
     thumb_width: u32,
 ) -> Result<(), Box<dyn Error>> {
-
     let indices = sampled_frame_indices(total_frames, step);
 
     let first_path = frame_file_path(sequence_dir, indices[0]);

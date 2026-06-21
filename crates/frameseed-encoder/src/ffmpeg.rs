@@ -100,7 +100,9 @@ pub fn encode_gif(
         .map_err(FfmpegError::Io)?;
 
     if !status.success() {
-        return Err(FfmpegError::EncodeFailed { kind: "GIF animation" });
+        return Err(FfmpegError::EncodeFailed {
+            kind: "GIF animation",
+        });
     }
     Ok(())
 }

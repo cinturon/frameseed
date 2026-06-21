@@ -321,10 +321,7 @@ mod tests {
         let mut at_frame_5 = Frame::new(4, 2);
         apply_warp(&source, &mut at_frame_5, 2.5, &ctx(5));
 
-        assert_ne!(
-            at_frame_0.get_pixel(0, 1),
-            at_frame_5.get_pixel(0, 1)
-        );
+        assert_ne!(at_frame_0.get_pixel(0, 1), at_frame_5.get_pixel(0, 1));
     }
 
     #[test]

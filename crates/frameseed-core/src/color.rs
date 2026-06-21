@@ -95,5 +95,8 @@ fn test_lerp_u8() {
 
 #[test]
 fn test_lerp_rgba() {
-    assert_eq!(lerp_rgba(Rgba::new(0, 0, 0, 255), Rgba::new(255, 255, 255, 255), 0.5), Rgba::new(127, 127, 127, 255));
-}   
+    assert_eq!(
+        lerp_rgba(Rgba::new(0, 0, 0, 255), Rgba::new(255, 255, 255, 255), 0.5),
+        Rgba::new(127, 127, 127, 255)
+    );
+}

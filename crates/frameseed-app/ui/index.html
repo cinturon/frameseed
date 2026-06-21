@@ -21,52 +21,16 @@
         <select id="preset"></select>
       </section>
 
-      <!-- Global render params -->
-      <section class="sidebar-section collapsible open" id="section-render">
-        <button class="section-toggle" aria-expanded="true">
-          <span>Render</span><span class="chevron">▾</span>
-        </button>
-        <div class="section-body">
-          <div class="field-row">
-            <label for="seed">Seed</label>
-            <div class="input-with-action">
-              <input id="seed" type="number" min="1" step="1" />
-              <button id="randomize-seed" class="icon-btn" title="Randomize seed">⟳</button>
-            </div>
-          </div>
-          <div class="field-row two-col">
-            <div>
-              <label for="width">Width</label>
-              <input id="width" type="number" min="1" step="1" />
-            </div>
-            <div>
-              <label for="height">Height</label>
-              <input id="height" type="number" min="1" step="1" />
-            </div>
-          </div>
-          <div class="field-row two-col">
-            <div>
-              <label for="fps">FPS</label>
-              <input id="fps" type="number" min="0.1" step="0.1" />
-            </div>
-            <div>
-              <label for="duration">Duration (s)</label>
-              <input id="duration" type="number" min="0.1" step="0.1" />
-            </div>
-          </div>
-          <div class="field-row">
-            <label for="frame-index">Frame <span id="frame-index-label" class="value-badge">0</span></label>
-            <input id="frame-index" type="range" min="0" max="0" step="1" value="0" />
-          </div>
-        </div>
-      </section>
-
-      <!-- Scene panels -->
+      <!-- Scene params -->
       <section class="sidebar-section collapsible open" id="section-scene">
         <button class="section-toggle" aria-expanded="true">
           <span>Scene</span><span class="chevron">▾</span>
         </button>
         <div class="section-body">
+
+          <div class="scene-toolbar">
+            <button id="randomize-scene" class="icon-btn" title="Randomize scene parameters">🎲</button>
+          </div>
 
           <div id="scene-gradient" class="scene-panel">
             <div class="field-row">
@@ -309,6 +273,65 @@
             </div>
           </div>
 
+          <div id="scene-kaleidoscope" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="kaleidoscope-segments">Segments</label>
+              <input id="kaleidoscope-segments" type="range" min="2" max="24" step="1" />
+              <span class="value-badge" id="kaleidoscope-segments-val">8</span>
+            </div>
+            <div class="field-row">
+              <label for="kaleidoscope-speed">Speed</label>
+              <input id="kaleidoscope-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="kaleidoscope-speed-val">0.8</span>
+            </div>
+            <div class="field-row">
+              <label for="kaleidoscope-zoom">Zoom</label>
+              <input id="kaleidoscope-zoom" type="range" min="0.5" max="6" step="0.1" />
+              <span class="value-badge" id="kaleidoscope-zoom-val">2.0</span>
+            </div>
+          </div>
+
+          <div id="scene-metaballs" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="metaballs-count">Balls</label>
+              <input id="metaballs-count" type="range" min="1" max="24" step="1" />
+              <span class="value-badge" id="metaballs-count-val">7</span>
+            </div>
+            <div class="field-row">
+              <label for="metaballs-speed">Speed</label>
+              <input id="metaballs-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="metaballs-speed-val">0.8</span>
+            </div>
+            <div class="field-row">
+              <label for="metaballs-threshold">Threshold</label>
+              <input id="metaballs-threshold" type="range" min="0.1" max="2" step="0.05" />
+              <span class="value-badge" id="metaballs-threshold-val">0.75</span>
+            </div>
+          </div>
+
+          <div id="scene-oscilloscope" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="oscilloscope-frequency">Frequency</label>
+              <input id="oscilloscope-frequency" type="range" min="0.5" max="12" step="0.1" />
+              <span class="value-badge" id="oscilloscope-frequency-val">4.0</span>
+            </div>
+            <div class="field-row">
+              <label for="oscilloscope-amplitude">Amplitude</label>
+              <input id="oscilloscope-amplitude" type="range" min="0.1" max="0.95" step="0.05" />
+              <span class="value-badge" id="oscilloscope-amplitude-val">0.65</span>
+            </div>
+            <div class="field-row">
+              <label for="oscilloscope-speed">Speed</label>
+              <input id="oscilloscope-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="oscilloscope-speed-val">1.0</span>
+            </div>
+            <div class="field-row">
+              <label for="oscilloscope-glow">Glow</label>
+              <input id="oscilloscope-glow" type="range" min="0.3" max="4" step="0.1" />
+              <span class="value-badge" id="oscilloscope-glow-val">1.0</span>
+            </div>
+          </div>
+
           <div id="scene-blend" class="scene-panel" hidden>
             <div class="field-row">
               <label for="blend-scene-a">Scene A</label>
@@ -325,7 +348,16 @@
                 <option value="voronoi">voronoi</option>
                 <option value="lissajous">lissajous</option>
                 <option value="starfield">starfield</option>
+                <option value="kaleidoscope">kaleidoscope</option>
+                <option value="metaballs">metaballs</option>
+                <option value="oscilloscope">oscilloscope</option>
                 <option value="conway">conway</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="blend-preset-a">Preset A</label>
+              <select id="blend-preset-a">
+                <option value="">scene controls</option>
               </select>
             </div>
             <div class="field-row">
@@ -343,7 +375,16 @@
                 <option value="voronoi">voronoi</option>
                 <option value="lissajous">lissajous</option>
                 <option value="starfield">starfield</option>
+                <option value="kaleidoscope">kaleidoscope</option>
+                <option value="metaballs">metaballs</option>
+                <option value="oscilloscope">oscilloscope</option>
                 <option value="conway">conway</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="blend-preset-b">Preset B</label>
+              <select id="blend-preset-b">
+                <option value="">scene controls</option>
               </select>
             </div>
             <div class="field-row">
@@ -356,18 +397,49 @@
         </div>
       </section>
 
-      <!-- Resolution presets -->
-      <section class="sidebar-section collapsible" id="section-resolution">
-        <button class="section-toggle" aria-expanded="false">
-          <span>Resolution Presets</span><span class="chevron">▾</span>
+      <!-- Render settings -->
+      <section class="sidebar-section collapsible open" id="section-render">
+        <button class="section-toggle" aria-expanded="true">
+          <span>Render</span><span class="chevron">▾</span>
         </button>
         <div class="section-body">
-          <div class="preset-grid">
+          <div class="field-row">
+            <label for="seed">Seed</label>
+            <div class="input-with-action">
+              <input id="seed" type="number" min="1" step="1" />
+              <button id="randomize-seed" class="icon-btn" title="Randomize seed">⟳</button>
+            </div>
+          </div>
+          <div class="field-row two-col">
+            <div>
+              <label for="width">Width</label>
+              <input id="width" type="number" min="1" step="1" />
+            </div>
+            <div>
+              <label for="height">Height</label>
+              <input id="height" type="number" min="1" step="1" />
+            </div>
+          </div>
+          <div class="preset-grid" style="margin-bottom:10px">
             <button class="btn btn-secondary res-preset" data-w="640" data-h="360">360p</button>
             <button class="btn btn-secondary res-preset" data-w="1280" data-h="720">720p</button>
             <button class="btn btn-secondary res-preset" data-w="1920" data-h="1080">1080p</button>
             <button class="btn btn-secondary res-preset" data-w="1080" data-h="1080">1:1</button>
             <button class="btn btn-secondary res-preset" data-w="1080" data-h="1920">9:16</button>
+          </div>
+          <div class="field-row two-col">
+            <div>
+              <label for="fps">FPS</label>
+              <input id="fps" type="number" min="0.1" step="0.1" />
+            </div>
+            <div>
+              <label for="duration">Duration (s)</label>
+              <input id="duration" type="number" min="0.1" step="0.1" />
+            </div>
+          </div>
+          <div class="field-row">
+            <label for="frame-index">Frame <span id="frame-index-label" class="value-badge">0</span></label>
+            <input id="frame-index" type="range" min="0" max="0" step="1" value="0" />
           </div>
         </div>
       </section>
@@ -449,6 +521,52 @@
           </div>
 
           <div class="field-row">
+            <label for="fx-bloom-on">Bloom</label>
+            <label class="toggle"><input id="fx-bloom-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-bloom-params" hidden>
+            <div class="field-row">
+              <label for="fx-bloom-threshold">Threshold</label>
+              <input id="fx-bloom-threshold" type="range" min="0" max="1" step="0.05" value="0.65" />
+              <span class="value-badge" id="fx-bloom-threshold-val">0.65</span>
+            </div>
+            <div class="field-row">
+              <label for="fx-bloom-intensity">Intensity</label>
+              <input id="fx-bloom-intensity" type="range" min="0" max="3" step="0.1" value="0.8" />
+              <span class="value-badge" id="fx-bloom-intensity-val">0.8</span>
+            </div>
+            <div class="field-row">
+              <label for="fx-bloom-radius">Radius</label>
+              <input id="fx-bloom-radius" type="range" min="1" max="20" step="1" value="6" />
+              <span class="value-badge" id="fx-bloom-radius-val">6</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-chromatic-on">Chromatic aberration</label>
+            <label class="toggle"><input id="fx-chromatic-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-chromatic-params" hidden>
+            <div class="field-row">
+              <label for="fx-chromatic-offset">Offset</label>
+              <input id="fx-chromatic-offset" type="range" min="0" max="12" step="0.5" value="2" />
+              <span class="value-badge" id="fx-chromatic-offset-val">2</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-posterize-on">Posterize</label>
+            <label class="toggle"><input id="fx-posterize-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-posterize-params" hidden>
+            <div class="field-row">
+              <label for="fx-posterize-levels">Levels</label>
+              <input id="fx-posterize-levels" type="range" min="2" max="16" step="1" value="6" />
+              <span class="value-badge" id="fx-posterize-levels-val">6</span>
+            </div>
+          </div>
+
+          <div class="field-row">
             <label for="fx-bc-on">Brightness/Contrast</label>
             <label class="toggle"><input id="fx-bc-on" type="checkbox" /><span class="toggle-track"></span></label>
           </div>
@@ -491,6 +609,80 @@
               <span class="value-badge" id="fx-vhs-warp-val">2.5</span>
             </div>
           </div>
+
+          <div class="field-row">
+            <label for="fx-vignette-on">Vignette</label>
+            <label class="toggle"><input id="fx-vignette-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-vignette-params" hidden>
+            <div class="field-row">
+              <label for="fx-vignette-strength">Strength</label>
+              <input id="fx-vignette-strength" type="range" min="0" max="1" step="0.05" value="0.55" />
+              <span class="value-badge" id="fx-vignette-strength-val">0.55</span>
+            </div>
+            <div class="field-row">
+              <label for="fx-vignette-radius">Radius</label>
+              <input id="fx-vignette-radius" type="range" min="0.1" max="1.2" step="0.05" value="0.65" />
+              <span class="value-badge" id="fx-vignette-radius-val">0.65</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Motion / speed keyframes -->
+      <section class="sidebar-section collapsible" id="section-timeline">
+        <button class="section-toggle" aria-expanded="false">
+          <span>Motion</span><span class="chevron">▾</span>
+        </button>
+        <div class="section-body">
+          <p class="hint">Speed multipliers at positions in the clip (0–100%). Values are interpolated.</p>
+          <div id="keyframe-list"></div>
+          <div class="btn-row">
+            <button id="add-keyframe" class="btn btn-secondary">+ Add keyframe</button>
+            <button id="loop-duration" class="btn btn-secondary" title="Snap duration to a perfect loop">⟳ Snap loop</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Audio sync -->
+      <section class="sidebar-section collapsible" id="section-audio">
+        <button class="section-toggle" aria-expanded="false">
+          <span>Audio</span><span class="chevron">▾</span>
+        </button>
+        <div class="section-body">
+          <div class="btn-row">
+            <button id="load-audio" class="btn btn-secondary">Load WAV…</button>
+            <button id="clear-audio" class="btn btn-secondary" hidden>Clear</button>
+          </div>
+          <div id="audio-info" hidden>
+            <p class="hint" id="audio-summary"></p>
+            <div class="field-row">
+              <label for="beat-strength">Pulse strength</label>
+              <input id="beat-strength" type="range" min="0.1" max="5" step="0.1" value="1.5" />
+              <span class="value-badge" id="beat-strength-val">1.5</span>
+            </div>
+            <div class="field-row">
+              <label for="beat-decay">Pulse decay</label>
+              <input id="beat-decay" type="range" min="1" max="20" step="0.5" value="8" />
+              <span class="value-badge" id="beat-decay-val">8</span>
+            </div>
+            <div class="field-row">
+              <label for="audio-map-target">Map beats to</label>
+              <select id="audio-map-target">
+                <option value="">speed pulse only</option>
+                <option value="speed">scene speed</option>
+                <option value="bloom_intensity">bloom intensity</option>
+                <option value="chromatic_offset">chromatic split</option>
+                <option value="oscilloscope_glow">oscilloscope glow</option>
+                <option value="vignette_strength">vignette strength</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="audio-map-amount">Map amount</label>
+              <input id="audio-map-amount" type="range" min="0.1" max="4" step="0.1" value="1.0" />
+              <span class="value-badge" id="audio-map-amount-val">1.0</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -520,7 +712,15 @@
           </div>
           <div class="btn-row">
             <button id="export" type="button" class="btn btn-primary">Export…</button>
+            <button id="batch-toggle" type="button" class="btn btn-secondary" title="Batch export multiple seeds">Batch</button>
             <button id="copy-toml" type="button" class="btn btn-secondary" title="Copy config as TOML">TOML</button>
+          </div>
+          <div id="batch-panel" hidden>
+            <div class="field-row">
+              <label for="batch-count">Seeds</label>
+              <input id="batch-count" type="number" min="1" max="50" step="1" value="5" />
+            </div>
+            <button id="run-batch" type="button" class="btn btn-secondary" style="margin-bottom:8px">Run Batch Export…</button>
           </div>
           <div id="progress-container" hidden>
             <div id="progress-bar-track">
@@ -553,9 +753,13 @@
         <button id="play-preview" type="button" class="btn btn-secondary" hidden title="Play animation preview">
           <span id="play-icon">▶</span>
         </button>
+        <button id="variation-wall-btn" type="button" class="btn btn-secondary" title="Generate variations">
+          Variations
+        </button>
         <span id="preview-info"></span>
       </div>
       <div id="thumbnail-strip" hidden></div>
+      <div id="variation-wall" hidden></div>
     </main>
 
     <script type="module" src="main.js"></script>

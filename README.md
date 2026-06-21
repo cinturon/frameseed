@@ -57,7 +57,7 @@ cd crates/frameseed-app
 cargo tauri dev
 ```
 
-The app provides live preview, parameter controls, a render queue with progress, and native MP4/GIF export dialogs.
+The app provides live preview, parameter controls, a variation wall for exploring mutated configs, audio-reactive parameter mapping, a render queue with progress, and native MP4/GIF export dialogs.
 
 See [Packaging the desktop app](#packaging-the-desktop-app) below for distributable builds.
 
@@ -84,9 +84,10 @@ speed = 1.0
 
 Available scene names (also from `frameseed list-scenes`):
 
-`gradient`, `noise_clouds`, `conway`, `particles`, `flow_field`, `sdf_shapes`, `mandelbrot`, `voronoi`
+`gradient`, `noise_clouds`, `conway`, `particles`, `flow_field`, `sdf_shapes`, `mandelbrot`, `voronoi`, `plasma`, `lissajous`, `sine_wave`, `starfield`, `tunnel`, `kaleidoscope`, `metaballs`, `oscilloscope`, `blend`
 
 Gallery presets in `presets/` combine scenes with effects — open any file there as a starting point.
+Blend configs can remix full presets with `[scene.blend] preset_a = "oscilloscope"` and `preset_b = "plasma_neon"`.
 
 Save your own preset:
 

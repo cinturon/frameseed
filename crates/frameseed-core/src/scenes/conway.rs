@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
-use crate::{Frame, RenderContext, Scene, seeded_rng, Rgba};
+use crate::{Frame, RenderContext, Rgba, Scene, seeded_rng};
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 pub struct ConwayScene {
     pub cell_size: u32,
@@ -36,7 +36,10 @@ pub struct ConwayParams {
 
 impl Default for ConwayParams {
     fn default() -> Self {
-        Self { cell_size: 4, density: 0.3 }
+        Self {
+            cell_size: 4,
+            density: 0.3,
+        }
     }
 }
 
@@ -62,7 +65,7 @@ fn grid_dims(frame_width: u32, frame_height: u32, cell_size: u32) -> (u32, u32) 
 
 fn seed_grid(columns: u32, rows: u32, seed: u64, density: f32) -> Vec<Vec<bool>> {
     let mut rng = seeded_rng(seed);
-    
+
     let mut grid = vec![vec![false; columns as usize]; rows as usize];
 
     for row in &mut grid {
@@ -77,9 +80,9 @@ fn seed_grid(columns: u32, rows: u32, seed: u64, density: f32) -> Vec<Vec<bool>>
 
 fn count_neighbors(grid: &[Vec<bool>], x: usize, y: usize) -> u8 {
     let cols = grid[0].len();
-    let rows = grid.len();  
+    let rows = grid.len();
     let mut count = 0;
-    
+
     for dy in -1..=1 {
         for dx in -1..=1 {
             if dx == 0 && dy == 0 {
@@ -136,7 +139,7 @@ fn render_grid(grid: &[Vec<bool>], frame: &mut Frame, cell_size: u32) {
 
             let x = gx as u32 * cell_size;
             let y = gy as u32 * cell_size;
-              
+
             for dy in 0..cell_size {
                 for dx in 0..cell_size {
                     frame.set_pixel(x + dx, y + dy, Rgba::white());

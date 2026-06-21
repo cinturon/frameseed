@@ -1,5 +1,5 @@
-use crate::{Frame, RenderContext, Rgba, Scene};
 use crate::color::lerp_rgba;
+use crate::{Frame, RenderContext, Rgba, Scene};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Clone, Serialize, PartialEq)]
@@ -25,8 +25,18 @@ pub struct GradientScene {
 }
 
 impl GradientScene {
-    pub fn new(start_color: Rgba, end_color: Rgba, speed: f32, direction: GradientDirection) -> Self {
-        Self { start_color, end_color, speed, direction }
+    pub fn new(
+        start_color: Rgba,
+        end_color: Rgba,
+        speed: f32,
+        direction: GradientDirection,
+    ) -> Self {
+        Self {
+            start_color,
+            end_color,
+            speed,
+            direction,
+        }
     }
 }
 
@@ -107,15 +117,15 @@ impl Scene for GradientScene {
 
 pub fn palette_from_name(name: &str) -> (Rgba, Rgba) {
     match name {
-        "sunset"   => (Rgba::new(255,  94,  77, 255), Rgba::new(255, 200,  87, 255)),
-        "ocean"    => (Rgba::new(  0,  32,  96, 255), Rgba::new( 32, 178, 170, 255)),
-        "forest"   => (Rgba::new( 10,  60,  10, 255), Rgba::new(144, 238, 144, 255)),
-        "fire"     => (Rgba::new(255,  69,   0, 255), Rgba::new(255, 215,   0, 255)),
-        "purple"   => (Rgba::new( 75,   0, 130, 255), Rgba::new(238, 130, 238, 255)),
-        "ice"      => (Rgba::new(173, 216, 230, 255), Rgba::new(255, 255, 255, 255)),
-        "rose"     => (Rgba::new(255,  20, 147, 255), Rgba::new(255, 182, 193, 255)),
-        "midnight" => (Rgba::new(  0,   0,  50, 255), Rgba::new( 25,  25, 112, 255)),
-        _          => (Rgba::black(), Rgba::white()),
+        "sunset" => (Rgba::new(255, 94, 77, 255), Rgba::new(255, 200, 87, 255)),
+        "ocean" => (Rgba::new(0, 32, 96, 255), Rgba::new(32, 178, 170, 255)),
+        "forest" => (Rgba::new(10, 60, 10, 255), Rgba::new(144, 238, 144, 255)),
+        "fire" => (Rgba::new(255, 69, 0, 255), Rgba::new(255, 215, 0, 255)),
+        "purple" => (Rgba::new(75, 0, 130, 255), Rgba::new(238, 130, 238, 255)),
+        "ice" => (Rgba::new(173, 216, 230, 255), Rgba::new(255, 255, 255, 255)),
+        "rose" => (Rgba::new(255, 20, 147, 255), Rgba::new(255, 182, 193, 255)),
+        "midnight" => (Rgba::new(0, 0, 50, 255), Rgba::new(25, 25, 112, 255)),
+        _ => (Rgba::black(), Rgba::white()),
     }
 }
 
@@ -138,7 +148,8 @@ mod tests {
         let mut frame = Frame::new(width, height);
         let ctx = RenderContext::new(frame_index, total_frames, 24.0, 42);
         let (start_color, end_color) = palette_from_name("sunset");
-        let scene = GradientScene::new(start_color, end_color, speed, GradientDirection::Horizontal);
+        let scene =
+            GradientScene::new(start_color, end_color, speed, GradientDirection::Horizontal);
         scene.render(&mut frame, &ctx);
         frame
     }

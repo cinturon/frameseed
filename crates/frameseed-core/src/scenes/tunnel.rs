@@ -90,8 +90,12 @@ impl Default for TunnelParams {
     }
 }
 
-fn default_speed() -> f32 { 1.0 }
-fn default_rings() -> u32 { 8 }
+fn default_speed() -> f32 {
+    1.0
+}
+fn default_rings() -> u32 {
+    8
+}
 
 #[cfg(test)]
 mod tests {
@@ -123,6 +127,11 @@ mod tests {
     fn tunnel_is_deterministic() {
         let f0a = render_tunnel(0);
         let f0b = render_tunnel(0);
-        assert!(f0a.pixels.iter().zip(f0b.pixels.iter()).all(|(a, b)| a == b));
+        assert!(
+            f0a.pixels
+                .iter()
+                .zip(f0b.pixels.iter())
+                .all(|(a, b)| a == b)
+        );
     }
 }

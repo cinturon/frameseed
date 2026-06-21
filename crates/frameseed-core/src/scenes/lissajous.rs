@@ -13,7 +13,14 @@ pub struct LissajousScene {
 
 impl LissajousScene {
     pub fn new(a: f32, b: f32, delta: f32, speed: f32, thickness: u32, trail_frames: u32) -> Self {
-        Self { a, b, delta, speed, thickness, trail_frames }
+        Self {
+            a,
+            b,
+            delta,
+            speed,
+            thickness,
+            trail_frames,
+        }
     }
 }
 
@@ -54,8 +61,16 @@ impl Scene for LissajousScene {
                         if dx * dx + dy * dy <= r * r {
                             let nx = px + dx;
                             let ny = py + dy;
-                            if nx >= 0 && nx < frame.width as i32 && ny >= 0 && ny < frame.height as i32 {
-                                frame.set_pixel(nx as u32, ny as u32, Rgba::new(0, alpha, alpha / 2 + 100, 255));
+                            if nx >= 0
+                                && nx < frame.width as i32
+                                && ny >= 0
+                                && ny < frame.height as i32
+                            {
+                                frame.set_pixel(
+                                    nx as u32,
+                                    ny as u32,
+                                    Rgba::new(0, alpha, alpha / 2 + 100, 255),
+                                );
                             }
                         }
                     }
@@ -94,12 +109,24 @@ impl Default for LissajousParams {
     }
 }
 
-fn default_a() -> f32 { 3.0 }
-fn default_b() -> f32 { 2.0 }
-fn default_delta() -> f32 { std::f32::consts::FRAC_PI_4 }
-fn default_speed() -> f32 { 0.5 }
-fn default_thickness() -> u32 { 1 }
-fn default_trail_frames() -> u32 { 8 }
+fn default_a() -> f32 {
+    3.0
+}
+fn default_b() -> f32 {
+    2.0
+}
+fn default_delta() -> f32 {
+    std::f32::consts::FRAC_PI_4
+}
+fn default_speed() -> f32 {
+    0.5
+}
+fn default_thickness() -> u32 {
+    1
+}
+fn default_trail_frames() -> u32 {
+    8
+}
 
 #[cfg(test)]
 mod tests {

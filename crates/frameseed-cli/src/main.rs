@@ -4,6 +4,7 @@ use commands::Cli;
 use commands::Commands;
 use commands::OutputFormat;
 use commands::PresetsCommands;
+use frameseed_core::KNOWN_PALETTES;
 use frameseed_core::gallery_entries;
 use frameseed_core::list_presets;
 use frameseed_core::load_from_path;
@@ -13,9 +14,8 @@ use frameseed_core::render_preview_frame;
 use frameseed_core::save_preset;
 use frameseed_core::scene_from_config;
 use frameseed_core::{EffectsConfig, RenderConfig, SceneConfig};
-use frameseed_core::KNOWN_PALETTES;
 use frameseed_encoder::create_contact_sheet;
-use frameseed_encoder::{export_video, ExportFormat};
+use frameseed_encoder::{ExportFormat, export_video};
 use std::error::Error;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
@@ -30,7 +30,9 @@ fn parse_seed(s: &str) -> Result<u64, Box<dyn Error>> {
         eprintln!("Seed: {seed}");
         Ok(seed)
     } else {
-        let n: u64 = s.parse().map_err(|_| format!("Invalid seed '{s}': expected a positive integer or 'random'"))?;
+        let n: u64 = s
+            .parse()
+            .map_err(|_| format!("Invalid seed '{s}': expected a positive integer or 'random'"))?;
         Ok(n)
     }
 }
@@ -192,13 +194,21 @@ fn render(
         ExportFormat::WebM => job_dir.join("video.webm"),
     });
 
-    let output_path = export_video(&config, job_dir, &output_path, export_format, None, |phase, current, total| {
-        if phase == "rendering" {
-            eprintln!("Frame {current}/{total}");
-        } else if phase == "encoding" && current == 1 {
-            eprintln!("Encoding...");
-        }
-    })?;
+    let output_path = export_video(
+        &config,
+        job_dir,
+        &output_path,
+        export_format,
+        None,
+        None,
+        |phase, current, total| {
+            if phase == "rendering" {
+                eprintln!("Frame {current}/{total}");
+            } else if phase == "encoding" && current == 1 {
+                eprintln!("Encoding...");
+            }
+        },
+    )?;
 
     let total_duration = total_start.elapsed().as_secs_f64();
     let frame_count = config.total_frames();

@@ -26,7 +26,8 @@ impl Effect for BoxBlurEffect {
         // Clone once so every parallel row reads from the original pixels.
         let src = frame.pixels.clone();
 
-        frame.pixels
+        frame
+            .pixels
             .par_chunks_mut(frame.width as usize)
             .enumerate()
             .for_each(|(y, row)| {

@@ -1,6 +1,5 @@
-use crate::{Frame, RenderContext, Effect, Rgba};
+use crate::{Effect, Frame, RenderContext, Rgba};
 use serde::{Deserialize, Serialize};
-
 
 pub struct PaletteQuantizationEffect {
     pub palette: Vec<Rgba>,
@@ -8,11 +7,14 @@ pub struct PaletteQuantizationEffect {
 
 impl PaletteQuantizationEffect {
     pub fn new(palette: &[Rgba]) -> Self {
-        Self { palette: palette.to_vec() }
+        Self {
+            palette: palette.to_vec(),
+        }
     }
 
     pub fn from_name(name: &str) -> Self {
-        Self::new(&palette_from_name(name)) }
+        Self::new(&palette_from_name(name))
+    }
 }
 
 impl Effect for PaletteQuantizationEffect {
@@ -41,7 +43,9 @@ pub struct PaletteQuantizationParams {
 
 impl Default for PaletteQuantizationParams {
     fn default() -> Self {
-        Self { name: default_palette_name() }
+        Self {
+            name: default_palette_name(),
+        }
     }
 }
 
@@ -52,7 +56,7 @@ fn default_palette_name() -> String {
 fn nearest_palette_color(pixel: Rgba, palette: &[Rgba]) -> Rgba {
     let mut best = palette[0];
     let mut best_distance_squared = color_distance_squared(pixel, best);
-    
+
     for &color in palette {
         let distance = color_distance_squared(pixel, color);
         if distance < best_distance_squared {
@@ -126,19 +130,22 @@ mod tests {
 
     #[test]
     fn nearest_palette_color_picks_closest_by_distance() {
-        let palette = vec![
-            Rgba::new(255, 0, 0, 255),
-            Rgba::new(0, 0, 255, 255),
-        ];
+        let palette = vec![Rgba::new(255, 0, 0, 255), Rgba::new(0, 0, 255, 255)];
         let orange = Rgba::new(200, 100, 50, 255);
-        assert_eq!(nearest_palette_color(orange, &palette), Rgba::new(255, 0, 0, 255));
+        assert_eq!(
+            nearest_palette_color(orange, &palette),
+            Rgba::new(255, 0, 0, 255)
+        );
     }
 
     #[test]
     fn test_nearest_palette_color() {
         let palette = cga_16_palette();
         let pixel = Rgba::new(255, 0, 0, 255);
-        assert_eq!(nearest_palette_color(pixel, &palette), Rgba::new(255, 0, 0, 255));
+        assert_eq!(
+            nearest_palette_color(pixel, &palette),
+            Rgba::new(255, 0, 0, 255)
+        );
     }
 
     #[test]

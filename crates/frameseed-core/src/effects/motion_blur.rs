@@ -1,4 +1,4 @@
-use crate::{Frame, RenderContext, Effect, lerp_rgba};
+use crate::{Effect, Frame, RenderContext, lerp_rgba};
 use serde::{Deserialize, Serialize};
 
 pub struct MotionBlurEffect {
@@ -8,7 +8,10 @@ pub struct MotionBlurEffect {
 
 impl MotionBlurEffect {
     pub fn new(strength: f32) -> Self {
-        Self { strength: strength.clamp(0.0, 1.0), previous_frame: None }
+        Self {
+            strength: strength.clamp(0.0, 1.0),
+            previous_frame: None,
+        }
     }
 }
 
@@ -23,7 +26,8 @@ impl Effect for MotionBlurEffect {
                 for x in 0..frame.width {
                     if let Some(current_pixel) = frame.get_pixel(x, y) {
                         let previous_pixel = previous_frame.get_pixel(x, y).unwrap();
-                        let blended_pixel = lerp_rgba(previous_pixel, current_pixel, 1.0 - self.strength);
+                        let blended_pixel =
+                            lerp_rgba(previous_pixel, current_pixel, 1.0 - self.strength);
                         frame.set_pixel(x, y, blended_pixel);
                     }
                 }
@@ -41,7 +45,9 @@ pub struct MotionBlurParams {
 
 impl Default for MotionBlurParams {
     fn default() -> Self {
-        Self { strength: default_strength() }
+        Self {
+            strength: default_strength(),
+        }
     }
 }
 

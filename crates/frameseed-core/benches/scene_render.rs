@@ -1,5 +1,5 @@
-use criterion::{criterion_group, criterion_main, Criterion, BenchmarkId, Throughput, black_box};
-use frameseed_core::{Frame, RenderContext, Scene, MandelbrotScene};
+use criterion::{BenchmarkId, Criterion, Throughput, black_box, criterion_group, criterion_main};
+use frameseed_core::{Frame, MandelbrotScene, RenderContext, Scene};
 
 fn bench_mandelbrot(c: &mut Criterion) {
     let mut group = c.benchmark_group("mandelbrot_scene");

@@ -1,7 +1,7 @@
-use crate::{Frame, RenderContext, Effect, Rgba};
+use crate::{Effect, Frame, RenderContext, Rgba};
 use serde::{Deserialize, Serialize};
 
-pub struct PixelationEffect{
+pub struct PixelationEffect {
     pub block_size: u32,
 }
 
@@ -48,7 +48,9 @@ pub struct PixelationParams {
 
 impl Default for PixelationParams {
     fn default() -> Self {
-        Self { block_size: default_block_size() }
+        Self {
+            block_size: default_block_size(),
+        }
     }
 }
 
@@ -102,6 +104,6 @@ mod tests {
     #[test]
     fn block_size_is_clamped_to_one() {
         let effect = PixelationEffect::new(0);
-        assert_eq!(effect.block_size, 1);   
+        assert_eq!(effect.block_size, 1);
     }
 }

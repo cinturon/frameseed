@@ -1,4 +1,4 @@
-use frameseed_core::{render_frames_parallel, RenderConfig, RenderError};
+use frameseed_core::{RenderConfig, RenderError, render_frames_parallel};
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::io::Write;
@@ -79,6 +79,7 @@ pub fn export_video<F>(
     output_path: &Path,
     format: ExportFormat,
     bitrate: Option<&str>,
+    audio_path: Option<&Path>,
     on_progress: F,
 ) -> Result<PathBuf, ExportError>
 where
@@ -109,23 +110,48 @@ where
 
     let mut cmd = Command::new("ffmpeg");
     cmd.arg("-y")
-        .arg("-f").arg("rawvideo")
-        .arg("-pixel_format").arg("rgba")
-        .arg("-video_size").arg(&size_arg)
-        .arg("-framerate").arg(&fps_str)
-        .arg("-i").arg("pipe:0");
+        .arg("-f")
+        .arg("rawvideo")
+        .arg("-pixel_format")
+        .arg("rgba")
+        .arg("-video_size")
+        .arg(&size_arg)
+        .arg("-framerate")
+        .arg(&fps_str)
+        .arg("-i")
+        .arg("pipe:0");
+
+    // Audio input (ignored for GIF)
+    let has_audio = audio_path.is_some() && format != ExportFormat::Gif;
+    if let Some(apath) = audio_path {
+        if format != ExportFormat::Gif {
+            cmd.arg("-i").arg(apath);
+        }
+    }
 
     match format {
         ExportFormat::Mp4 => {
-            cmd.arg("-c:v").arg("libx264").arg("-pix_fmt").arg("yuv420p");
+            cmd.arg("-c:v")
+                .arg("libx264")
+                .arg("-pix_fmt")
+                .arg("yuv420p");
             if let Some(br) = bitrate {
                 cmd.arg("-b:v").arg(br);
             }
+            if has_audio {
+                cmd.arg("-c:a").arg("aac").arg("-shortest");
+            }
         }
         ExportFormat::WebM => {
-            cmd.arg("-c:v").arg("libvpx-vp9").arg("-pix_fmt").arg("yuv420p");
+            cmd.arg("-c:v")
+                .arg("libvpx-vp9")
+                .arg("-pix_fmt")
+                .arg("yuv420p");
             if let Some(br) = bitrate {
                 cmd.arg("-b:v").arg(br);
+            }
+            if has_audio {
+                cmd.arg("-c:a").arg("libopus").arg("-shortest");
             }
         }
         ExportFormat::Gif => {

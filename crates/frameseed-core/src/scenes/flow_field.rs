@@ -166,12 +166,18 @@ fn spawn_flow_particles(count: u32, width: u32, height: u32, seed: u64) -> Vec<F
     particles
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn render_flow_field_frame(width: u32, height: u32, frame_index: u32, seed: u64, speed: f32, scale: f32) -> Frame {
+    fn render_flow_field_frame(
+        width: u32,
+        height: u32,
+        frame_index: u32,
+        seed: u64,
+        speed: f32,
+        scale: f32,
+    ) -> Frame {
         let mut frame = Frame::new(width, height);
         let context = RenderContext::new(frame_index, 120, 24.0, seed);
         let scene = FlowFieldScene::new(500, speed, scale, 24.0);

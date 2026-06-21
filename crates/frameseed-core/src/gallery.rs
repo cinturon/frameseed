@@ -1,5 +1,4 @@
-
-pub struct GalleryEntry{
+pub struct GalleryEntry {
     pub slug: &'static str,
     pub title: &'static str,
     pub description: &'static str,
@@ -52,7 +51,7 @@ pub fn gallery_entries() -> &'static [GalleryEntry] {
             title: "Snow",
             description: "A snow scene",
         },
-        GalleryEntry {  
+        GalleryEntry {
             slug: "rain",
             title: "Rain",
             description: "A rain scene",
@@ -106,6 +105,26 @@ pub fn gallery_entries() -> &'static [GalleryEntry] {
             slug: "tunnel",
             title: "Tunnel",
             description: "classic demoscene color tunnel with hue rotation",
+        },
+        GalleryEntry {
+            slug: "kaleidoscope",
+            title: "Kaleidoscope",
+            description: "folded radial symmetry with rotating color lattices",
+        },
+        GalleryEntry {
+            slug: "metaballs",
+            title: "Metaballs",
+            description: "soft glowing blobs that merge into liquid forms",
+        },
+        GalleryEntry {
+            slug: "oscilloscope",
+            title: "Oscilloscope",
+            description: "green phosphor waveform with grid and glow",
+        },
+        GalleryEntry {
+            slug: "remix_scope_bloom",
+            title: "Scope Bloom Remix",
+            description: "full-preset blend with bloom, chromatic split, and vignette",
         },
         GalleryEntry {
             slug: "color_clouds",

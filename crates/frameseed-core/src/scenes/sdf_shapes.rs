@@ -1,8 +1,7 @@
 use std::f32::consts::TAU;
 
-use crate::{Frame, RenderContext, Scene, Rgba};
+use crate::{Frame, RenderContext, Rgba, Scene};
 use serde::{Deserialize, Serialize};
-
 
 pub struct SdfShapeScene {
     pub circle_radius: f32,

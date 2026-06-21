@@ -1,6 +1,6 @@
+use crate::Effect;
 use crate::Frame;
 use crate::RenderContext;
-use crate::{Effect};
 
 pub struct InvertEffect;
 
@@ -22,7 +22,7 @@ impl Effect for InvertEffect {
                     frame.set_pixel(x, y, pixel.invert());
                 }
             }
-        }        
+        }
     }
 }
 

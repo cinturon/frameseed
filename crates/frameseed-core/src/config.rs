@@ -1,6 +1,15 @@
+use crate::effects::{
+    BloomParams, BlurParams, BrightnessContrastParams, ChromaticAberrationParams, DitherParams,
+    MotionBlurParams, PaletteQuantizationParams, PixelationParams, PosterizeParams, VhsCrtParams,
+    VignetteParams,
+};
+use crate::scenes::{
+    BlendParams, ConwayParams, FlowFieldParams, GradientParams, KaleidoscopeParams,
+    LissajousParams, MandelbrotParams, MetaballsParams, NoiseCloudsParams, OscilloscopeParams,
+    ParticleParams, PlasmaParams, SdfShapeParams, SineWaveParams, StarfieldParams, TunnelParams,
+    VoronoiParams,
+};
 use serde::{Deserialize, Serialize};
-use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams, VoronoiParams, PlasmaParams, LissajousParams, SineWaveParams, StarfieldParams, TunnelParams, BlendParams};
-use crate::effects::{PixelationParams, PaletteQuantizationParams, DitherParams, MotionBlurParams, VhsCrtParams, BlurParams, BrightnessContrastParams};
 use std::{error::Error, fmt::Display, path::Path};
 
 #[derive(Debug)]
@@ -57,6 +66,43 @@ impl From<&str> for ConfigError {
         ConfigError::Invalid(e.to_string())
     }
 }
+/// A single point on the speed-warp timeline.
+/// `time` is normalised 0→1; `speed` is a multiplier applied to animation time.
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub struct SpeedKeyframe {
+    pub time: f32,
+    pub speed: f32,
+}
+
+/// Audio-reactive beat-pulse parameters stored in the render config.
+/// `beat_times` are seconds from the start of the clip.
+#[derive(Debug, Deserialize, Clone, Serialize, Default)]
+pub struct BeatPulseConfig {
+    pub beat_times: Vec<f32>,
+    #[serde(default = "default_pulse_strength")]
+    pub strength: f32,
+    #[serde(default = "default_pulse_decay")]
+    pub decay: f32,
+}
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub struct AudioMapping {
+    pub target: String,
+    #[serde(default = "default_mapping_amount")]
+    pub amount: f32,
+}
+
+fn default_mapping_amount() -> f32 {
+    1.0
+}
+
+fn default_pulse_strength() -> f32 {
+    1.5
+}
+fn default_pulse_decay() -> f32 {
+    8.0
+}
+
 #[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct RenderConfig {
     pub width: u32,
@@ -67,6 +113,15 @@ pub struct RenderConfig {
     pub scene: SceneConfig,
     #[serde(default)]
     pub effects: EffectsConfig,
+    /// Speed-warp keyframes applied to animation time.
+    #[serde(default)]
+    pub speed_keyframes: Vec<SpeedKeyframe>,
+    /// Beat-reactive pulse config (populated after audio analysis).
+    #[serde(default)]
+    pub beat_pulse: Option<BeatPulseConfig>,
+    /// Named parameters modulated by the beat pulse.
+    #[serde(default)]
+    pub audio_mappings: Vec<AudioMapping>,
 }
 
 impl RenderConfig {
@@ -87,6 +142,9 @@ impl RenderConfig {
             seed,
             scene,
             effects,
+            speed_keyframes: vec![],
+            beat_pulse: None,
+            audio_mappings: vec![],
         }
     }
 
@@ -112,7 +170,8 @@ impl RenderConfig {
         }
         if self.duration <= 0.0 {
             return Err(ConfigError::Invalid(
-                "Duration must be greater than 0. Set `duration = 5.0` for a five-second clip.".into(),
+                "Duration must be greater than 0. Set `duration = 5.0` for a five-second clip."
+                    .into(),
             ));
         }
         if self.seed == 0 {
@@ -154,6 +213,9 @@ impl SceneConfig {
             sine_wave: SineWaveParams::default(),
             starfield: StarfieldParams::default(),
             tunnel: TunnelParams::default(),
+            kaleidoscope: KaleidoscopeParams::default(),
+            metaballs: MetaballsParams::default(),
+            oscilloscope: OscilloscopeParams::default(),
             blend: BlendParams::default(),
         }
     }
@@ -189,6 +251,12 @@ pub struct SceneConfig {
     #[serde(default)]
     pub tunnel: TunnelParams,
     #[serde(default)]
+    pub kaleidoscope: KaleidoscopeParams,
+    #[serde(default)]
+    pub metaballs: MetaballsParams,
+    #[serde(default)]
+    pub oscilloscope: OscilloscopeParams,
+    #[serde(default)]
     pub blend: BlendParams,
 }
 
@@ -210,6 +278,14 @@ pub struct EffectsConfig {
     pub blur: Option<BlurParams>,
     #[serde(default)]
     pub brightness_contrast: Option<BrightnessContrastParams>,
+    #[serde(default)]
+    pub bloom: Option<BloomParams>,
+    #[serde(default)]
+    pub chromatic_aberration: Option<ChromaticAberrationParams>,
+    #[serde(default)]
+    pub posterize: Option<PosterizeParams>,
+    #[serde(default)]
+    pub vignette: Option<VignetteParams>,
 }
 
 pub fn load_from_path(path: &Path) -> Result<RenderConfig, ConfigError> {
@@ -243,11 +319,14 @@ mod tests {
                 mandelbrot: MandelbrotParams::default(),
                 voronoi: VoronoiParams::default(),
                 plasma: PlasmaParams::default(),
-            lissajous: LissajousParams::default(),
-            sine_wave: SineWaveParams::default(),
-            starfield: StarfieldParams::default(),
-            tunnel: TunnelParams::default(),
-            blend: BlendParams::default(),
+                lissajous: LissajousParams::default(),
+                sine_wave: SineWaveParams::default(),
+                starfield: StarfieldParams::default(),
+                tunnel: TunnelParams::default(),
+                kaleidoscope: KaleidoscopeParams::default(),
+                metaballs: MetaballsParams::default(),
+                oscilloscope: OscilloscopeParams::default(),
+                blend: BlendParams::default(),
             },
             EffectsConfig::default(),
         );
@@ -278,11 +357,14 @@ mod tests {
                 mandelbrot: MandelbrotParams::default(),
                 voronoi: VoronoiParams::default(),
                 plasma: PlasmaParams::default(),
-            lissajous: LissajousParams::default(),
-            sine_wave: SineWaveParams::default(),
-            starfield: StarfieldParams::default(),
-            tunnel: TunnelParams::default(),
-            blend: BlendParams::default(),
+                lissajous: LissajousParams::default(),
+                sine_wave: SineWaveParams::default(),
+                starfield: StarfieldParams::default(),
+                tunnel: TunnelParams::default(),
+                kaleidoscope: KaleidoscopeParams::default(),
+                metaballs: MetaballsParams::default(),
+                oscilloscope: OscilloscopeParams::default(),
+                blend: BlendParams::default(),
             },
             EffectsConfig::default(),
         );

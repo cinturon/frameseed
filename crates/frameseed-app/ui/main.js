@@ -17,6 +17,8 @@ const animCanvas         = document.getElementById("anim-canvas");
 const playPreviewBtn     = document.getElementById("play-preview");
 const playIcon           = document.getElementById("play-icon");
 const thumbnailStrip     = document.getElementById("thumbnail-strip");
+const variationWallBtn   = document.getElementById("variation-wall-btn");
+const variationWall      = document.getElementById("variation-wall");
 const previewEmpty       = document.getElementById("preview-empty");
 const previewOverlay     = document.getElementById("preview-overlay");
 const previewOverlayText = document.getElementById("preview-overlay-text");
@@ -29,6 +31,15 @@ const bitrateRow         = document.getElementById("bitrate-row");
 const progressContainer  = document.getElementById("progress-container");
 const progressBarFill    = document.getElementById("progress-bar-fill");
 const renderStatus       = document.getElementById("render-status");
+
+// Batch export
+const batchToggleBtn     = document.getElementById("batch-toggle");
+const batchPanel         = document.getElementById("batch-panel");
+const batchCountInput    = document.getElementById("batch-count");
+const runBatchBtn        = document.getElementById("run-batch");
+
+// Scene randomize
+const randomizeSceneBtn  = document.getElementById("randomize-scene");
 
 // Effects inputs
 const fxInvert           = document.getElementById("fx-invert");
@@ -47,6 +58,17 @@ const fxPaletteName      = document.getElementById("fx-palette-name");
 const fxMotionOn         = document.getElementById("fx-motion-blur-on");
 const fxMotionParams     = document.getElementById("fx-motion-blur-params");
 const fxMotionStrength   = document.getElementById("fx-motion-blur-strength");
+const fxBloomOn          = document.getElementById("fx-bloom-on");
+const fxBloomParams      = document.getElementById("fx-bloom-params");
+const fxBloomThreshold   = document.getElementById("fx-bloom-threshold");
+const fxBloomIntensity   = document.getElementById("fx-bloom-intensity");
+const fxBloomRadius      = document.getElementById("fx-bloom-radius");
+const fxChromaticOn      = document.getElementById("fx-chromatic-on");
+const fxChromaticParams  = document.getElementById("fx-chromatic-params");
+const fxChromaticOffset  = document.getElementById("fx-chromatic-offset");
+const fxPosterizeOn      = document.getElementById("fx-posterize-on");
+const fxPosterizeParams  = document.getElementById("fx-posterize-params");
+const fxPosterizeLevels  = document.getElementById("fx-posterize-levels");
 const fxBcOn             = document.getElementById("fx-bc-on");
 const fxBcParams         = document.getElementById("fx-bc-params");
 const fxBcBrightness     = document.getElementById("fx-bc-brightness");
@@ -57,6 +79,10 @@ const fxVhsScanlines     = document.getElementById("fx-vhs-scanlines");
 const fxVhsChroma        = document.getElementById("fx-vhs-chroma");
 const fxVhsNoise         = document.getElementById("fx-vhs-noise");
 const fxVhsWarp          = document.getElementById("fx-vhs-warp");
+const fxVignetteOn       = document.getElementById("fx-vignette-on");
+const fxVignetteParams   = document.getElementById("fx-vignette-params");
+const fxVignetteStrength = document.getElementById("fx-vignette-strength");
+const fxVignetteRadius   = document.getElementById("fx-vignette-radius");
 
 // Gradient color pickers
 const gradientStartColor = document.getElementById("gradient-start-color");
@@ -65,7 +91,24 @@ const gradientEndColor   = document.getElementById("gradient-end-color");
 // Blend scene
 const blendSceneA        = document.getElementById("blend-scene-a");
 const blendSceneB        = document.getElementById("blend-scene-b");
+const blendPresetA       = document.getElementById("blend-preset-a");
+const blendPresetB       = document.getElementById("blend-preset-b");
 const blendSpeed         = document.getElementById("blend-speed");
+
+// Timeline
+const keyframeList       = document.getElementById("keyframe-list");
+const addKeyframeBtn     = document.getElementById("add-keyframe");
+const loopDurationBtn    = document.getElementById("loop-duration");
+
+// Audio
+const loadAudioBtn       = document.getElementById("load-audio");
+const clearAudioBtn      = document.getElementById("clear-audio");
+const audioInfo          = document.getElementById("audio-info");
+const audioSummary       = document.getElementById("audio-summary");
+const beatStrength       = document.getElementById("beat-strength");
+const beatDecay          = document.getElementById("beat-decay");
+const audioMapTarget     = document.getElementById("audio-map-target");
+const audioMapAmount     = document.getElementById("audio-map-amount");
 
 // Scene param inputs
 const inputs = {
@@ -118,6 +161,19 @@ const inputs = {
   // tunnel
   tunnelSpeed:         document.getElementById("tunnel-speed"),
   tunnelRings:         document.getElementById("tunnel-rings"),
+  // kaleidoscope
+  kaleidoscopeSegments: document.getElementById("kaleidoscope-segments"),
+  kaleidoscopeSpeed:    document.getElementById("kaleidoscope-speed"),
+  kaleidoscopeZoom:     document.getElementById("kaleidoscope-zoom"),
+  // metaballs
+  metaballsCount:       document.getElementById("metaballs-count"),
+  metaballsSpeed:       document.getElementById("metaballs-speed"),
+  metaballsThreshold:   document.getElementById("metaballs-threshold"),
+  // oscilloscope
+  oscilloscopeFrequency: document.getElementById("oscilloscope-frequency"),
+  oscilloscopeAmplitude: document.getElementById("oscilloscope-amplitude"),
+  oscilloscopeSpeed:     document.getElementById("oscilloscope-speed"),
+  oscilloscopeGlow:      document.getElementById("oscilloscope-glow"),
 };
 
 // Scene panels
@@ -135,6 +191,9 @@ const panels = {
   sine_wave:    document.getElementById("scene-sine-wave"),
   starfield:    document.getElementById("scene-starfield"),
   tunnel:       document.getElementById("scene-tunnel"),
+  kaleidoscope: document.getElementById("scene-kaleidoscope"),
+  metaballs:    document.getElementById("scene-metaballs"),
+  oscilloscope: document.getElementById("scene-oscilloscope"),
   blend:        document.getElementById("scene-blend"),
 };
 
@@ -170,18 +229,39 @@ const badges = {
   "starfield-speed":       document.getElementById("starfield-speed-val"),
   "tunnel-speed":          document.getElementById("tunnel-speed-val"),
   "tunnel-rings":          document.getElementById("tunnel-rings-val"),
+  "kaleidoscope-segments": document.getElementById("kaleidoscope-segments-val"),
+  "kaleidoscope-speed":    document.getElementById("kaleidoscope-speed-val"),
+  "kaleidoscope-zoom":     document.getElementById("kaleidoscope-zoom-val"),
+  "metaballs-count":       document.getElementById("metaballs-count-val"),
+  "metaballs-speed":       document.getElementById("metaballs-speed-val"),
+  "metaballs-threshold":   document.getElementById("metaballs-threshold-val"),
+  "oscilloscope-frequency": document.getElementById("oscilloscope-frequency-val"),
+  "oscilloscope-amplitude": document.getElementById("oscilloscope-amplitude-val"),
+  "oscilloscope-speed":     document.getElementById("oscilloscope-speed-val"),
+  "oscilloscope-glow":      document.getElementById("oscilloscope-glow-val"),
   "blend-speed":           document.getElementById("blend-speed-val"),
+  // audio
+  "beat-strength":         document.getElementById("beat-strength-val"),
+  "beat-decay":            document.getElementById("beat-decay-val"),
+  "audio-map-amount":      document.getElementById("audio-map-amount-val"),
   // effects
   "fx-blur-radius":        document.getElementById("fx-blur-radius-val"),
   "fx-pixelation-size":    document.getElementById("fx-pixelation-size-val"),
   "fx-dither-spread":      document.getElementById("fx-dither-spread-val"),
   "fx-motion-blur-strength": document.getElementById("fx-motion-blur-strength-val"),
+  "fx-bloom-threshold":    document.getElementById("fx-bloom-threshold-val"),
+  "fx-bloom-intensity":    document.getElementById("fx-bloom-intensity-val"),
+  "fx-bloom-radius":       document.getElementById("fx-bloom-radius-val"),
+  "fx-chromatic-offset":   document.getElementById("fx-chromatic-offset-val"),
+  "fx-posterize-levels":   document.getElementById("fx-posterize-levels-val"),
   "fx-bc-brightness":      document.getElementById("fx-bc-brightness-val"),
   "fx-bc-contrast":        document.getElementById("fx-bc-contrast-val"),
   "fx-vhs-scanlines":      document.getElementById("fx-vhs-scanlines-val"),
   "fx-vhs-chroma":         document.getElementById("fx-vhs-chroma-val"),
   "fx-vhs-noise":          document.getElementById("fx-vhs-noise-val"),
   "fx-vhs-warp":           document.getElementById("fx-vhs-warp-val"),
+  "fx-vignette-strength":  document.getElementById("fx-vignette-strength-val"),
+  "fx-vignette-radius":    document.getElementById("fx-vignette-radius-val"),
 };
 
 // Wire up badges — each range input syncs its badge on input
@@ -204,8 +284,12 @@ wireEffectToggle(fxPixelOn,   fxPixelParams);
 wireEffectToggle(fxDitherOn,  fxDitherParams);
 wireEffectToggle(fxPaletteOn, fxPaletteParams);
 wireEffectToggle(fxMotionOn,  fxMotionParams);
+wireEffectToggle(fxBloomOn,   fxBloomParams);
+wireEffectToggle(fxChromaticOn, fxChromaticParams);
+wireEffectToggle(fxPosterizeOn, fxPosterizeParams);
 wireEffectToggle(fxBcOn,      fxBcParams);
 wireEffectToggle(fxVhsOn,     fxVhsParams);
+wireEffectToggle(fxVignetteOn, fxVignetteParams);
 
 // Gradient: palette preset → update color pickers
 const PALETTE_COLORS = {
@@ -249,6 +333,265 @@ let animFrames    = [];
 let animIndex     = 0;
 let animTimer     = null;
 let animPlaying   = false;
+
+// Audio state
+let loadedAudioPath  = null;
+let detectedBeats    = [];
+let audioDuration    = 0;
+let audioBpm         = 0;
+
+// ── Timeline / keyframe helpers ───────────────────────────────────────────────
+function getKeyframesFromUI() {
+  const rows = keyframeList.querySelectorAll(".kf-row");
+  const kfs = [];
+  rows.forEach(row => {
+    const t = parseFloat(row.querySelector(".kf-time").value);
+    const s = parseFloat(row.querySelector(".kf-speed").value);
+    if (!isNaN(t) && !isNaN(s)) kfs.push({ time: t / 100, speed: s });
+  });
+  kfs.sort((a, b) => a.time - b.time);
+  return kfs;
+}
+
+function addKeyframeRow(time_pct = 50, speed = 1.0) {
+  const row = document.createElement("div");
+  row.className = "kf-row field-row";
+  row.innerHTML = `
+    <input class="kf-time" type="number" min="0" max="100" step="1" value="${time_pct}" title="Position (%)" style="width:52px" />
+    <span class="kf-label">%  ×</span>
+    <input class="kf-speed" type="number" min="0.1" max="10" step="0.1" value="${speed.toFixed(1)}" title="Speed multiplier" style="width:52px" />
+    <button class="kf-remove btn btn-secondary" style="width:auto;padding:2px 8px">✕</button>
+  `;
+  row.querySelector(".kf-remove").addEventListener("click", () => {
+    row.remove();
+    scheduleRefresh();
+  });
+  row.querySelectorAll("input").forEach(el => el.addEventListener("input", scheduleRefresh));
+  keyframeList.appendChild(row);
+}
+
+// ── Audio helpers ────────────────────────────────────────────────────────────
+function updateAudioUI() {
+  if (!loadedAudioPath || !detectedBeats.length) {
+    audioInfo.hidden = true;
+    clearAudioBtn.hidden = true;
+    return;
+  }
+  audioInfo.hidden = false;
+  clearAudioBtn.hidden = false;
+  audioSummary.textContent =
+    `${detectedBeats.length} beats  ·  ${audioBpm.toFixed(0)} BPM  ·  ${audioDuration.toFixed(1)}s`;
+}
+
+async function loadAudio() {
+  try {
+    const path = await invoke("open_audio_file");
+    if (!path) return;
+    loadedAudioPath = path;
+    const result = await invoke("analyze_audio_file", { path });
+    detectedBeats = result.beat_times;
+    audioBpm      = result.bpm;
+    audioDuration = result.duration_seconds;
+    updateAudioUI();
+    scheduleRefresh();
+  } catch (err) {
+    console.error("Audio load error:", err);
+  }
+}
+
+function clearAudio() {
+  loadedAudioPath = null;
+  detectedBeats   = [];
+  audioBpm        = 0;
+  audioDuration   = 0;
+  updateAudioUI();
+  scheduleRefresh();
+}
+
+async function snapLoopDuration() {
+  const config = buildConfigFromForm();
+  if (!config) return;
+  try {
+    const dur = await invoke("get_loop_duration", { config });
+    durationInput.value = dur.toFixed(3);
+    scheduleRefresh();
+  } catch (err) {
+    console.error("Loop duration error:", err);
+  }
+}
+
+// ── Scene randomizer ──────────────────────────────────────────────────────────
+function randomizeSceneParams() {
+  if (!currentConfig) return;
+  const panel = panels[currentConfig.scene.name];
+  if (!panel) return;
+
+  panel.querySelectorAll('input[type="range"]').forEach((input) => {
+    const min  = parseFloat(input.min);
+    const max  = parseFloat(input.max);
+    const step = parseFloat(input.step) || 1;
+    const steps = Math.floor((max - min) / step);
+    const value = min + Math.floor(Math.random() * (steps + 1)) * step;
+    input.value = String(Math.round(value * 10000) / 10000);
+    const badge = badges[input.id];
+    if (badge) badge.textContent = input.value;
+  });
+
+  panel.querySelectorAll("select").forEach((select) => {
+    if (select.id === "gradient-palette") return;
+    select.selectedIndex = Math.floor(Math.random() * select.options.length);
+  });
+
+  panel.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+    cb.checked = Math.random() > 0.5;
+  });
+
+  scheduleRefresh();
+}
+
+// ── Variation wall ───────────────────────────────────────────────────────────
+function cloneConfig(config) {
+  return structuredClone(config);
+}
+
+function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function mutateNumberObject(obj, minFactor = 0.65, maxFactor = 1.45) {
+  if (!obj || typeof obj !== "object") return;
+  Object.entries(obj).forEach(([key, value]) => {
+    if (typeof value === "number") {
+      if (key === "fps" || key === "duration") return;
+      obj[key] = Math.round(value * randomBetween(minFactor, maxFactor) * 1000) / 1000;
+    } else if (value && typeof value === "object" && !Array.isArray(value)) {
+      mutateNumberObject(value, minFactor, maxFactor);
+    }
+  });
+}
+
+function maybeAddVariationEffect(config) {
+  const effects = config.effects || {};
+  const pick = Math.floor(Math.random() * 5);
+  if (pick === 0) {
+    effects.bloom = {
+      threshold: randomBetween(0.35, 0.75),
+      intensity: randomBetween(0.35, 1.5),
+      radius: Math.floor(randomBetween(3, 12)),
+    };
+  } else if (pick === 1) {
+    effects.chromatic_aberration = { offset: randomBetween(1, 5) };
+  } else if (pick === 2) {
+    effects.posterize = { levels: Math.floor(randomBetween(3, 10)) };
+  } else if (pick === 3) {
+    effects.vignette = {
+      strength: randomBetween(0.25, 0.8),
+      radius: randomBetween(0.45, 0.9),
+    };
+  } else {
+    effects.brightness_contrast = {
+      brightness: randomBetween(-0.08, 0.12),
+      contrast: randomBetween(0.85, 1.55),
+    };
+  }
+  config.effects = effects;
+}
+
+function makeVariationConfig(base, index) {
+  const variant = cloneConfig(base);
+  variant.seed = Math.floor(Math.random() * 1_000_000_000) + 1 + index;
+  mutateNumberObject(variant.scene, 0.7, 1.35);
+  if (variant.scene.gradient && Math.random() > 0.45) {
+    const palettes = ["sunset", "ocean", "forest", "fire", "purple", "ice", "rose", "midnight"];
+    variant.scene.gradient.palette = palettes[Math.floor(Math.random() * palettes.length)];
+    variant.scene.gradient.start_color = null;
+    variant.scene.gradient.end_color = null;
+  }
+  if (Math.random() > 0.25) maybeAddVariationEffect(variant);
+  return variant;
+}
+
+async function generateVariationWall() {
+  const base = buildConfigFromForm();
+  if (!base || previewing) return;
+
+  stopAnimation();
+  variationWall.hidden = false;
+  variationWall.innerHTML = "";
+  variationWallBtn.disabled = true;
+  previewInfo.textContent = "Generating variations…";
+
+  const variants = Array.from({ length: 12 }, (_, i) => makeVariationConfig(base, i));
+  for (const variant of variants) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "variation-card";
+    card.textContent = "Rendering…";
+    variationWall.appendChild(card);
+
+    const thumbConfig = cloneConfig(variant);
+    thumbConfig.width = 240;
+    thumbConfig.height = 135;
+    const frameIndex = Math.max(0, Math.floor(totalFrames(thumbConfig) * 0.45));
+
+    try {
+      const base64 = await invoke("preview_frame", {
+        request: { config: thumbConfig, frame_index: frameIndex },
+      });
+      card.textContent = "";
+      const img = document.createElement("img");
+      img.src = `data:image/png;base64,${base64}`;
+      const meta = document.createElement("span");
+      meta.textContent = `seed ${variant.seed}`;
+      card.appendChild(img);
+      card.appendChild(meta);
+      card.addEventListener("click", async () => {
+        currentConfig = cloneConfig(variant);
+        syncFormFromConfig(currentConfig);
+        showScenePanel(currentConfig.scene.name);
+        await refreshPreview();
+      });
+    } catch (err) {
+      card.textContent = "Failed";
+      card.title = String(err);
+    }
+  }
+
+  variationWallBtn.disabled = false;
+  previewInfo.textContent = "Variations ready";
+}
+
+// ── Batch export ──────────────────────────────────────────────────────────────
+async function runBatchExport() {
+  const config = buildConfigFromForm();
+  if (!config) { showProgress("Load a preset first.", "error"); return; }
+  if (exportRunning) return;
+
+  const count = Math.max(1, Math.min(50, Number(batchCountInput.value) || 5));
+  const seeds = Array.from({ length: count }, () =>
+    Math.floor(Math.random() * 1_000_000_000) + 1
+  );
+
+  setExportBusy(true);
+  showProgress("Opening folder picker…");
+
+  const fmt = exportFormatSelect.value;
+  try {
+    await invoke("batch_export_render", {
+      request: {
+        config,
+        output_format: fmt,
+        bitrate: fmt !== "gif" ? exportBitrateSelect.value : null,
+        audio_path: loadedAudioPath ?? null,
+        seeds,
+      },
+    });
+  } catch (err) {
+    setExportBusy(false);
+    renderStatus.textContent = `Batch error: ${err}`;
+    renderStatus.className = "error";
+  }
+}
 
 // ── Collapsible sections ─────────────────────────────────────────────────────
 document.querySelectorAll(".section-toggle").forEach((btn) => {
@@ -317,6 +660,7 @@ async function queueExport() {
         config,
         output_format: fmt,
         bitrate: fmt !== "gif" ? exportBitrateSelect.value : null,
+        audio_path: loadedAudioPath ?? null,
       },
     });
   } catch (error) {
@@ -369,6 +713,25 @@ async function setupRenderEvents() {
     progressBarFill.style.width = "0%";
     renderStatus.textContent = "Export cancelled.";
     renderStatus.className = "";
+  });
+  await listen("batch-cancelled", () => {
+    setExportBusy(false);
+    renderStatus.textContent = "Batch cancelled.";
+    renderStatus.className = "";
+  });
+  await listen("batch-item-start", (event) => {
+    const { index, total, seed } = event.payload;
+    progressBarFill.style.width = `${Math.round((index / total) * 100)}%`;
+    renderStatus.textContent = `Batch ${index + 1}/${total} — seed ${seed}`;
+    renderStatus.className = "";
+  });
+  await listen("batch-complete", (event) => {
+    setExportBusy(false);
+    progressBarFill.style.width = "100%";
+    const { count, output_dir } = event.payload;
+    const folder = output_dir.split("/").pop() || output_dir;
+    renderStatus.textContent = `Batch done: ${count} files → ${folder}`;
+    renderStatus.className = "success";
   });
 }
 
@@ -481,11 +844,29 @@ function buildThumbnailStrip(frames) {
 async function loadPresets() {
   const entries = await invoke("list_gallery");
   presetSelect.replaceChildren();
+  blendPresetA.replaceChildren();
+  blendPresetB.replaceChildren();
+
+  const defaultPresetOptionA = document.createElement("option");
+  defaultPresetOptionA.value = "";
+  defaultPresetOptionA.textContent = "scene controls";
+  blendPresetA.appendChild(defaultPresetOptionA);
+
+  const defaultPresetOptionB = document.createElement("option");
+  defaultPresetOptionB.value = "";
+  defaultPresetOptionB.textContent = "scene controls";
+  blendPresetB.appendChild(defaultPresetOptionB);
+
   entries.forEach((entry) => {
     const option = document.createElement("option");
     option.value = entry.slug;
     option.textContent = entry.title;
     presetSelect.appendChild(option);
+
+    const optionA = option.cloneNode(true);
+    const optionB = option.cloneNode(true);
+    blendPresetA.appendChild(optionA);
+    blendPresetB.appendChild(optionB);
   });
 }
 
@@ -609,10 +990,34 @@ function syncFormFromConfig(config) {
     inputs.tunnelRings.value = String(s.tunnel.rings);
   }
 
+  // kaleidoscope
+  if (s.kaleidoscope) {
+    inputs.kaleidoscopeSegments.value = String(s.kaleidoscope.segments);
+    inputs.kaleidoscopeSpeed.value    = String(s.kaleidoscope.speed);
+    inputs.kaleidoscopeZoom.value     = String(s.kaleidoscope.zoom);
+  }
+
+  // metaballs
+  if (s.metaballs) {
+    inputs.metaballsCount.value     = String(s.metaballs.count);
+    inputs.metaballsSpeed.value     = String(s.metaballs.speed);
+    inputs.metaballsThreshold.value = String(s.metaballs.threshold);
+  }
+
+  // oscilloscope
+  if (s.oscilloscope) {
+    inputs.oscilloscopeFrequency.value = String(s.oscilloscope.frequency);
+    inputs.oscilloscopeAmplitude.value = String(s.oscilloscope.amplitude);
+    inputs.oscilloscopeSpeed.value     = String(s.oscilloscope.speed);
+    inputs.oscilloscopeGlow.value      = String(s.oscilloscope.glow);
+  }
+
   // blend
   if (s.blend) {
     blendSceneA.value = s.blend.scene_a || "gradient";
     blendSceneB.value = s.blend.scene_b || "plasma";
+    blendPresetA.value = s.blend.preset_a || "";
+    blendPresetB.value = s.blend.preset_b || "";
     blendSpeed.value  = String(s.blend.speed || 1.0);
   }
 
@@ -640,6 +1045,26 @@ function syncFormFromConfig(config) {
   fxMotionParams.hidden = !e.motion_blur;
   if (e.motion_blur) fxMotionStrength.value = String(e.motion_blur.strength);
 
+  fxBloomOn.checked = !!e.bloom;
+  fxBloomParams.hidden = !e.bloom;
+  if (e.bloom) {
+    fxBloomThreshold.value = String(e.bloom.threshold);
+    fxBloomIntensity.value = String(e.bloom.intensity);
+    fxBloomRadius.value    = String(e.bloom.radius);
+  }
+
+  fxChromaticOn.checked = !!e.chromatic_aberration;
+  fxChromaticParams.hidden = !e.chromatic_aberration;
+  if (e.chromatic_aberration) {
+    fxChromaticOffset.value = String(e.chromatic_aberration.offset);
+  }
+
+  fxPosterizeOn.checked = !!e.posterize;
+  fxPosterizeParams.hidden = !e.posterize;
+  if (e.posterize) {
+    fxPosterizeLevels.value = String(e.posterize.levels);
+  }
+
   fxBcOn.checked = !!e.brightness_contrast;
   fxBcParams.hidden = !e.brightness_contrast;
   if (e.brightness_contrast) {
@@ -655,6 +1080,17 @@ function syncFormFromConfig(config) {
     fxVhsNoise.value     = String(e.vhs_crt.noise_amount);
     fxVhsWarp.value      = String(e.vhs_crt.warp_amount);
   }
+
+  fxVignetteOn.checked = !!e.vignette;
+  fxVignetteParams.hidden = !e.vignette;
+  if (e.vignette) {
+    fxVignetteStrength.value = String(e.vignette.strength);
+    fxVignetteRadius.value   = String(e.vignette.radius);
+  }
+
+  const audioMapping = (config.audio_mappings || [])[0];
+  audioMapTarget.value = audioMapping?.target || "";
+  audioMapAmount.value = String(audioMapping?.amount || 1.0);
 
   // Sync all badges
   Object.entries(badges).forEach(([id, badge]) => {
@@ -730,11 +1166,45 @@ function buildConfigFromForm() {
     s.tunnel.speed = Number(inputs.tunnelSpeed.value);
     s.tunnel.rings = Number(inputs.tunnelRings.value);
   }
+  if (s.kaleidoscope) {
+    s.kaleidoscope.segments = Number(inputs.kaleidoscopeSegments.value);
+    s.kaleidoscope.speed    = Number(inputs.kaleidoscopeSpeed.value);
+    s.kaleidoscope.zoom     = Number(inputs.kaleidoscopeZoom.value);
+  }
+  if (s.metaballs) {
+    s.metaballs.count     = Number(inputs.metaballsCount.value);
+    s.metaballs.speed     = Number(inputs.metaballsSpeed.value);
+    s.metaballs.threshold = Number(inputs.metaballsThreshold.value);
+  }
+  if (s.oscilloscope) {
+    s.oscilloscope.frequency = Number(inputs.oscilloscopeFrequency.value);
+    s.oscilloscope.amplitude = Number(inputs.oscilloscopeAmplitude.value);
+    s.oscilloscope.speed     = Number(inputs.oscilloscopeSpeed.value);
+    s.oscilloscope.glow      = Number(inputs.oscilloscopeGlow.value);
+  }
   if (s.blend) {
     s.blend.scene_a = blendSceneA.value;
     s.blend.scene_b = blendSceneB.value;
+    s.blend.preset_a = blendPresetA.value || null;
+    s.blend.preset_b = blendPresetB.value || null;
     s.blend.speed   = Number(blendSpeed.value);
   }
+
+  // Motion / speed keyframes
+  currentConfig.speed_keyframes = getKeyframesFromUI();
+
+  // Audio beat pulse
+  currentConfig.beat_pulse = detectedBeats.length ? {
+    beat_times: detectedBeats,
+    strength: Number(beatStrength.value),
+    decay: Number(beatDecay.value),
+  } : null;
+  currentConfig.audio_mappings = detectedBeats.length && audioMapTarget.value ? [
+    {
+      target: audioMapTarget.value,
+      amount: Number(audioMapAmount.value),
+    },
+  ] : [];
 
   // Effects
   currentConfig.effects.invert = fxInvert.checked;
@@ -754,6 +1224,19 @@ function buildConfigFromForm() {
   currentConfig.effects.motion_blur = fxMotionOn.checked
     ? { strength: Number(fxMotionStrength.value) } : null;
 
+  currentConfig.effects.bloom = fxBloomOn.checked
+    ? {
+        threshold: Number(fxBloomThreshold.value),
+        intensity: Number(fxBloomIntensity.value),
+        radius: Number(fxBloomRadius.value),
+      } : null;
+
+  currentConfig.effects.chromatic_aberration = fxChromaticOn.checked
+    ? { offset: Number(fxChromaticOffset.value) } : null;
+
+  currentConfig.effects.posterize = fxPosterizeOn.checked
+    ? { levels: Number(fxPosterizeLevels.value) } : null;
+
   currentConfig.effects.brightness_contrast = fxBcOn.checked
     ? { brightness: Number(fxBcBrightness.value), contrast: Number(fxBcContrast.value) } : null;
 
@@ -763,6 +1246,12 @@ function buildConfigFromForm() {
         chromatic_offset:   Number(fxVhsChroma.value),
         noise_amount:       Number(fxVhsNoise.value),
         warp_amount:        Number(fxVhsWarp.value),
+      } : null;
+
+  currentConfig.effects.vignette = fxVignetteOn.checked
+    ? {
+        strength: Number(fxVignetteStrength.value),
+        radius: Number(fxVignetteRadius.value),
       } : null;
 
   return currentConfig;
@@ -875,6 +1364,25 @@ document.querySelectorAll(".res-preset").forEach((btn) => {
   });
 });
 
+// Timeline / motion
+addKeyframeBtn.addEventListener("click", () => addKeyframeRow());
+loopDurationBtn.addEventListener("click", () => snapLoopDuration());
+
+// Audio
+loadAudioBtn.addEventListener("click", () => loadAudio());
+clearAudioBtn.addEventListener("click", () => clearAudio());
+
+// Scene randomize
+randomizeSceneBtn.addEventListener("click", () => randomizeSceneParams());
+variationWallBtn.addEventListener("click", () => generateVariationWall());
+
+// Batch export
+batchToggleBtn.addEventListener("click", () => {
+  batchPanel.hidden = !batchPanel.hidden;
+  batchToggleBtn.classList.toggle("active", !batchPanel.hidden);
+});
+runBatchBtn.addEventListener("click", (e) => { e.preventDefault(); runBatchExport(); });
+
 // All live inputs (range + select + number) trigger a debounced refresh
 const liveInputs = [
   seedInput, widthInput, heightInput, fpsInput, durationInput,
@@ -882,7 +1390,11 @@ const liveInputs = [
   fxInvert, fxBlurRadius, fxPixelSize, fxDitherSpread, fxPaletteName,
   fxMotionStrength, fxBcBrightness, fxBcContrast,
   fxVhsScanlines, fxVhsChroma, fxVhsNoise, fxVhsWarp,
-  blendSceneA, blendSceneB, blendSpeed,
+  fxBloomThreshold, fxBloomIntensity, fxBloomRadius,
+  fxChromaticOffset, fxPosterizeLevels,
+  fxVignetteStrength, fxVignetteRadius,
+  blendSceneA, blendSceneB, blendPresetA, blendPresetB, blendSpeed,
+  beatStrength, beatDecay, audioMapTarget, audioMapAmount,
 ];
 liveInputs.forEach((el) => {
   if (!el) return;

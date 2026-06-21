@@ -1,4 +1,4 @@
-use crate::{Frame, RenderContext, Scene, Rgba};
+use crate::{Frame, RenderContext, Rgba, Scene};
 use serde::{Deserialize, Serialize};
 
 pub struct MandelbrotScene {
@@ -10,8 +10,20 @@ pub struct MandelbrotScene {
 }
 
 impl MandelbrotScene {
-    pub fn new(max_iter: u32, center_re: f32, center_im: f32, initial_view_width: f32, zoom_speed: f32) -> Self {
-        Self { max_iter, center_re, center_im, initial_view_width, zoom_speed }
+    pub fn new(
+        max_iter: u32,
+        center_re: f32,
+        center_im: f32,
+        initial_view_width: f32,
+        zoom_speed: f32,
+    ) -> Self {
+        Self {
+            max_iter,
+            center_re,
+            center_im,
+            initial_view_width,
+            zoom_speed,
+        }
     }
 }
 
@@ -31,7 +43,7 @@ impl Scene for MandelbrotScene {
         let max_iter = self.max_iter;
         let center_re = self.center_re;
         let center_im = self.center_im;
-        
+
         frame.parallel_for_each_pixel(move |x, y| {
             let c_re = center_re + (x as f32 - half_width) * scale;
             let c_im = center_im + (y as f32 - half_height) * scale;
@@ -85,7 +97,7 @@ fn default_initial_view_width() -> f32 {
 
 fn default_zoom_speed() -> f32 {
     return 1.0;
-}   
+}
 
 fn mandelbrot_iteration(c_re: f32, c_im: f32, max_iter: u32) -> u32 {
     let mut z_re = 0.0;
@@ -133,8 +145,13 @@ mod tests {
     ) -> Frame {
         let mut frame = Frame::new(width, height);
         let context = RenderContext::new(frame_index, 120, 24.0, 42);
-        let scene =
-            MandelbrotScene::new(max_iter, center_re, center_im, initial_view_width, zoom_speed);
+        let scene = MandelbrotScene::new(
+            max_iter,
+            center_re,
+            center_im,
+            initial_view_width,
+            zoom_speed,
+        );
         scene.render(&mut frame, &context);
         frame
     }

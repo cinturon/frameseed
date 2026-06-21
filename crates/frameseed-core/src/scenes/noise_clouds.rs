@@ -9,7 +9,11 @@ pub struct NoiseCloudsScene {
 
 impl NoiseCloudsScene {
     pub fn new(speed: f32, scale: f32, colored: bool) -> Self {
-        Self { speed, scale, colored }
+        Self {
+            speed,
+            scale,
+            colored,
+        }
     }
 }
 
@@ -45,7 +49,11 @@ fn hsv_to_rgb(h: f32, s: f32, v: f32) -> (u8, u8, u8) {
 
 impl NoiseCloudsParams {
     pub fn new(speed: f32, scale: f32) -> Self {
-        Self { speed, scale, colored: false }
+        Self {
+            speed,
+            scale,
+            colored: false,
+        }
     }
 }
 
@@ -80,7 +88,11 @@ pub struct NoiseCloudsParams {
 
 impl Default for NoiseCloudsParams {
     fn default() -> Self {
-        Self { speed: 1.0, scale: 0.05, colored: false }
+        Self {
+            speed: 1.0,
+            scale: 0.05,
+            colored: false,
+        }
     }
 }
 
@@ -96,7 +108,14 @@ fn default_scale() -> f32 {
 mod tests {
     use super::*;
 
-    fn render_noise_clouds_frame(width: u32, height: u32, frame_index: u32, total_frames: u32, speed: f32, scale: f32) -> Frame {
+    fn render_noise_clouds_frame(
+        width: u32,
+        height: u32,
+        frame_index: u32,
+        total_frames: u32,
+        speed: f32,
+        scale: f32,
+    ) -> Frame {
         let mut frame = Frame::new(width, height);
         let context = RenderContext::new(frame_index, total_frames, 24.0, 42);
         let scene = NoiseCloudsScene::new(speed, scale, false);
