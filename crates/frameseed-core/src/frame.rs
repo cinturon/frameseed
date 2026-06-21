@@ -39,18 +39,25 @@ impl Frame {
         self.pixels.get(index).copied()
     }
 
-    pub fn save_png(&self, path: &Path) -> Result<(), image::ImageError> {
-        let mut image = RgbaImage::new(self.width, self.height);
-
-        for y in 0..self.height {
-            for x in 0..self.width {
-                if let Some(color) = self.get_pixel(x, y) {
-                    image.put_pixel(x, y, image::Rgba([color.r, color.g, color.b, color.a]));
-                }
-            }
+    /// View the pixel buffer as raw RGBA bytes without copying.
+    pub fn as_raw_rgba(&self) -> &[u8] {
+        // Safety: Rgba is repr(Rust) with fields [r, g, b, a: u8] — no padding,
+        // same size and alignment as [u8; 4]. The cast is valid.
+        unsafe {
+            std::slice::from_raw_parts(
+                self.pixels.as_ptr() as *const u8,
+                self.pixels.len() * 4,
+            )
         }
+    }
 
-        image.save(path)?;
+    pub fn save_png(&self, path: &Path) -> Result<(), image::ImageError> {
+        let raw = self.pixels.iter()
+            .flat_map(|p| [p.r, p.g, p.b, p.a])
+            .collect::<Vec<u8>>();
+        RgbaImage::from_raw(self.width, self.height, raw)
+            .expect("pixel buffer size mismatch")
+            .save(path)?;
         Ok(())
     }
 

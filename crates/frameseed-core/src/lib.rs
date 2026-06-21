@@ -32,7 +32,7 @@ mod base64;
 pub use base64::frame_to_base64;
 
 mod render;
-pub use render::{render_preview_frame, render_sequence, RenderError};
+pub use render::{render_frames_parallel, render_preview_frame, render_sequence, RenderError};
 
 
 use std::path::Path;

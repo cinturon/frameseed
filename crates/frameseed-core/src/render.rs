@@ -87,6 +87,47 @@ where
     Ok(())
 }
 
+/// Render all frames in parallel and return them as raw RGBA byte buffers in
+/// frame order, ready to stream to an encoder via stdin.
+///
+/// Memory: `width × height × 4 × total_frames` bytes are held at once. For
+/// short 640×360 clips this is well under 200 MB; callers should check the
+/// size before calling for very long high-resolution renders.
+pub fn render_frames_parallel<F>(
+    config: &RenderConfig,
+    on_progress: F,
+) -> Result<Vec<Vec<u8>>, RenderError>
+where
+    F: Fn(u32, u32) + Send + Sync,
+{
+    config.validate()?;
+    let total = config.total_frames();
+    let completed = AtomicU32::new(0);
+
+    let mut buffers: Vec<Vec<u8>> = (0..total).map(|_| Vec::new()).collect();
+
+    buffers
+        .par_iter_mut()
+        .enumerate()
+        .try_for_each(|(i, buf)| -> Result<(), RenderError> {
+            let scene = scene_from_config(&config.scene).map_err(RenderError::Config)?;
+            let mut effects = effects_from_config(&config.effects);
+            let mut frame = Frame::new(config.width, config.height);
+            frame.clear(Rgba::black());
+            let ctx = RenderContext::new(i as u32, total, config.fps, config.seed);
+            scene.render(&mut frame, &ctx);
+            for effect in &mut effects {
+                effect.apply(&mut frame, &ctx);
+            }
+            *buf = frame.as_raw_rgba().to_vec();
+            let done = completed.fetch_add(1, Ordering::Relaxed) + 1;
+            on_progress(done, total);
+            Ok(())
+        })?;
+
+    Ok(buffers)
+}
+
 /// Render a single preview frame to a PNG file.
 pub fn render_preview_frame(
     config: &RenderConfig,
