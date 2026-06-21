@@ -90,9 +90,11 @@ where
 /// Render all frames in parallel and return them as raw RGBA byte buffers in
 /// frame order, ready to stream to an encoder via stdin.
 ///
-/// Memory: `width × height × 4 × total_frames` bytes are held at once. For
-/// short 640×360 clips this is well under 200 MB; callers should check the
-/// size before calling for very long high-resolution renders.
+/// When the `gpu` feature is enabled and the scene has a compute shader, frames
+/// are rendered sequentially on the GPU (each GPU frame is far faster than a
+/// CPU frame).  Otherwise the existing CPU rayon path is used.
+///
+/// Memory: `width × height × 4 × total_frames` bytes are held at once.
 pub fn render_frames_parallel<F>(
     config: &RenderConfig,
     on_progress: F,
@@ -101,6 +103,13 @@ where
     F: Fn(u32, u32) + Send + Sync,
 {
     config.validate()?;
+
+    // Try GPU path first (no-op if feature disabled or scene unsupported).
+    #[cfg(feature = "gpu")]
+    if let Some(gpu_buffers) = crate::gpu::try_gpu_render_all(config, &on_progress) {
+        return Ok(gpu_buffers);
+    }
+
     let total = config.total_frames();
     let completed = AtomicU32::new(0);
 

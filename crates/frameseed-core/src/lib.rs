@@ -1,3 +1,6 @@
+#[cfg(feature = "gpu")]
+pub(crate) mod gpu;
+
 mod color;
 pub use color::{lerp_rgba, Rgba};
 

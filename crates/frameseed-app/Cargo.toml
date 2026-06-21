@@ -25,5 +25,5 @@ tauri = { version = "2.10.3", features = [] }
 tauri-plugin-log = "2"
 tauri-plugin-shell = "2"   # optional for dev
 tauri-plugin-dialog = "2"
-frameseed-core = { path = "../frameseed-core" }
+frameseed-core = { path = "../frameseed-core", features = ["gpu"] }
 frameseed-encoder = { path = "../frameseed-encoder" }

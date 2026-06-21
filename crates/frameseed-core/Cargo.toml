@@ -3,6 +3,10 @@ name = "frameseed-core"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+gpu = ["dep:wgpu", "dep:pollster", "dep:bytemuck"]
+
 [dependencies]
 image = "0.25.5"
 rand = "0.9"
@@ -11,6 +15,9 @@ serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 rayon = "1.10"
 base64 = "0.22.1"
+wgpu = { version = "22", optional = true }
+pollster = { version = "0.3", optional = true }
+bytemuck = { version = "1", features = ["derive"], optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
