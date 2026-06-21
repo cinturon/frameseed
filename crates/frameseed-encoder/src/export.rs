@@ -76,6 +76,7 @@ pub fn export_video<F>(
     _job_dir: &Path,
     output_path: &Path,
     format: ExportFormat,
+    bitrate: Option<&str>,
     on_progress: F,
 ) -> Result<PathBuf, ExportError>
 where
@@ -115,6 +116,9 @@ where
     match format {
         ExportFormat::Mp4 => {
             cmd.arg("-c:v").arg("libx264").arg("-pix_fmt").arg("yuv420p");
+            if let Some(br) = bitrate {
+                cmd.arg("-b:v").arg(br);
+            }
         }
         ExportFormat::Gif => {
             let vf = format!(

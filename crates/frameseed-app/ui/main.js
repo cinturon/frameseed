@@ -19,6 +19,8 @@ const previewOverlayText = document.getElementById("preview-overlay-text");
 const previewInfo        = document.getElementById("preview-info");
 const exportButton       = document.getElementById("export");
 const exportFormatSelect = document.getElementById("export-format");
+const exportBitrateSelect = document.getElementById("export-bitrate");
+const bitrateRow         = document.getElementById("bitrate-row");
 const progressContainer  = document.getElementById("progress-container");
 const progressBarFill    = document.getElementById("progress-bar-fill");
 const renderStatus       = document.getElementById("render-status");
@@ -202,8 +204,13 @@ async function queueExport() {
   showProgress("Opening save dialog…");
 
   try {
+    const fmt = exportFormatSelect.value;
     await invoke("export_render", {
-      request: { config, output_format: exportFormatSelect.value },
+      request: {
+        config,
+        output_format: fmt,
+        bitrate: fmt === "mp4" ? exportBitrateSelect.value : null,
+      },
     });
   } catch (error) {
     setExportBusy(false);
@@ -214,6 +221,13 @@ async function queueExport() {
 }
 
 async function setupRenderEvents() {
+  // Show bitrate control only for MP4.
+  function syncBitrateVisibility() {
+    bitrateRow.hidden = exportFormatSelect.value !== "mp4";
+  }
+  exportFormatSelect.addEventListener("change", syncBitrateVisibility);
+  syncBitrateVisibility();
+
   await listen("render-progress", (event) => updateRenderProgress(event));
   await listen("render-complete", (event) => {
     setExportBusy(false);

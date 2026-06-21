@@ -318,6 +318,16 @@
               <option value="gif">GIF</option>
             </select>
           </div>
+          <div class="field-row" id="bitrate-row">
+            <label for="export-bitrate">Bitrate</label>
+            <select id="export-bitrate">
+              <option value="1M">1 Mbps — small file</option>
+              <option value="2M">2 Mbps</option>
+              <option value="5M" selected>5 Mbps — default</option>
+              <option value="10M">10 Mbps — high quality</option>
+              <option value="20M">20 Mbps — very high</option>
+            </select>
+          </div>
           <button id="export" type="button" class="btn btn-primary">Export…</button>
           <div id="progress-container" hidden>
             <div id="progress-bar-track">

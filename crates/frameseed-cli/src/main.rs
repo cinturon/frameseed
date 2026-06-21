@@ -190,10 +190,10 @@ fn render(
         ExportFormat::Gif => job_dir.join("animation.gif"),
     });
 
-    let output_path = export_video(&config, job_dir, &output_path, export_format, |phase, current, total| {
+    let output_path = export_video(&config, job_dir, &output_path, export_format, None, |phase, current, total| {
         if phase == "rendering" {
             eprintln!("Frame {current}/{total}");
-        } else if phase == "encoding" {
+        } else if phase == "encoding" && current == 1 {
             eprintln!("Encoding...");
         }
     })?;

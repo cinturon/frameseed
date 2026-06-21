@@ -19,6 +19,8 @@ struct PreviewRequest {
 struct ExportRenderRequest {
     config: RenderConfig,
     output_format: String,
+    /// Target video bitrate for MP4 (e.g. "5M", "10M"). `None` lets ffmpeg choose.
+    bitrate: Option<String>,
 }
 
 #[derive(Clone, Serialize)]
@@ -103,6 +105,7 @@ fn run_export_job(
     config: RenderConfig,
     format: ExportFormat,
     output_path: PathBuf,
+    bitrate: Option<String>,
 ) {
     std::thread::spawn(move || {
         let result = (|| -> Result<PathBuf, String> {
@@ -118,6 +121,7 @@ fn run_export_job(
                 &job_dir,
                 &output_path,
                 format,
+                bitrate.as_deref(),
                 |phase, current, total| {
                     let _ = app.emit(
                         "render-progress",
@@ -161,6 +165,7 @@ fn begin_export(
     config: RenderConfig,
     format: ExportFormat,
     output_path: PathBuf,
+    bitrate: Option<String>,
 ) -> Result<(), String> {
     {
         let mut running = state
@@ -181,6 +186,7 @@ fn begin_export(
         config,
         format,
         output_path,
+        bitrate,
     );
     Ok(())
 }
@@ -208,7 +214,7 @@ async fn export_render(
         return Ok(());
     };
 
-    begin_export(app, &state, request.config, format, output_path)
+    begin_export(app, &state, request.config, format, output_path, request.bitrate)
 }
 
 #[tauri::command]
