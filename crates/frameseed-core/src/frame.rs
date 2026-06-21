@@ -52,10 +52,7 @@ impl Frame {
     }
 
     pub fn save_png(&self, path: &Path) -> Result<(), image::ImageError> {
-        let raw = self.pixels.iter()
-            .flat_map(|p| [p.r, p.g, p.b, p.a])
-            .collect::<Vec<u8>>();
-        RgbaImage::from_raw(self.width, self.height, raw)
+        RgbaImage::from_raw(self.width, self.height, self.as_raw_rgba().to_vec())
             .expect("pixel buffer size mismatch")
             .save(path)?;
         Ok(())

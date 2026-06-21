@@ -1,4 +1,5 @@
 use crate::{Effect, Frame, RenderContext, Rgba};
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 pub struct BoxBlurEffect {
@@ -22,37 +23,38 @@ impl Effect for BoxBlurEffect {
         let r = self.radius as i32;
         let w = frame.width as i32;
         let h = frame.height as i32;
+        // Clone once so every parallel row reads from the original pixels.
         let src = frame.pixels.clone();
 
-        for y in 0..h {
-            for x in 0..w {
-                let mut sum_r = 0u32;
-                let mut sum_g = 0u32;
-                let mut sum_b = 0u32;
-                let mut count = 0u32;
-
-                for ky in (y - r)..=(y + r) {
-                    for kx in (x - r)..=(x + r) {
-                        if kx >= 0 && kx < w && ky >= 0 && ky < h {
-                            let idx = (ky * w + kx) as usize;
-                            let p = src[idx];
-                            sum_r += p.r as u32;
-                            sum_g += p.g as u32;
-                            sum_b += p.b as u32;
-                            count += 1;
+        frame.pixels
+            .par_chunks_mut(frame.width as usize)
+            .enumerate()
+            .for_each(|(y, row)| {
+                let y = y as i32;
+                for x in 0..w {
+                    let mut sum_r = 0u32;
+                    let mut sum_g = 0u32;
+                    let mut sum_b = 0u32;
+                    let mut count = 0u32;
+                    for ky in (y - r)..=(y + r) {
+                        for kx in (x - r)..=(x + r) {
+                            if kx >= 0 && kx < w && ky >= 0 && ky < h {
+                                let p = src[(ky * w + kx) as usize];
+                                sum_r += p.r as u32;
+                                sum_g += p.g as u32;
+                                sum_b += p.b as u32;
+                                count += 1;
+                            }
                         }
                     }
+                    row[x as usize] = Rgba::new(
+                        (sum_r / count) as u8,
+                        (sum_g / count) as u8,
+                        (sum_b / count) as u8,
+                        255,
+                    );
                 }
-
-                let idx = (y * w + x) as usize;
-                frame.pixels[idx] = Rgba::new(
-                    (sum_r / count) as u8,
-                    (sum_g / count) as u8,
-                    (sum_b / count) as u8,
-                    255,
-                );
-            }
-        }
+            });
     }
 }
 

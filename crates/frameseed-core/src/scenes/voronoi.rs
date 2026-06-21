@@ -107,24 +107,24 @@ fn update_seeds(seeds: &mut [VoronoiSeed], time: f32, speed: f32, width: u32, he
 }
 
 fn nearest_seed_index(seeds: &[VoronoiSeed], x: f32, y: f32) -> (usize, f32) {
-    let mut min_distance_squared = f32::MAX;
+    let mut min_dist_sq = f32::MAX;
     let mut min_index = 0;
     for (index, seed) in seeds.iter().enumerate() {
-        let distance = (seed.x - x).powf(2.0) + (seed.y - y).powf(2.0);
-        if distance < min_distance_squared {
-            min_distance_squared = distance;
+        let dx = seed.x - x;
+        let dy = seed.y - y;
+        let dist_sq = dx * dx + dy * dy;
+        if dist_sq < min_dist_sq {
+            min_dist_sq = dist_sq;
             min_index = index;
         }
     }
-    (min_index, min_distance_squared)
+    (min_index, min_dist_sq)
 }
 
 fn color_for_cell(hue: u8, distance_squared: f32, edge_width: f32) -> Rgba {
     let fill = Rgba::new(hue, hue.wrapping_add(85), hue.wrapping_add(170), 255);
-
-    let distance = distance_squared.sqrt();
-
-    if distance < edge_width {
+    // Compare squared distances to avoid sqrt on every pixel.
+    if distance_squared < edge_width * edge_width {
         Rgba::black()
     } else {
         fill

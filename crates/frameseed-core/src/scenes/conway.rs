@@ -98,27 +98,32 @@ fn count_neighbors(grid: &[Vec<bool>], x: usize, y: usize) -> u8 {
     count
 }
 
-fn step_grid(grid: &mut Vec<Vec<bool>>) {
-    let mut new_grid = grid.clone();
+fn simulate_grid(grid: &mut Vec<Vec<bool>>, generations: u32) {
+    if generations == 0 {
+        return;
+    }
+    let rows = grid.len();
+    let cols = if rows > 0 { grid[0].len() } else { return };
+    // Allocate a single scratch buffer and ping-pong between grid and scratch,
+    // avoiding one O(rows×cols) clone per generation.
+    let mut scratch = vec![vec![false; cols]; rows];
 
-    for y in 0..grid.len() {
-        for x in 0..grid[y].len() {
-            let live = grid[y][x];
-            let neighbors = count_neighbors(grid, x, y);
-
-            new_grid[y][x] = if live{
-                neighbors == 2 || neighbors == 3
-            } else {
-                neighbors == 3
+    for step in 0..generations {
+        let (src, dst): (&[Vec<bool>], &mut Vec<Vec<bool>>) = if step % 2 == 0 {
+            (grid.as_slice(), &mut scratch)
+        } else {
+            (scratch.as_slice(), grid)
+        };
+        for y in 0..rows {
+            for x in 0..cols {
+                let live = src[y][x];
+                let n = count_neighbors(src, x, y);
+                dst[y][x] = if live { n == 2 || n == 3 } else { n == 3 };
             }
         }
     }
-    *grid = new_grid;
-}
-
-fn simulate_grid(grid: &mut Vec<Vec<bool>>, generations: u32) {
-    for _ in 0..generations {
-        step_grid(grid);
+    if generations % 2 == 1 {
+        std::mem::swap(grid, &mut scratch);
     }
 }
 
@@ -203,10 +208,10 @@ mod tests {
     fn blinker_oscillates_horizontally_and_vertically() {
         let mut grid = blinker_horizontal();
 
-        step_grid(&mut grid);
+        simulate_grid(&mut grid, 1);
         assert!(!grid[1][1] && grid[0][2] && grid[1][2] && grid[2][2]);
 
-        step_grid(&mut grid);
+        simulate_grid(&mut grid, 1);
         assert!(grid[1][1] && grid[1][2] && grid[1][3]);
         assert!(!grid[0][2] && !grid[2][2]);
     }
