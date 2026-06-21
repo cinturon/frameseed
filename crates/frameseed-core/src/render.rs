@@ -2,6 +2,8 @@ use crate::config::{ConfigError, RenderConfig};
 use crate::{
     effects_from_config, frame_path, scene_from_config, Frame, RenderContext, Rgba,
 };
+use rayon::prelude::*;
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::fmt::{Display, Formatter};
 use std::path::Path;
 
@@ -43,32 +45,44 @@ impl From<image::ImageError> for RenderError {
 }
 
 /// Render every frame of `config` into numbered PNGs under `output_dir`.
+///
+/// Frames are rendered in parallel across all available CPU cores. Each
+/// parallel worker constructs its own scene and effects from the config so
+/// there is no shared mutable state between threads.
 pub fn render_sequence<F>(
     config: &RenderConfig,
     output_dir: &Path,
-    mut on_progress: F,
+    on_progress: F,
 ) -> Result<(), RenderError>
 where
-    F: FnMut(u32, u32),
+    F: Fn(u32, u32) + Send + Sync,
 {
     config.validate()?;
     std::fs::create_dir_all(output_dir)?;
 
-    let scene = scene_from_config(&config.scene)?;
-    let mut effects = effects_from_config(&config.effects);
-    let total_frame_count = config.total_frames();
-    let mut frame = Frame::new(config.width, config.height);
+    let total = config.total_frames();
+    let completed = AtomicU32::new(0);
 
-    for i in 0..total_frame_count {
-        frame.clear(Rgba::black());
-        let ctx = RenderContext::new(i, total_frame_count, config.fps, config.seed);
-        scene.render(&mut frame, &ctx);
-        for effect in &mut effects {
-            effect.apply(&mut frame, &ctx);
-        }
-        frame.save_png(&frame_path(output_dir, i + 1))?;
-        on_progress(i + 1, total_frame_count);
-    }
+    (0..total)
+        .into_par_iter()
+        .map(|i| -> Result<(), RenderError> {
+            let scene = scene_from_config(&config.scene).map_err(RenderError::Config)?;
+            let mut effects = effects_from_config(&config.effects);
+
+            let mut frame = Frame::new(config.width, config.height);
+            frame.clear(Rgba::black());
+            let ctx = RenderContext::new(i, total, config.fps, config.seed);
+            scene.render(&mut frame, &ctx);
+            for effect in &mut effects {
+                effect.apply(&mut frame, &ctx);
+            }
+            frame.save_png(&frame_path(output_dir, i + 1))?;
+
+            let done = completed.fetch_add(1, Ordering::Relaxed) + 1;
+            on_progress(done, total);
+            Ok(())
+        })
+        .collect::<Result<Vec<_>, _>>()?;
 
     Ok(())
 }

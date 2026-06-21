@@ -68,17 +68,21 @@ pub fn export_video<F>(
     job_dir: &Path,
     output_path: &Path,
     format: ExportFormat,
-    mut on_progress: F,
+    on_progress: F,
 ) -> Result<PathBuf, ExportError>
 where
-    F: FnMut(&str, u32, u32),
+    F: FnMut(&str, u32, u32) + Send,
 {
     let sequence_dir = job_dir.join("sequence");
     std::fs::create_dir_all(job_dir)?;
 
+    let on_progress = std::sync::Mutex::new(on_progress);
     render_sequence(config, &sequence_dir, |current, total| {
-        on_progress("rendering", current, total);
+        if let Ok(mut cb) = on_progress.lock() {
+            cb("rendering", current, total);
+        }
     })?;
+    let mut on_progress = on_progress.into_inner().unwrap();
 
     on_progress("encoding", config.total_frames(), config.total_frames());
 
