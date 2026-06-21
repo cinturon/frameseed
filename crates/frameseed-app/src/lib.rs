@@ -186,7 +186,7 @@ fn begin_export(
 }
 
 #[tauri::command]
-fn export_render(
+async fn export_render(
     app: AppHandle,
     state: State<'_, RenderState>,
     request: ExportRenderRequest,
@@ -194,7 +194,16 @@ fn export_render(
     request.config.validate().map_err(user_message)?;
     let format = ExportFormat::parse(&request.output_format).map_err(user_message)?;
 
-    let Some(output_path) = export_dialog(&app, format)? else {
+    // blocking_save_file dispatches to the main thread internally; running it
+    // inside spawn_blocking keeps the main thread free to handle the dialog.
+    let app_for_dialog = app.clone();
+    let maybe_path = tauri::async_runtime::spawn_blocking(move || {
+        export_dialog(&app_for_dialog, format)
+    })
+    .await
+    .map_err(|e| e.to_string())??;
+
+    let Some(output_path) = maybe_path else {
         let _ = app.emit("export-cancelled", ExportCancelled);
         return Ok(());
     };
