@@ -195,6 +195,7 @@ mod tests {
             sine_wave: SineWaveParams::default(),
             starfield: StarfieldParams::default(),
             tunnel: TunnelParams::default(),
+            blend: crate::scenes::BlendParams::default(),
         }
     }
 

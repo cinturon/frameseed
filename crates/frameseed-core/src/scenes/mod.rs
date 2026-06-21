@@ -37,5 +37,8 @@ pub use starfield::{StarfieldScene, StarfieldParams};
 mod tunnel;
 pub use tunnel::{TunnelScene, TunnelParams};
 
+mod blend;
+pub use blend::{BlendScene, BlendParams};
+
 mod registry;
 pub use registry::{scene_from_config, KNOWN_SCENES};

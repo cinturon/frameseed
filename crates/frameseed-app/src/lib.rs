@@ -1,6 +1,6 @@
 use frameseed_core::{
-    effects_from_config, frame_to_base64, load_preset, scene_from_config, Frame, RenderConfig,
-    RenderContext, Rgba,
+    config_to_toml, effects_from_config, frame_to_base64, load_preset, scene_from_config, Frame,
+    RenderConfig, RenderContext, Rgba,
 };
 use frameseed_encoder::{export_video, ExportError, ExportFormat};
 use serde::{Deserialize, Serialize};
@@ -86,6 +86,7 @@ fn export_dialog(app: &AppHandle, format: ExportFormat) -> Result<Option<PathBuf
     let (title, filter_name, extension, default_name) = match format {
         ExportFormat::Mp4 => ("Export MP4", "MP4 Video", "mp4", "frameseed.mp4"),
         ExportFormat::Gif => ("Export GIF", "GIF Animation", "gif", "frameseed.gif"),
+        ExportFormat::WebM => ("Export WebM", "WebM Video", "webm", "frameseed.webm"),
     };
 
     let selection = app
@@ -279,6 +280,38 @@ fn preview_frame(request: PreviewRequest) -> Result<String, String> {
     Ok(base64)
 }
 
+#[tauri::command]
+fn render_animation_preview(request: PreviewRequest) -> Result<Vec<String>, String> {
+    request.config.validate().map_err(user_message)?;
+    let config = request.config;
+    let total = config.total_frames();
+    let count = 30_u32.min(total);
+    let scene = scene_from_config(&config.scene).map_err(user_message)?;
+    let mut effects = effects_from_config(&config.effects);
+    let mut frames = Vec::with_capacity(count as usize);
+    for i in 0..count {
+        let frame_idx = if count <= 1 {
+            0
+        } else {
+            (i as f32 / (count - 1) as f32 * (total - 1) as f32).round() as u32
+        };
+        let mut frame = Frame::new(config.width, config.height);
+        frame.clear(Rgba::black());
+        let ctx = RenderContext::new(frame_idx, total, config.fps, config.seed);
+        scene.render(&mut frame, &ctx);
+        for effect in &mut effects {
+            effect.apply(&mut frame, &ctx);
+        }
+        frames.push(frame_to_base64(&frame).map_err(user_message)?);
+    }
+    Ok(frames)
+}
+
+#[tauri::command]
+fn export_config_to_toml(config: RenderConfig) -> Result<String, String> {
+    config_to_toml(&config)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -289,7 +322,9 @@ pub fn run() {
             preset_config,
             preview_frame,
             export_render,
-            render_queue_running
+            render_queue_running,
+            render_animation_preview,
+            export_config_to_toml
         ])
         .manage(RenderState::new())
         .setup(|app| {

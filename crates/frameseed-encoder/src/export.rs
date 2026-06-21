@@ -11,6 +11,7 @@ use crate::{FfmpegError, ffmpeg_exists};
 pub enum ExportFormat {
     Mp4,
     Gif,
+    WebM,
 }
 
 impl ExportFormat {
@@ -18,6 +19,7 @@ impl ExportFormat {
         match value.to_lowercase().as_str() {
             "mp4" => Ok(Self::Mp4),
             "gif" => Ok(Self::Gif),
+            "webm" => Ok(Self::WebM),
             _ => Err(ExportError::InvalidFormat(value.to_string())),
         }
     }
@@ -38,7 +40,7 @@ impl Display for ExportError {
             ExportError::Io(e) => write!(f, "Could not write export files: {e}"),
             ExportError::InvalidFormat(value) => write!(
                 f,
-                "Unsupported export format '{value}'. Use `mp4` or `gif`."
+                "Unsupported export format '{value}'. Use `mp4`, `gif`, or `webm`."
             ),
             ExportError::Ffmpeg(error) => write!(f, "{error}"),
         }
@@ -120,6 +122,12 @@ where
                 cmd.arg("-b:v").arg(br);
             }
         }
+        ExportFormat::WebM => {
+            cmd.arg("-c:v").arg("libvpx-vp9").arg("-pix_fmt").arg("yuv420p");
+            if let Some(br) = bitrate {
+                cmd.arg("-b:v").arg(br);
+            }
+        }
         ExportFormat::Gif => {
             let vf = format!(
                 "fps={},split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
@@ -150,6 +158,7 @@ where
         let kind = match format {
             ExportFormat::Mp4 => "MP4 video",
             ExportFormat::Gif => "GIF animation",
+            ExportFormat::WebM => "WebM video",
         };
         return Err(FfmpegError::EncodeFailed { kind }.into());
     }

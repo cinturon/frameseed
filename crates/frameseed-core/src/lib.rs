@@ -17,7 +17,7 @@ mod noise;
 pub use noise::value_noise_2d;
 
 mod scenes;
-pub use scenes::{scene_from_config, GradientParams, GradientScene, MandelbrotScene, palette_from_name, KNOWN_PALETTES};
+pub use scenes::{scene_from_config, GradientParams, GradientScene, MandelbrotScene, palette_from_name, KNOWN_PALETTES, KNOWN_SCENES};
 
 mod config;
 pub use config::{RenderConfig, load_from_path, EffectsConfig, SceneConfig};
@@ -48,6 +48,10 @@ pub trait Scene {
 pub trait Effect {
     fn name(&self) -> &str;
     fn apply(&mut self, frame: &mut Frame, context: &RenderContext);
+}
+
+pub fn config_to_toml(config: &RenderConfig) -> Result<String, String> {
+    toml::to_string_pretty(config).map_err(|e| e.to_string())
 }
 
 pub fn welcome_message() -> &'static str {

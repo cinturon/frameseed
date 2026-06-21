@@ -180,6 +180,7 @@ fn render(
     let export_format = match output_format {
         OutputFormat::Mp4 => ExportFormat::Mp4,
         OutputFormat::Gif => ExportFormat::Gif,
+        OutputFormat::WebM => ExportFormat::WebM,
     };
 
     let job_dir = Path::new("output");
@@ -188,6 +189,7 @@ fn render(
     let output_path = output_override.unwrap_or_else(|| match export_format {
         ExportFormat::Mp4 => job_dir.join("video.mp4"),
         ExportFormat::Gif => job_dir.join("animation.gif"),
+        ExportFormat::WebM => job_dir.join("video.webm"),
     });
 
     let output_path = export_video(&config, job_dir, &output_path, export_format, None, |phase, current, total| {

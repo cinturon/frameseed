@@ -13,17 +13,59 @@ const frameIndexInput    = document.getElementById("frame-index");
 const frameIndexLabel    = document.getElementById("frame-index-label");
 const refreshButton      = document.getElementById("refresh");
 const previewImage       = document.getElementById("preview");
+const animCanvas         = document.getElementById("anim-canvas");
+const playPreviewBtn     = document.getElementById("play-preview");
+const playIcon           = document.getElementById("play-icon");
+const thumbnailStrip     = document.getElementById("thumbnail-strip");
 const previewEmpty       = document.getElementById("preview-empty");
 const previewOverlay     = document.getElementById("preview-overlay");
 const previewOverlayText = document.getElementById("preview-overlay-text");
 const previewInfo        = document.getElementById("preview-info");
 const exportButton       = document.getElementById("export");
+const copyTomlBtn        = document.getElementById("copy-toml");
 const exportFormatSelect = document.getElementById("export-format");
 const exportBitrateSelect = document.getElementById("export-bitrate");
 const bitrateRow         = document.getElementById("bitrate-row");
 const progressContainer  = document.getElementById("progress-container");
 const progressBarFill    = document.getElementById("progress-bar-fill");
 const renderStatus       = document.getElementById("render-status");
+
+// Effects inputs
+const fxInvert           = document.getElementById("fx-invert");
+const fxBlurOn           = document.getElementById("fx-blur-on");
+const fxBlurParams       = document.getElementById("fx-blur-params");
+const fxBlurRadius       = document.getElementById("fx-blur-radius");
+const fxPixelOn          = document.getElementById("fx-pixelation-on");
+const fxPixelParams      = document.getElementById("fx-pixelation-params");
+const fxPixelSize        = document.getElementById("fx-pixelation-size");
+const fxDitherOn         = document.getElementById("fx-dither-on");
+const fxDitherParams     = document.getElementById("fx-dither-params");
+const fxDitherSpread     = document.getElementById("fx-dither-spread");
+const fxPaletteOn        = document.getElementById("fx-palette-on");
+const fxPaletteParams    = document.getElementById("fx-palette-params");
+const fxPaletteName      = document.getElementById("fx-palette-name");
+const fxMotionOn         = document.getElementById("fx-motion-blur-on");
+const fxMotionParams     = document.getElementById("fx-motion-blur-params");
+const fxMotionStrength   = document.getElementById("fx-motion-blur-strength");
+const fxBcOn             = document.getElementById("fx-bc-on");
+const fxBcParams         = document.getElementById("fx-bc-params");
+const fxBcBrightness     = document.getElementById("fx-bc-brightness");
+const fxBcContrast       = document.getElementById("fx-bc-contrast");
+const fxVhsOn            = document.getElementById("fx-vhs-on");
+const fxVhsParams        = document.getElementById("fx-vhs-params");
+const fxVhsScanlines     = document.getElementById("fx-vhs-scanlines");
+const fxVhsChroma        = document.getElementById("fx-vhs-chroma");
+const fxVhsNoise         = document.getElementById("fx-vhs-noise");
+const fxVhsWarp          = document.getElementById("fx-vhs-warp");
+
+// Gradient color pickers
+const gradientStartColor = document.getElementById("gradient-start-color");
+const gradientEndColor   = document.getElementById("gradient-end-color");
+
+// Blend scene
+const blendSceneA        = document.getElementById("blend-scene-a");
+const blendSceneB        = document.getElementById("blend-scene-b");
+const blendSpeed         = document.getElementById("blend-speed");
 
 // Scene param inputs
 const inputs = {
@@ -93,6 +135,7 @@ const panels = {
   sine_wave:    document.getElementById("scene-sine-wave"),
   starfield:    document.getElementById("scene-starfield"),
   tunnel:       document.getElementById("scene-tunnel"),
+  blend:        document.getElementById("scene-blend"),
 };
 
 // ── Value badges ─────────────────────────────────────────────────────────────
@@ -127,6 +170,18 @@ const badges = {
   "starfield-speed":       document.getElementById("starfield-speed-val"),
   "tunnel-speed":          document.getElementById("tunnel-speed-val"),
   "tunnel-rings":          document.getElementById("tunnel-rings-val"),
+  "blend-speed":           document.getElementById("blend-speed-val"),
+  // effects
+  "fx-blur-radius":        document.getElementById("fx-blur-radius-val"),
+  "fx-pixelation-size":    document.getElementById("fx-pixelation-size-val"),
+  "fx-dither-spread":      document.getElementById("fx-dither-spread-val"),
+  "fx-motion-blur-strength": document.getElementById("fx-motion-blur-strength-val"),
+  "fx-bc-brightness":      document.getElementById("fx-bc-brightness-val"),
+  "fx-bc-contrast":        document.getElementById("fx-bc-contrast-val"),
+  "fx-vhs-scanlines":      document.getElementById("fx-vhs-scanlines-val"),
+  "fx-vhs-chroma":         document.getElementById("fx-vhs-chroma-val"),
+  "fx-vhs-noise":          document.getElementById("fx-vhs-noise-val"),
+  "fx-vhs-warp":           document.getElementById("fx-vhs-warp-val"),
 };
 
 // Wire up badges — each range input syncs its badge on input
@@ -137,11 +192,63 @@ document.querySelectorAll("input[type=range]").forEach((el) => {
   }
 });
 
+// Wire effect toggle visibility
+function wireEffectToggle(checkbox, paramsDiv) {
+  checkbox.addEventListener("change", () => {
+    paramsDiv.hidden = !checkbox.checked;
+    scheduleRefresh();
+  });
+}
+wireEffectToggle(fxBlurOn,    fxBlurParams);
+wireEffectToggle(fxPixelOn,   fxPixelParams);
+wireEffectToggle(fxDitherOn,  fxDitherParams);
+wireEffectToggle(fxPaletteOn, fxPaletteParams);
+wireEffectToggle(fxMotionOn,  fxMotionParams);
+wireEffectToggle(fxBcOn,      fxBcParams);
+wireEffectToggle(fxVhsOn,     fxVhsParams);
+
+// Gradient: palette preset → update color pickers
+const PALETTE_COLORS = {
+  "": null,
+  sunset:   ["#ff6b35", "#1a1a2e"],
+  ocean:    ["#0077b6", "#caf0f8"],
+  forest:   ["#2d6a4f", "#d8f3dc"],
+  fire:     ["#e63946", "#ffb703"],
+  purple:   ["#7b2d8b", "#e040fb"],
+  ice:      ["#a8dadc", "#1d3557"],
+  rose:     ["#ff4d6d", "#ffccd5"],
+  midnight: ["#0d0221", "#3a0ca3"],
+};
+
+inputs.gradientPalette.addEventListener("change", () => {
+  const colors = PALETTE_COLORS[inputs.gradientPalette.value];
+  if (colors) {
+    gradientStartColor.value = colors[0];
+    gradientEndColor.value = colors[1];
+  }
+  scheduleRefresh();
+});
+
+gradientStartColor.addEventListener("input", () => {
+  inputs.gradientPalette.value = "";
+  scheduleRefresh();
+});
+gradientEndColor.addEventListener("input", () => {
+  inputs.gradientPalette.value = "";
+  scheduleRefresh();
+});
+
 // ── State ────────────────────────────────────────────────────────────────────
 let currentConfig = null;
 let refreshTimer  = null;
 let exportRunning = false;
 let previewing    = false;
+
+// Animation preview state
+let animFrames    = [];
+let animIndex     = 0;
+let animTimer     = null;
+let animPlaying   = false;
 
 // ── Collapsible sections ─────────────────────────────────────────────────────
 document.querySelectorAll(".section-toggle").forEach((btn) => {
@@ -209,7 +316,7 @@ async function queueExport() {
       request: {
         config,
         output_format: fmt,
-        bitrate: fmt === "mp4" ? exportBitrateSelect.value : null,
+        bitrate: fmt !== "gif" ? exportBitrateSelect.value : null,
       },
     });
   } catch (error) {
@@ -220,10 +327,25 @@ async function queueExport() {
   }
 }
 
+// ── Copy TOML ─────────────────────────────────────────────────────────────────
+async function copyConfigToml() {
+  const config = buildConfigFromForm();
+  if (!config) return;
+  try {
+    const toml = await invoke("export_config_to_toml", { config });
+    await navigator.clipboard.writeText(toml);
+    const orig = copyTomlBtn.textContent;
+    copyTomlBtn.textContent = "✓ Copied";
+    setTimeout(() => { copyTomlBtn.textContent = orig; }, 1500);
+  } catch (err) {
+    console.error("Failed to copy TOML:", err);
+  }
+}
+
 async function setupRenderEvents() {
-  // Show bitrate control only for MP4.
+  // Show bitrate control only for MP4 and WebM.
   function syncBitrateVisibility() {
-    bitrateRow.hidden = exportFormatSelect.value !== "mp4";
+    bitrateRow.hidden = exportFormatSelect.value === "gif";
   }
   exportFormatSelect.addEventListener("change", syncBitrateVisibility);
   syncBitrateVisibility();
@@ -247,6 +369,111 @@ async function setupRenderEvents() {
     progressBarFill.style.width = "0%";
     renderStatus.textContent = "Export cancelled.";
     renderStatus.className = "";
+  });
+}
+
+// ── Animation preview ─────────────────────────────────────────────────────────
+function stopAnimation() {
+  if (animTimer !== null) {
+    clearInterval(animTimer);
+    animTimer = null;
+  }
+  animPlaying = false;
+  playIcon.textContent = "▶";
+  animCanvas.hidden = true;
+  previewImage.hidden = false;
+}
+
+async function startAnimation() {
+  const config = buildConfigFromForm();
+  if (!config) return;
+
+  showOverlay("Rendering preview frames…");
+  playPreviewBtn.disabled = true;
+
+  try {
+    animFrames = await invoke("render_animation_preview", {
+      request: { config, frame_index: null },
+    });
+  } catch (err) {
+    console.error("Animation preview error:", err);
+    hideOverlay();
+    playPreviewBtn.disabled = false;
+    return;
+  }
+
+  hideOverlay();
+  playPreviewBtn.disabled = false;
+
+  if (!animFrames.length) return;
+
+  // Set canvas dimensions to match the preview image
+  const img = new Image();
+  img.onload = () => {
+    animCanvas.width = img.naturalWidth;
+    animCanvas.height = img.naturalHeight;
+
+    // Also build thumbnail strip
+    buildThumbnailStrip(animFrames);
+  };
+  img.src = `data:image/png;base64,${animFrames[0]}`;
+
+  previewImage.hidden = true;
+  animCanvas.hidden = false;
+
+  animIndex = 0;
+  animPlaying = true;
+  playIcon.textContent = "⏹";
+
+  const fps = Number(fpsInput.value) || 24;
+  const interval = 1000 / fps;
+  const ctx = animCanvas.getContext("2d");
+
+  function drawFrame() {
+    const image = new Image();
+    image.onload = () => { ctx.drawImage(image, 0, 0, animCanvas.width, animCanvas.height); };
+    image.src = `data:image/png;base64,${animFrames[animIndex]}`;
+    animIndex = (animIndex + 1) % animFrames.length;
+  }
+
+  drawFrame();
+  animTimer = setInterval(drawFrame, interval);
+}
+
+function toggleAnimation() {
+  if (animPlaying) {
+    stopAnimation();
+  } else {
+    startAnimation();
+  }
+}
+
+// ── Thumbnail strip ───────────────────────────────────────────────────────────
+function buildThumbnailStrip(frames) {
+  if (!frames.length) { thumbnailStrip.hidden = true; return; }
+
+  thumbnailStrip.innerHTML = "";
+  thumbnailStrip.hidden = false;
+
+  const step = Math.max(1, Math.floor(frames.length / 8));
+  const selected = [];
+  for (let i = 0; i < frames.length; i += step) {
+    selected.push(frames[i]);
+    if (selected.length >= 8) break;
+  }
+
+  selected.forEach((b64, i) => {
+    const img = document.createElement("img");
+    img.src = `data:image/png;base64,${b64}`;
+    img.title = `Frame ${i * step + 1}`;
+    img.className = "thumb";
+    img.addEventListener("click", () => {
+      stopAnimation();
+      previewImage.src = `data:image/png;base64,${b64}`;
+      frameIndexInput.value = String(Math.min(i * step, Number(frameIndexInput.max)));
+      frameIndexLabel.textContent = frameIndexInput.value;
+    });
+    thumbnailStrip.appendChild(img);
   });
 }
 
@@ -282,6 +509,12 @@ function updateFrameSliderMax(config) {
 }
 
 // ── Sync form ↔ config ───────────────────────────────────────────────────────
+function rgbaToHex(rgba) {
+  if (!rgba) return "#000000";
+  const toHex = (n) => n.toString(16).padStart(2, "0");
+  return `#${toHex(rgba.r)}${toHex(rgba.g)}${toHex(rgba.b)}`;
+}
+
 function syncFormFromConfig(config) {
   seedInput.value    = String(config.seed);
   widthInput.value   = String(config.width);
@@ -295,6 +528,19 @@ function syncFormFromConfig(config) {
   inputs.gradientSpeed.value     = String(s.gradient.speed);
   inputs.gradientPalette.value   = s.gradient.palette || "";
   inputs.gradientDirection.value = (s.gradient.direction || "horizontal").toLowerCase();
+
+  // Set color pickers from palette or explicit colors
+  const paletteColors = PALETTE_COLORS[s.gradient.palette || ""];
+  if (s.gradient.start_color) {
+    gradientStartColor.value = s.gradient.start_color;
+  } else if (paletteColors) {
+    gradientStartColor.value = paletteColors[0];
+  }
+  if (s.gradient.end_color) {
+    gradientEndColor.value = s.gradient.end_color;
+  } else if (paletteColors) {
+    gradientEndColor.value = paletteColors[1];
+  }
 
   // noise clouds
   inputs.noiseSpeed.value   = String(s.noise_clouds.speed);
@@ -363,6 +609,53 @@ function syncFormFromConfig(config) {
     inputs.tunnelRings.value = String(s.tunnel.rings);
   }
 
+  // blend
+  if (s.blend) {
+    blendSceneA.value = s.blend.scene_a || "gradient";
+    blendSceneB.value = s.blend.scene_b || "plasma";
+    blendSpeed.value  = String(s.blend.speed || 1.0);
+  }
+
+  // effects
+  const e = config.effects;
+  fxInvert.checked = !!e.invert;
+
+  fxBlurOn.checked = !!e.blur;
+  fxBlurParams.hidden = !e.blur;
+  if (e.blur) fxBlurRadius.value = String(e.blur.radius);
+
+  fxPixelOn.checked = !!e.pixelation;
+  fxPixelParams.hidden = !e.pixelation;
+  if (e.pixelation) fxPixelSize.value = String(e.pixelation.block_size);
+
+  fxDitherOn.checked = !!e.dither;
+  fxDitherParams.hidden = !e.dither;
+  if (e.dither) fxDitherSpread.value = String(e.dither.spread);
+
+  fxPaletteOn.checked = !!e.palette;
+  fxPaletteParams.hidden = !e.palette;
+  if (e.palette) fxPaletteName.value = e.palette.name || "cga16";
+
+  fxMotionOn.checked = !!e.motion_blur;
+  fxMotionParams.hidden = !e.motion_blur;
+  if (e.motion_blur) fxMotionStrength.value = String(e.motion_blur.strength);
+
+  fxBcOn.checked = !!e.brightness_contrast;
+  fxBcParams.hidden = !e.brightness_contrast;
+  if (e.brightness_contrast) {
+    fxBcBrightness.value = String(e.brightness_contrast.brightness);
+    fxBcContrast.value   = String(e.brightness_contrast.contrast);
+  }
+
+  fxVhsOn.checked = !!e.vhs_crt;
+  fxVhsParams.hidden = !e.vhs_crt;
+  if (e.vhs_crt) {
+    fxVhsScanlines.value = String(e.vhs_crt.scanlines_strength);
+    fxVhsChroma.value    = String(e.vhs_crt.chromatic_offset);
+    fxVhsNoise.value     = String(e.vhs_crt.noise_amount);
+    fxVhsWarp.value      = String(e.vhs_crt.warp_amount);
+  }
+
   // Sync all badges
   Object.entries(badges).forEach(([id, badge]) => {
     const el = document.getElementById(id);
@@ -384,6 +677,8 @@ function buildConfigFromForm() {
   s.gradient.speed     = Number(inputs.gradientSpeed.value);
   s.gradient.palette   = inputs.gradientPalette.value || "";
   s.gradient.direction = inputs.gradientDirection.value;
+  s.gradient.start_color = inputs.gradientPalette.value ? null : gradientStartColor.value;
+  s.gradient.end_color   = inputs.gradientPalette.value ? null : gradientEndColor.value;
 
   s.noise_clouds.speed   = Number(inputs.noiseSpeed.value);
   s.noise_clouds.scale   = Number(inputs.noiseScale.value);
@@ -435,6 +730,40 @@ function buildConfigFromForm() {
     s.tunnel.speed = Number(inputs.tunnelSpeed.value);
     s.tunnel.rings = Number(inputs.tunnelRings.value);
   }
+  if (s.blend) {
+    s.blend.scene_a = blendSceneA.value;
+    s.blend.scene_b = blendSceneB.value;
+    s.blend.speed   = Number(blendSpeed.value);
+  }
+
+  // Effects
+  currentConfig.effects.invert = fxInvert.checked;
+
+  currentConfig.effects.blur = fxBlurOn.checked
+    ? { radius: Number(fxBlurRadius.value) } : null;
+
+  currentConfig.effects.pixelation = fxPixelOn.checked
+    ? { block_size: Number(fxPixelSize.value) } : null;
+
+  currentConfig.effects.dither = fxDitherOn.checked
+    ? { spread: Number(fxDitherSpread.value) } : null;
+
+  currentConfig.effects.palette = fxPaletteOn.checked
+    ? { name: fxPaletteName.value } : null;
+
+  currentConfig.effects.motion_blur = fxMotionOn.checked
+    ? { strength: Number(fxMotionStrength.value) } : null;
+
+  currentConfig.effects.brightness_contrast = fxBcOn.checked
+    ? { brightness: Number(fxBcBrightness.value), contrast: Number(fxBcContrast.value) } : null;
+
+  currentConfig.effects.vhs_crt = fxVhsOn.checked
+    ? {
+        scanlines_strength: Number(fxVhsScanlines.value),
+        chromatic_offset:   Number(fxVhsChroma.value),
+        noise_amount:       Number(fxVhsNoise.value),
+        warp_amount:        Number(fxVhsWarp.value),
+      } : null;
 
   return currentConfig;
 }
@@ -444,6 +773,7 @@ async function refreshPreview() {
   const config = buildConfigFromForm();
   if (!config || previewing) return;
 
+  stopAnimation();
   previewing = true;
   showOverlay("Rendering preview…");
 
@@ -455,9 +785,16 @@ async function refreshPreview() {
     });
     previewImage.src = `data:image/png;base64,${base64}`;
     previewImage.classList.add("loaded");
+    previewImage.hidden = false;
     previewEmpty.classList.add("hidden");
     previewInfo.textContent =
       `${config.width}×${config.height}  frame ${frameIndex + 1}/${totalFrames(config)}  seed ${config.seed}`;
+    playPreviewBtn.hidden = false;
+
+    // Clear old thumbnail strip when preview refreshes
+    thumbnailStrip.hidden = true;
+    thumbnailStrip.innerHTML = "";
+    animFrames = [];
   } catch (error) {
     console.error("Error refreshing preview:", error);
   } finally {
@@ -509,9 +846,19 @@ refreshButton.addEventListener("click", (e) => {
   refreshPreview();
 });
 
+playPreviewBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  toggleAnimation();
+});
+
 exportButton.addEventListener("click", (e) => {
   e.preventDefault();
   queueExport();
+});
+
+copyTomlBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  copyConfigToml();
 });
 
 randomizeSeedBtn.addEventListener("click", () => {
@@ -519,10 +866,23 @@ randomizeSeedBtn.addEventListener("click", () => {
   scheduleRefresh();
 });
 
+// Resolution presets
+document.querySelectorAll(".res-preset").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    widthInput.value  = btn.dataset.w;
+    heightInput.value = btn.dataset.h;
+    scheduleRefresh();
+  });
+});
+
 // All live inputs (range + select + number) trigger a debounced refresh
 const liveInputs = [
   seedInput, widthInput, heightInput, fpsInput, durationInput,
   ...Object.values(inputs),
+  fxInvert, fxBlurRadius, fxPixelSize, fxDitherSpread, fxPaletteName,
+  fxMotionStrength, fxBcBrightness, fxBcContrast,
+  fxVhsScanlines, fxVhsChroma, fxVhsNoise, fxVhsWarp,
+  blendSceneA, blendSceneB, blendSpeed,
 ];
 liveInputs.forEach((el) => {
   if (!el) return;

@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams, VoronoiParams, PlasmaParams, LissajousParams, SineWaveParams, StarfieldParams, TunnelParams};
+use crate::scenes::{GradientParams, NoiseCloudsParams, ConwayParams, ParticleParams, FlowFieldParams, SdfShapeParams, MandelbrotParams, VoronoiParams, PlasmaParams, LissajousParams, SineWaveParams, StarfieldParams, TunnelParams, BlendParams};
 use crate::effects::{PixelationParams, PaletteQuantizationParams, DitherParams, MotionBlurParams, VhsCrtParams, BlurParams, BrightnessContrastParams};
 use std::{error::Error, fmt::Display, path::Path};
 
@@ -154,6 +154,7 @@ impl SceneConfig {
             sine_wave: SineWaveParams::default(),
             starfield: StarfieldParams::default(),
             tunnel: TunnelParams::default(),
+            blend: BlendParams::default(),
         }
     }
 }
@@ -187,6 +188,8 @@ pub struct SceneConfig {
     pub starfield: StarfieldParams,
     #[serde(default)]
     pub tunnel: TunnelParams,
+    #[serde(default)]
+    pub blend: BlendParams,
 }
 
 #[derive(Debug, Deserialize, Clone, Default, Serialize)]
@@ -244,6 +247,7 @@ mod tests {
             sine_wave: SineWaveParams::default(),
             starfield: StarfieldParams::default(),
             tunnel: TunnelParams::default(),
+            blend: BlendParams::default(),
             },
             EffectsConfig::default(),
         );
@@ -278,6 +282,7 @@ mod tests {
             sine_wave: SineWaveParams::default(),
             starfield: StarfieldParams::default(),
             tunnel: TunnelParams::default(),
+            blend: BlendParams::default(),
             },
             EffectsConfig::default(),
         );

@@ -13,6 +13,7 @@ use crate::scenes::LissajousScene;
 use crate::scenes::SineWaveScene;
 use crate::scenes::StarfieldScene;
 use crate::scenes::TunnelScene;
+use crate::scenes::BlendScene;
 
 pub const KNOWN_SCENES: &[&str] = &[
     "gradient",
@@ -28,6 +29,7 @@ pub const KNOWN_SCENES: &[&str] = &[
     "sine_wave",
     "starfield",
     "tunnel",
+    "blend",
 ];
 
 pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigError> {
@@ -78,6 +80,18 @@ pub fn scene_from_config(scene: &SceneConfig) -> Result<Box<dyn Scene>, ConfigEr
         },
         "tunnel" => {
             Ok(Box::new(TunnelScene::new(scene.tunnel.speed, scene.tunnel.rings)))
+        },
+        "blend" => {
+            if scene.blend.scene_a == "blend" || scene.blend.scene_b == "blend" {
+                return Err(ConfigError::Invalid("Blend scene cannot reference itself.".into()));
+            }
+            let mut cfg_a = scene.clone();
+            cfg_a.name = scene.blend.scene_a.clone();
+            let mut cfg_b = scene.clone();
+            cfg_b.name = scene.blend.scene_b.clone();
+            let scene_a = scene_from_config(&cfg_a)?;
+            let scene_b = scene_from_config(&cfg_b)?;
+            Ok(Box::new(BlendScene::new(scene_a, scene_b, scene.blend.speed)))
         },
         _ => Err(ConfigError::Invalid(format!(
             "Unknown scene '{}'. Run `frameseed list-scenes` to see available scenes: {}",

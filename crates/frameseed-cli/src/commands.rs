@@ -5,6 +5,7 @@ use std::path::PathBuf;
 pub enum OutputFormat {
     Mp4,
     Gif,
+    WebM,
 }
 
 #[derive(Parser)]
