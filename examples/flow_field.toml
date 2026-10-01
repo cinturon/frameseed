@@ -1,0 +1,13 @@
+height = 64
+width = 256
+fps = 24.0
+duration = 5.0
+seed = 42
+
+[scene]
+name = "flow_field"
+
+[scene.flow_field]
+count = 500
+speed = 40.0
+scale = 0.02

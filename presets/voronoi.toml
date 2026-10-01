@@ -1,0 +1,13 @@
+width = 256
+height = 256
+fps = 24.0
+duration = 4.0
+seed = 42
+
+[scene]
+name = "voronoi"
+
+[scene.voronoi]
+seed_count = 14
+speed = 0.8
+edge_width = 2.0

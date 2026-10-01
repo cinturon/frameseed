@@ -1,0 +1,26 @@
+width = 1280
+height = 720
+fps = 24.0
+duration = 45.0
+seed = 506200
+
+[scene]
+name = "flow_field"
+
+[scene.flow_field]
+count = 1400
+speed = 52.0
+scale = 0.016
+fps = 24.0
+
+[effects.motion_blur]
+strength = 0.55
+
+[effects.palette]
+name = "sunset"
+
+[effects.vhs_crt]
+scanlines_strength = 0.22
+chromatic_offset = 2
+noise_amount = 0.04
+warp_amount = 1.8

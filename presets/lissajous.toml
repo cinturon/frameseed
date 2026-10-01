@@ -1,0 +1,16 @@
+width = 640
+height = 360
+fps = 24.0
+duration = 10.0
+seed = 55
+
+[scene]
+name = "lissajous"
+
+[scene.lissajous]
+a = 3.0
+b = 2.0
+delta = 0.7854
+speed = 0.4
+thickness = 1
+trail_frames = 12

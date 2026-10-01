@@ -1,0 +1,12 @@
+width = 256
+height = 64
+fps = 24.0
+duration = 5.0
+seed = 42
+
+[scene]
+name = "noise_clouds"
+
+[scene.noise_clouds]
+speed = 1.0
+scale = 0.05

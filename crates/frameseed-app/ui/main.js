@@ -1,0 +1,1407 @@
+const invoke = window.__TAURI__.core.invoke;
+const listen = window.__TAURI__.event.listen;
+
+// ── DOM refs ─────────────────────────────────────────────────────────────────
+const presetSelect       = document.getElementById("preset");
+const seedInput          = document.getElementById("seed");
+const randomizeSeedBtn   = document.getElementById("randomize-seed");
+const widthInput         = document.getElementById("width");
+const heightInput        = document.getElementById("height");
+const fpsInput           = document.getElementById("fps");
+const durationInput      = document.getElementById("duration");
+const frameIndexInput    = document.getElementById("frame-index");
+const frameIndexLabel    = document.getElementById("frame-index-label");
+const refreshButton      = document.getElementById("refresh");
+const previewImage       = document.getElementById("preview");
+const animCanvas         = document.getElementById("anim-canvas");
+const playPreviewBtn     = document.getElementById("play-preview");
+const playIcon           = document.getElementById("play-icon");
+const thumbnailStrip     = document.getElementById("thumbnail-strip");
+const variationWallBtn   = document.getElementById("variation-wall-btn");
+const variationWall      = document.getElementById("variation-wall");
+const previewEmpty       = document.getElementById("preview-empty");
+const previewOverlay     = document.getElementById("preview-overlay");
+const previewOverlayText = document.getElementById("preview-overlay-text");
+const previewInfo        = document.getElementById("preview-info");
+const exportButton       = document.getElementById("export");
+const copyTomlBtn        = document.getElementById("copy-toml");
+const exportFormatSelect = document.getElementById("export-format");
+const exportBitrateSelect = document.getElementById("export-bitrate");
+const bitrateRow         = document.getElementById("bitrate-row");
+const progressContainer  = document.getElementById("progress-container");
+const progressBarFill    = document.getElementById("progress-bar-fill");
+const renderStatus       = document.getElementById("render-status");
+
+// Batch export
+const batchToggleBtn     = document.getElementById("batch-toggle");
+const batchPanel         = document.getElementById("batch-panel");
+const batchCountInput    = document.getElementById("batch-count");
+const runBatchBtn        = document.getElementById("run-batch");
+
+// Scene randomize
+const randomizeSceneBtn  = document.getElementById("randomize-scene");
+
+// Effects inputs
+const fxInvert           = document.getElementById("fx-invert");
+const fxBlurOn           = document.getElementById("fx-blur-on");
+const fxBlurParams       = document.getElementById("fx-blur-params");
+const fxBlurRadius       = document.getElementById("fx-blur-radius");
+const fxPixelOn          = document.getElementById("fx-pixelation-on");
+const fxPixelParams      = document.getElementById("fx-pixelation-params");
+const fxPixelSize        = document.getElementById("fx-pixelation-size");
+const fxDitherOn         = document.getElementById("fx-dither-on");
+const fxDitherParams     = document.getElementById("fx-dither-params");
+const fxDitherSpread     = document.getElementById("fx-dither-spread");
+const fxPaletteOn        = document.getElementById("fx-palette-on");
+const fxPaletteParams    = document.getElementById("fx-palette-params");
+const fxPaletteName      = document.getElementById("fx-palette-name");
+const fxMotionOn         = document.getElementById("fx-motion-blur-on");
+const fxMotionParams     = document.getElementById("fx-motion-blur-params");
+const fxMotionStrength   = document.getElementById("fx-motion-blur-strength");
+const fxBloomOn          = document.getElementById("fx-bloom-on");
+const fxBloomParams      = document.getElementById("fx-bloom-params");
+const fxBloomThreshold   = document.getElementById("fx-bloom-threshold");
+const fxBloomIntensity   = document.getElementById("fx-bloom-intensity");
+const fxBloomRadius      = document.getElementById("fx-bloom-radius");
+const fxChromaticOn      = document.getElementById("fx-chromatic-on");
+const fxChromaticParams  = document.getElementById("fx-chromatic-params");
+const fxChromaticOffset  = document.getElementById("fx-chromatic-offset");
+const fxPosterizeOn      = document.getElementById("fx-posterize-on");
+const fxPosterizeParams  = document.getElementById("fx-posterize-params");
+const fxPosterizeLevels  = document.getElementById("fx-posterize-levels");
+const fxBcOn             = document.getElementById("fx-bc-on");
+const fxBcParams         = document.getElementById("fx-bc-params");
+const fxBcBrightness     = document.getElementById("fx-bc-brightness");
+const fxBcContrast       = document.getElementById("fx-bc-contrast");
+const fxVhsOn            = document.getElementById("fx-vhs-on");
+const fxVhsParams        = document.getElementById("fx-vhs-params");
+const fxVhsScanlines     = document.getElementById("fx-vhs-scanlines");
+const fxVhsChroma        = document.getElementById("fx-vhs-chroma");
+const fxVhsNoise         = document.getElementById("fx-vhs-noise");
+const fxVhsWarp          = document.getElementById("fx-vhs-warp");
+const fxVignetteOn       = document.getElementById("fx-vignette-on");
+const fxVignetteParams   = document.getElementById("fx-vignette-params");
+const fxVignetteStrength = document.getElementById("fx-vignette-strength");
+const fxVignetteRadius   = document.getElementById("fx-vignette-radius");
+
+// Gradient color pickers
+const gradientStartColor = document.getElementById("gradient-start-color");
+const gradientEndColor   = document.getElementById("gradient-end-color");
+
+// Blend scene
+const blendSceneA        = document.getElementById("blend-scene-a");
+const blendSceneB        = document.getElementById("blend-scene-b");
+const blendPresetA       = document.getElementById("blend-preset-a");
+const blendPresetB       = document.getElementById("blend-preset-b");
+const blendSpeed         = document.getElementById("blend-speed");
+
+// Timeline
+const keyframeList       = document.getElementById("keyframe-list");
+const addKeyframeBtn     = document.getElementById("add-keyframe");
+const loopDurationBtn    = document.getElementById("loop-duration");
+
+// Audio
+const loadAudioBtn       = document.getElementById("load-audio");
+const clearAudioBtn      = document.getElementById("clear-audio");
+const audioInfo          = document.getElementById("audio-info");
+const audioSummary       = document.getElementById("audio-summary");
+const beatStrength       = document.getElementById("beat-strength");
+const beatDecay          = document.getElementById("beat-decay");
+const audioMapTarget     = document.getElementById("audio-map-target");
+const audioMapAmount     = document.getElementById("audio-map-amount");
+
+// Scene param inputs
+const inputs = {
+  // gradient
+  gradientSpeed:       document.getElementById("gradient-speed"),
+  gradientPalette:     document.getElementById("gradient-palette"),
+  gradientDirection:   document.getElementById("gradient-direction"),
+  // noise clouds
+  noiseSpeed:          document.getElementById("noise-speed"),
+  noiseScale:          document.getElementById("noise-scale"),
+  noiseColored:        document.getElementById("noise-colored"),
+  // particles
+  particlesCount:      document.getElementById("particles-count"),
+  particlesSpeed:      document.getElementById("particles-speed"),
+  particlesKind:       document.getElementById("particles-kind"),
+  // conway
+  conwayCellSize:      document.getElementById("conway-cell-size"),
+  conwayDensity:       document.getElementById("conway-density"),
+  // flow field
+  flowCount:           document.getElementById("flow-count"),
+  flowSpeed:           document.getElementById("flow-speed"),
+  flowScale:           document.getElementById("flow-scale"),
+  // sdf shapes
+  sdfCircleRadius:     document.getElementById("sdf-circle-radius"),
+  sdfBoxHalfWidth:     document.getElementById("sdf-box-half-width"),
+  sdfBoxHalfHeight:    document.getElementById("sdf-box-half-height"),
+  sdfSpeed:            document.getElementById("sdf-speed"),
+  // mandelbrot
+  mandelbrotMaxIter:   document.getElementById("mandelbrot-max-iter"),
+  mandelbrotZoomSpeed: document.getElementById("mandelbrot-zoom-speed"),
+  mandelbrotCenterRe:  document.getElementById("mandelbrot-center-re"),
+  mandelbrotCenterIm:  document.getElementById("mandelbrot-center-im"),
+  // voronoi
+  voronoiSeedCount:    document.getElementById("voronoi-seed-count"),
+  voronoiSpeed:        document.getElementById("voronoi-speed"),
+  voronoiEdgeWidth:    document.getElementById("voronoi-edge-width"),
+  // plasma
+  plasmaSpeed:         document.getElementById("plasma-speed"),
+  plasmaScale:         document.getElementById("plasma-scale"),
+  // lissajous
+  lissajousA:          document.getElementById("lissajous-a"),
+  lissajousB:          document.getElementById("lissajous-b"),
+  lissajousSpeed:      document.getElementById("lissajous-speed"),
+  lissajousTrail:      document.getElementById("lissajous-trail"),
+  // sine wave
+  sineSpeed:           document.getElementById("sine-speed"),
+  // starfield
+  starfieldCount:      document.getElementById("starfield-count"),
+  starfieldSpeed:      document.getElementById("starfield-speed"),
+  // tunnel
+  tunnelSpeed:         document.getElementById("tunnel-speed"),
+  tunnelRings:         document.getElementById("tunnel-rings"),
+  // kaleidoscope
+  kaleidoscopeSegments: document.getElementById("kaleidoscope-segments"),
+  kaleidoscopeSpeed:    document.getElementById("kaleidoscope-speed"),
+  kaleidoscopeZoom:     document.getElementById("kaleidoscope-zoom"),
+  // metaballs
+  metaballsCount:       document.getElementById("metaballs-count"),
+  metaballsSpeed:       document.getElementById("metaballs-speed"),
+  metaballsThreshold:   document.getElementById("metaballs-threshold"),
+  // oscilloscope
+  oscilloscopeFrequency: document.getElementById("oscilloscope-frequency"),
+  oscilloscopeAmplitude: document.getElementById("oscilloscope-amplitude"),
+  oscilloscopeSpeed:     document.getElementById("oscilloscope-speed"),
+  oscilloscopeGlow:      document.getElementById("oscilloscope-glow"),
+};
+
+// Scene panels
+const panels = {
+  gradient:     document.getElementById("scene-gradient"),
+  noise_clouds: document.getElementById("scene-noise-clouds"),
+  particles:    document.getElementById("scene-particles"),
+  conway:       document.getElementById("scene-conway"),
+  flow_field:   document.getElementById("scene-flow-field"),
+  sdf_shapes:   document.getElementById("scene-sdf-shapes"),
+  mandelbrot:   document.getElementById("scene-mandelbrot"),
+  voronoi:      document.getElementById("scene-voronoi"),
+  plasma:       document.getElementById("scene-plasma"),
+  lissajous:    document.getElementById("scene-lissajous"),
+  sine_wave:    document.getElementById("scene-sine-wave"),
+  starfield:    document.getElementById("scene-starfield"),
+  tunnel:       document.getElementById("scene-tunnel"),
+  kaleidoscope: document.getElementById("scene-kaleidoscope"),
+  metaballs:    document.getElementById("scene-metaballs"),
+  oscilloscope: document.getElementById("scene-oscilloscope"),
+  blend:        document.getElementById("scene-blend"),
+};
+
+// ── Value badges ─────────────────────────────────────────────────────────────
+const badges = {
+  "gradient-speed":        document.getElementById("gradient-speed-val"),
+  "noise-speed":           document.getElementById("noise-speed-val"),
+  "noise-scale":           document.getElementById("noise-scale-val"),
+  "particles-count":       document.getElementById("particles-count-val"),
+  "particles-speed":       document.getElementById("particles-speed-val"),
+  "conway-cell-size":      document.getElementById("conway-cell-size-val"),
+  "conway-density":        document.getElementById("conway-density-val"),
+  "flow-count":            document.getElementById("flow-count-val"),
+  "flow-speed":            document.getElementById("flow-speed-val"),
+  "flow-scale":            document.getElementById("flow-scale-val"),
+  "sdf-circle-radius":     document.getElementById("sdf-circle-radius-val"),
+  "sdf-box-half-width":    document.getElementById("sdf-box-half-width-val"),
+  "sdf-box-half-height":   document.getElementById("sdf-box-half-height-val"),
+  "sdf-speed":             document.getElementById("sdf-speed-val"),
+  "mandelbrot-max-iter":   document.getElementById("mandelbrot-max-iter-val"),
+  "mandelbrot-zoom-speed": document.getElementById("mandelbrot-zoom-speed-val"),
+  "voronoi-seed-count":    document.getElementById("voronoi-seed-count-val"),
+  "voronoi-speed":         document.getElementById("voronoi-speed-val"),
+  "voronoi-edge-width":    document.getElementById("voronoi-edge-width-val"),
+  "plasma-speed":          document.getElementById("plasma-speed-val"),
+  "plasma-scale":          document.getElementById("plasma-scale-val"),
+  "lissajous-a":           document.getElementById("lissajous-a-val"),
+  "lissajous-b":           document.getElementById("lissajous-b-val"),
+  "lissajous-speed":       document.getElementById("lissajous-speed-val"),
+  "lissajous-trail":       document.getElementById("lissajous-trail-val"),
+  "sine-speed":            document.getElementById("sine-speed-val"),
+  "starfield-count":       document.getElementById("starfield-count-val"),
+  "starfield-speed":       document.getElementById("starfield-speed-val"),
+  "tunnel-speed":          document.getElementById("tunnel-speed-val"),
+  "tunnel-rings":          document.getElementById("tunnel-rings-val"),
+  "kaleidoscope-segments": document.getElementById("kaleidoscope-segments-val"),
+  "kaleidoscope-speed":    document.getElementById("kaleidoscope-speed-val"),
+  "kaleidoscope-zoom":     document.getElementById("kaleidoscope-zoom-val"),
+  "metaballs-count":       document.getElementById("metaballs-count-val"),
+  "metaballs-speed":       document.getElementById("metaballs-speed-val"),
+  "metaballs-threshold":   document.getElementById("metaballs-threshold-val"),
+  "oscilloscope-frequency": document.getElementById("oscilloscope-frequency-val"),
+  "oscilloscope-amplitude": document.getElementById("oscilloscope-amplitude-val"),
+  "oscilloscope-speed":     document.getElementById("oscilloscope-speed-val"),
+  "oscilloscope-glow":      document.getElementById("oscilloscope-glow-val"),
+  "blend-speed":           document.getElementById("blend-speed-val"),
+  // audio
+  "beat-strength":         document.getElementById("beat-strength-val"),
+  "beat-decay":            document.getElementById("beat-decay-val"),
+  "audio-map-amount":      document.getElementById("audio-map-amount-val"),
+  // effects
+  "fx-blur-radius":        document.getElementById("fx-blur-radius-val"),
+  "fx-pixelation-size":    document.getElementById("fx-pixelation-size-val"),
+  "fx-dither-spread":      document.getElementById("fx-dither-spread-val"),
+  "fx-motion-blur-strength": document.getElementById("fx-motion-blur-strength-val"),
+  "fx-bloom-threshold":    document.getElementById("fx-bloom-threshold-val"),
+  "fx-bloom-intensity":    document.getElementById("fx-bloom-intensity-val"),
+  "fx-bloom-radius":       document.getElementById("fx-bloom-radius-val"),
+  "fx-chromatic-offset":   document.getElementById("fx-chromatic-offset-val"),
+  "fx-posterize-levels":   document.getElementById("fx-posterize-levels-val"),
+  "fx-bc-brightness":      document.getElementById("fx-bc-brightness-val"),
+  "fx-bc-contrast":        document.getElementById("fx-bc-contrast-val"),
+  "fx-vhs-scanlines":      document.getElementById("fx-vhs-scanlines-val"),
+  "fx-vhs-chroma":         document.getElementById("fx-vhs-chroma-val"),
+  "fx-vhs-noise":          document.getElementById("fx-vhs-noise-val"),
+  "fx-vhs-warp":           document.getElementById("fx-vhs-warp-val"),
+  "fx-vignette-strength":  document.getElementById("fx-vignette-strength-val"),
+  "fx-vignette-radius":    document.getElementById("fx-vignette-radius-val"),
+};
+
+// Wire up badges — each range input syncs its badge on input
+document.querySelectorAll("input[type=range]").forEach((el) => {
+  const badge = badges[el.id];
+  if (badge) {
+    el.addEventListener("input", () => { badge.textContent = el.value; });
+  }
+});
+
+// Wire effect toggle visibility
+function wireEffectToggle(checkbox, paramsDiv) {
+  checkbox.addEventListener("change", () => {
+    paramsDiv.hidden = !checkbox.checked;
+    scheduleRefresh();
+  });
+}
+wireEffectToggle(fxBlurOn,    fxBlurParams);
+wireEffectToggle(fxPixelOn,   fxPixelParams);
+wireEffectToggle(fxDitherOn,  fxDitherParams);
+wireEffectToggle(fxPaletteOn, fxPaletteParams);
+wireEffectToggle(fxMotionOn,  fxMotionParams);
+wireEffectToggle(fxBloomOn,   fxBloomParams);
+wireEffectToggle(fxChromaticOn, fxChromaticParams);
+wireEffectToggle(fxPosterizeOn, fxPosterizeParams);
+wireEffectToggle(fxBcOn,      fxBcParams);
+wireEffectToggle(fxVhsOn,     fxVhsParams);
+wireEffectToggle(fxVignetteOn, fxVignetteParams);
+
+// Gradient: palette preset → update color pickers
+const PALETTE_COLORS = {
+  "": null,
+  sunset:   ["#ff6b35", "#1a1a2e"],
+  ocean:    ["#0077b6", "#caf0f8"],
+  forest:   ["#2d6a4f", "#d8f3dc"],
+  fire:     ["#e63946", "#ffb703"],
+  purple:   ["#7b2d8b", "#e040fb"],
+  ice:      ["#a8dadc", "#1d3557"],
+  rose:     ["#ff4d6d", "#ffccd5"],
+  midnight: ["#0d0221", "#3a0ca3"],
+};
+
+inputs.gradientPalette.addEventListener("change", () => {
+  const colors = PALETTE_COLORS[inputs.gradientPalette.value];
+  if (colors) {
+    gradientStartColor.value = colors[0];
+    gradientEndColor.value = colors[1];
+  }
+  scheduleRefresh();
+});
+
+gradientStartColor.addEventListener("input", () => {
+  inputs.gradientPalette.value = "";
+  scheduleRefresh();
+});
+gradientEndColor.addEventListener("input", () => {
+  inputs.gradientPalette.value = "";
+  scheduleRefresh();
+});
+
+// ── State ────────────────────────────────────────────────────────────────────
+let currentConfig = null;
+let refreshTimer  = null;
+let exportRunning = false;
+let previewing    = false;
+
+// Animation preview state
+let animFrames    = [];
+let animIndex     = 0;
+let animTimer     = null;
+let animPlaying   = false;
+
+// Audio state
+let loadedAudioPath  = null;
+let detectedBeats    = [];
+let audioDuration    = 0;
+let audioBpm         = 0;
+
+// ── Timeline / keyframe helpers ───────────────────────────────────────────────
+function getKeyframesFromUI() {
+  const rows = keyframeList.querySelectorAll(".kf-row");
+  const kfs = [];
+  rows.forEach(row => {
+    const t = parseFloat(row.querySelector(".kf-time").value);
+    const s = parseFloat(row.querySelector(".kf-speed").value);
+    if (!isNaN(t) && !isNaN(s)) kfs.push({ time: t / 100, speed: s });
+  });
+  kfs.sort((a, b) => a.time - b.time);
+  return kfs;
+}
+
+function addKeyframeRow(time_pct = 50, speed = 1.0) {
+  const row = document.createElement("div");
+  row.className = "kf-row field-row";
+  row.innerHTML = `
+    <input class="kf-time" type="number" min="0" max="100" step="1" value="${time_pct}" title="Position (%)" style="width:52px" />
+    <span class="kf-label">%  ×</span>
+    <input class="kf-speed" type="number" min="0.1" max="10" step="0.1" value="${speed.toFixed(1)}" title="Speed multiplier" style="width:52px" />
+    <button class="kf-remove btn btn-secondary" style="width:auto;padding:2px 8px">✕</button>
+  `;
+  row.querySelector(".kf-remove").addEventListener("click", () => {
+    row.remove();
+    scheduleRefresh();
+  });
+  row.querySelectorAll("input").forEach(el => el.addEventListener("input", scheduleRefresh));
+  keyframeList.appendChild(row);
+}
+
+// ── Audio helpers ────────────────────────────────────────────────────────────
+function updateAudioUI() {
+  if (!loadedAudioPath || !detectedBeats.length) {
+    audioInfo.hidden = true;
+    clearAudioBtn.hidden = true;
+    return;
+  }
+  audioInfo.hidden = false;
+  clearAudioBtn.hidden = false;
+  audioSummary.textContent =
+    `${detectedBeats.length} beats  ·  ${audioBpm.toFixed(0)} BPM  ·  ${audioDuration.toFixed(1)}s`;
+}
+
+async function loadAudio() {
+  try {
+    const path = await invoke("open_audio_file");
+    if (!path) return;
+    loadedAudioPath = path;
+    const result = await invoke("analyze_audio_file", { path });
+    detectedBeats = result.beat_times;
+    audioBpm      = result.bpm;
+    audioDuration = result.duration_seconds;
+    updateAudioUI();
+    scheduleRefresh();
+  } catch (err) {
+    console.error("Audio load error:", err);
+  }
+}
+
+function clearAudio() {
+  loadedAudioPath = null;
+  detectedBeats   = [];
+  audioBpm        = 0;
+  audioDuration   = 0;
+  updateAudioUI();
+  scheduleRefresh();
+}
+
+async function snapLoopDuration() {
+  const config = buildConfigFromForm();
+  if (!config) return;
+  try {
+    const dur = await invoke("get_loop_duration", { config });
+    durationInput.value = dur.toFixed(3);
+    scheduleRefresh();
+  } catch (err) {
+    console.error("Loop duration error:", err);
+  }
+}
+
+// ── Scene randomizer ──────────────────────────────────────────────────────────
+function randomizeSceneParams() {
+  if (!currentConfig) return;
+  const panel = panels[currentConfig.scene.name];
+  if (!panel) return;
+
+  panel.querySelectorAll('input[type="range"]').forEach((input) => {
+    const min  = parseFloat(input.min);
+    const max  = parseFloat(input.max);
+    const step = parseFloat(input.step) || 1;
+    const steps = Math.floor((max - min) / step);
+    const value = min + Math.floor(Math.random() * (steps + 1)) * step;
+    input.value = String(Math.round(value * 10000) / 10000);
+    const badge = badges[input.id];
+    if (badge) badge.textContent = input.value;
+  });
+
+  panel.querySelectorAll("select").forEach((select) => {
+    if (select.id === "gradient-palette") return;
+    select.selectedIndex = Math.floor(Math.random() * select.options.length);
+  });
+
+  panel.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+    cb.checked = Math.random() > 0.5;
+  });
+
+  scheduleRefresh();
+}
+
+// ── Variation wall ───────────────────────────────────────────────────────────
+function cloneConfig(config) {
+  return structuredClone(config);
+}
+
+function randomBetween(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function mutateNumberObject(obj, minFactor = 0.65, maxFactor = 1.45) {
+  if (!obj || typeof obj !== "object") return;
+  Object.entries(obj).forEach(([key, value]) => {
+    if (typeof value === "number") {
+      if (key === "fps" || key === "duration") return;
+      obj[key] = Math.round(value * randomBetween(minFactor, maxFactor) * 1000) / 1000;
+    } else if (value && typeof value === "object" && !Array.isArray(value)) {
+      mutateNumberObject(value, minFactor, maxFactor);
+    }
+  });
+}
+
+function maybeAddVariationEffect(config) {
+  const effects = config.effects || {};
+  const pick = Math.floor(Math.random() * 5);
+  if (pick === 0) {
+    effects.bloom = {
+      threshold: randomBetween(0.35, 0.75),
+      intensity: randomBetween(0.35, 1.5),
+      radius: Math.floor(randomBetween(3, 12)),
+    };
+  } else if (pick === 1) {
+    effects.chromatic_aberration = { offset: randomBetween(1, 5) };
+  } else if (pick === 2) {
+    effects.posterize = { levels: Math.floor(randomBetween(3, 10)) };
+  } else if (pick === 3) {
+    effects.vignette = {
+      strength: randomBetween(0.25, 0.8),
+      radius: randomBetween(0.45, 0.9),
+    };
+  } else {
+    effects.brightness_contrast = {
+      brightness: randomBetween(-0.08, 0.12),
+      contrast: randomBetween(0.85, 1.55),
+    };
+  }
+  config.effects = effects;
+}
+
+function makeVariationConfig(base, index) {
+  const variant = cloneConfig(base);
+  variant.seed = Math.floor(Math.random() * 1_000_000_000) + 1 + index;
+  mutateNumberObject(variant.scene, 0.7, 1.35);
+  if (variant.scene.gradient && Math.random() > 0.45) {
+    const palettes = ["sunset", "ocean", "forest", "fire", "purple", "ice", "rose", "midnight"];
+    variant.scene.gradient.palette = palettes[Math.floor(Math.random() * palettes.length)];
+    variant.scene.gradient.start_color = null;
+    variant.scene.gradient.end_color = null;
+  }
+  if (Math.random() > 0.25) maybeAddVariationEffect(variant);
+  return variant;
+}
+
+async function generateVariationWall() {
+  const base = buildConfigFromForm();
+  if (!base || previewing) return;
+
+  stopAnimation();
+  variationWall.hidden = false;
+  variationWall.innerHTML = "";
+  variationWallBtn.disabled = true;
+  previewInfo.textContent = "Generating variations…";
+
+  const variants = Array.from({ length: 12 }, (_, i) => makeVariationConfig(base, i));
+  for (const variant of variants) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "variation-card";
+    card.textContent = "Rendering…";
+    variationWall.appendChild(card);
+
+    const thumbConfig = cloneConfig(variant);
+    thumbConfig.width = 240;
+    thumbConfig.height = 135;
+    const frameIndex = Math.max(0, Math.floor(totalFrames(thumbConfig) * 0.45));
+
+    try {
+      const base64 = await invoke("preview_frame", {
+        request: { config: thumbConfig, frame_index: frameIndex },
+      });
+      card.textContent = "";
+      const img = document.createElement("img");
+      img.src = `data:image/png;base64,${base64}`;
+      const meta = document.createElement("span");
+      meta.textContent = `seed ${variant.seed}`;
+      card.appendChild(img);
+      card.appendChild(meta);
+      card.addEventListener("click", async () => {
+        currentConfig = cloneConfig(variant);
+        syncFormFromConfig(currentConfig);
+        showScenePanel(currentConfig.scene.name);
+        await refreshPreview();
+      });
+    } catch (err) {
+      card.textContent = "Failed";
+      card.title = String(err);
+    }
+  }
+
+  variationWallBtn.disabled = false;
+  previewInfo.textContent = "Variations ready";
+}
+
+// ── Batch export ──────────────────────────────────────────────────────────────
+async function runBatchExport() {
+  const config = buildConfigFromForm();
+  if (!config) { showProgress("Load a preset first.", "error"); return; }
+  if (exportRunning) return;
+
+  const count = Math.max(1, Math.min(50, Number(batchCountInput.value) || 5));
+  const seeds = Array.from({ length: count }, () =>
+    Math.floor(Math.random() * 1_000_000_000) + 1
+  );
+
+  setExportBusy(true);
+  showProgress("Opening folder picker…");
+
+  const fmt = exportFormatSelect.value;
+  try {
+    await invoke("batch_export_render", {
+      request: {
+        config,
+        output_format: fmt,
+        bitrate: fmt !== "gif" ? exportBitrateSelect.value : null,
+        audio_path: loadedAudioPath ?? null,
+        seeds,
+      },
+    });
+  } catch (err) {
+    setExportBusy(false);
+    renderStatus.textContent = `Batch error: ${err}`;
+    renderStatus.className = "error";
+  }
+}
+
+// ── Collapsible sections ─────────────────────────────────────────────────────
+document.querySelectorAll(".section-toggle").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const section = btn.closest(".collapsible");
+    const open = section.classList.toggle("open");
+    btn.setAttribute("aria-expanded", String(open));
+  });
+});
+
+// ── Overlay helpers ──────────────────────────────────────────────────────────
+function showOverlay(text = "Rendering…") {
+  previewOverlay.hidden = false;
+  previewOverlayText.textContent = text;
+}
+function hideOverlay() {
+  previewOverlay.hidden = true;
+}
+
+// ── Export state ─────────────────────────────────────────────────────────────
+function setExportBusy(busy) {
+  exportRunning = busy;
+  exportButton.disabled = busy;
+}
+
+function showProgress(text, cls = "") {
+  progressContainer.hidden = false;
+  progressBarFill.style.width = "0%";
+  renderStatus.textContent = text;
+  renderStatus.className = cls;
+}
+
+function updateRenderProgress(event) {
+  const { phase, current, total } = event.payload;
+  const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+  progressBarFill.style.width = `${percent}%`;
+  const label = phase === "rendering" ? "Rendering" : "Encoding";
+  renderStatus.textContent = `${label} frame ${current} of ${total} (${percent}%)`;
+  renderStatus.className = "";
+}
+
+async function queueExport() {
+  if (exportRunning) return;
+
+  let config;
+  try {
+    config = buildConfigFromForm();
+  } catch (err) {
+    console.error("buildConfigFromForm error:", err);
+    showProgress(`Config error: ${err.message}`, "error");
+    return;
+  }
+
+  if (!config) {
+    showProgress("Load a preset first.", "error");
+    return;
+  }
+
+  setExportBusy(true);
+  showProgress("Opening save dialog…");
+
+  try {
+    const fmt = exportFormatSelect.value;
+    await invoke("export_render", {
+      request: {
+        config,
+        output_format: fmt,
+        bitrate: fmt !== "gif" ? exportBitrateSelect.value : null,
+        audio_path: loadedAudioPath ?? null,
+      },
+    });
+  } catch (error) {
+    setExportBusy(false);
+    renderStatus.textContent = `Error: ${error}`;
+    renderStatus.className = "error";
+    console.error("Export error:", error);
+  }
+}
+
+// ── Copy TOML ─────────────────────────────────────────────────────────────────
+async function copyConfigToml() {
+  const config = buildConfigFromForm();
+  if (!config) return;
+  try {
+    const toml = await invoke("export_config_to_toml", { config });
+    await navigator.clipboard.writeText(toml);
+    const orig = copyTomlBtn.textContent;
+    copyTomlBtn.textContent = "✓ Copied";
+    setTimeout(() => { copyTomlBtn.textContent = orig; }, 1500);
+  } catch (err) {
+    console.error("Failed to copy TOML:", err);
+  }
+}
+
+async function setupRenderEvents() {
+  // Show bitrate control only for MP4 and WebM.
+  function syncBitrateVisibility() {
+    bitrateRow.hidden = exportFormatSelect.value === "gif";
+  }
+  exportFormatSelect.addEventListener("change", syncBitrateVisibility);
+  syncBitrateVisibility();
+
+  await listen("render-progress", (event) => updateRenderProgress(event));
+  await listen("render-complete", (event) => {
+    setExportBusy(false);
+    progressBarFill.style.width = "100%";
+    const path = event.payload.output_path || "";
+    const filename = path.split("/").pop() || path;
+    renderStatus.textContent = `Saved: ${filename}`;
+    renderStatus.className = "success";
+  });
+  await listen("render-error", (event) => {
+    setExportBusy(false);
+    renderStatus.textContent = `Error: ${event.payload.message}`;
+    renderStatus.className = "error";
+  });
+  await listen("export-cancelled", () => {
+    setExportBusy(false);
+    progressBarFill.style.width = "0%";
+    renderStatus.textContent = "Export cancelled.";
+    renderStatus.className = "";
+  });
+  await listen("batch-cancelled", () => {
+    setExportBusy(false);
+    renderStatus.textContent = "Batch cancelled.";
+    renderStatus.className = "";
+  });
+  await listen("batch-item-start", (event) => {
+    const { index, total, seed } = event.payload;
+    progressBarFill.style.width = `${Math.round((index / total) * 100)}%`;
+    renderStatus.textContent = `Batch ${index + 1}/${total} — seed ${seed}`;
+    renderStatus.className = "";
+  });
+  await listen("batch-complete", (event) => {
+    setExportBusy(false);
+    progressBarFill.style.width = "100%";
+    const { count, output_dir } = event.payload;
+    const folder = output_dir.split("/").pop() || output_dir;
+    renderStatus.textContent = `Batch done: ${count} files → ${folder}`;
+    renderStatus.className = "success";
+  });
+}
+
+// ── Animation preview ─────────────────────────────────────────────────────────
+function stopAnimation() {
+  if (animTimer !== null) {
+    clearInterval(animTimer);
+    animTimer = null;
+  }
+  animPlaying = false;
+  playIcon.textContent = "▶";
+  animCanvas.hidden = true;
+  previewImage.hidden = false;
+}
+
+async function startAnimation() {
+  const config = buildConfigFromForm();
+  if (!config) return;
+
+  showOverlay("Rendering preview frames…");
+  playPreviewBtn.disabled = true;
+
+  try {
+    animFrames = await invoke("render_animation_preview", {
+      request: { config, frame_index: null },
+    });
+  } catch (err) {
+    console.error("Animation preview error:", err);
+    hideOverlay();
+    playPreviewBtn.disabled = false;
+    return;
+  }
+
+  hideOverlay();
+  playPreviewBtn.disabled = false;
+
+  if (!animFrames.length) return;
+
+  // Set canvas dimensions to match the preview image
+  const img = new Image();
+  img.onload = () => {
+    animCanvas.width = img.naturalWidth;
+    animCanvas.height = img.naturalHeight;
+
+    // Also build thumbnail strip
+    buildThumbnailStrip(animFrames);
+  };
+  img.src = `data:image/png;base64,${animFrames[0]}`;
+
+  previewImage.hidden = true;
+  animCanvas.hidden = false;
+
+  animIndex = 0;
+  animPlaying = true;
+  playIcon.textContent = "⏹";
+
+  const fps = Number(fpsInput.value) || 24;
+  const interval = 1000 / fps;
+  const ctx = animCanvas.getContext("2d");
+
+  function drawFrame() {
+    const image = new Image();
+    image.onload = () => { ctx.drawImage(image, 0, 0, animCanvas.width, animCanvas.height); };
+    image.src = `data:image/png;base64,${animFrames[animIndex]}`;
+    animIndex = (animIndex + 1) % animFrames.length;
+  }
+
+  drawFrame();
+  animTimer = setInterval(drawFrame, interval);
+}
+
+function toggleAnimation() {
+  if (animPlaying) {
+    stopAnimation();
+  } else {
+    startAnimation();
+  }
+}
+
+// ── Thumbnail strip ───────────────────────────────────────────────────────────
+function buildThumbnailStrip(frames) {
+  if (!frames.length) { thumbnailStrip.hidden = true; return; }
+
+  thumbnailStrip.innerHTML = "";
+  thumbnailStrip.hidden = false;
+
+  const step = Math.max(1, Math.floor(frames.length / 8));
+  const selected = [];
+  for (let i = 0; i < frames.length; i += step) {
+    selected.push(frames[i]);
+    if (selected.length >= 8) break;
+  }
+
+  selected.forEach((b64, i) => {
+    const img = document.createElement("img");
+    img.src = `data:image/png;base64,${b64}`;
+    img.title = `Frame ${i * step + 1}`;
+    img.className = "thumb";
+    img.addEventListener("click", () => {
+      stopAnimation();
+      previewImage.src = `data:image/png;base64,${b64}`;
+      frameIndexInput.value = String(Math.min(i * step, Number(frameIndexInput.max)));
+      frameIndexLabel.textContent = frameIndexInput.value;
+    });
+    thumbnailStrip.appendChild(img);
+  });
+}
+
+// ── Presets ──────────────────────────────────────────────────────────────────
+async function loadPresets() {
+  const entries = await invoke("list_gallery");
+  presetSelect.replaceChildren();
+  blendPresetA.replaceChildren();
+  blendPresetB.replaceChildren();
+
+  const defaultPresetOptionA = document.createElement("option");
+  defaultPresetOptionA.value = "";
+  defaultPresetOptionA.textContent = "scene controls";
+  blendPresetA.appendChild(defaultPresetOptionA);
+
+  const defaultPresetOptionB = document.createElement("option");
+  defaultPresetOptionB.value = "";
+  defaultPresetOptionB.textContent = "scene controls";
+  blendPresetB.appendChild(defaultPresetOptionB);
+
+  entries.forEach((entry) => {
+    const option = document.createElement("option");
+    option.value = entry.slug;
+    option.textContent = entry.title;
+    presetSelect.appendChild(option);
+
+    const optionA = option.cloneNode(true);
+    const optionB = option.cloneNode(true);
+    blendPresetA.appendChild(optionA);
+    blendPresetB.appendChild(optionB);
+  });
+}
+
+// ── Scene panels ─────────────────────────────────────────────────────────────
+function showScenePanel(name) {
+  Object.values(panels).forEach((p) => { p.hidden = true; });
+  if (panels[name]) panels[name].hidden = false;
+}
+
+// ── Frame slider ─────────────────────────────────────────────────────────────
+function totalFrames(config) {
+  return Math.max(1, Math.ceil(config.duration * config.fps));
+}
+
+function updateFrameSliderMax(config) {
+  const maxFrame = totalFrames(config) - 1;
+  frameIndexInput.max = String(maxFrame);
+  const current = Math.min(Number(frameIndexInput.value) || 0, maxFrame);
+  frameIndexInput.value = String(current);
+  frameIndexLabel.textContent = String(current);
+}
+
+// ── Sync form ↔ config ───────────────────────────────────────────────────────
+function rgbaToHex(rgba) {
+  if (!rgba) return "#000000";
+  const toHex = (n) => n.toString(16).padStart(2, "0");
+  return `#${toHex(rgba.r)}${toHex(rgba.g)}${toHex(rgba.b)}`;
+}
+
+function syncFormFromConfig(config) {
+  seedInput.value    = String(config.seed);
+  widthInput.value   = String(config.width);
+  heightInput.value  = String(config.height);
+  fpsInput.value     = String(config.fps);
+  durationInput.value = String(config.duration);
+
+  const s = config.scene;
+
+  // gradient
+  inputs.gradientSpeed.value     = String(s.gradient.speed);
+  inputs.gradientPalette.value   = s.gradient.palette || "";
+  inputs.gradientDirection.value = (s.gradient.direction || "horizontal").toLowerCase();
+
+  // Set color pickers from palette or explicit colors
+  const paletteColors = PALETTE_COLORS[s.gradient.palette || ""];
+  if (s.gradient.start_color) {
+    gradientStartColor.value = s.gradient.start_color;
+  } else if (paletteColors) {
+    gradientStartColor.value = paletteColors[0];
+  }
+  if (s.gradient.end_color) {
+    gradientEndColor.value = s.gradient.end_color;
+  } else if (paletteColors) {
+    gradientEndColor.value = paletteColors[1];
+  }
+
+  // noise clouds
+  inputs.noiseSpeed.value   = String(s.noise_clouds.speed);
+  inputs.noiseScale.value   = String(s.noise_clouds.scale);
+  inputs.noiseColored.checked = !!s.noise_clouds.colored;
+
+  // particles
+  inputs.particlesCount.value = String(s.particles.count);
+  inputs.particlesSpeed.value = String(s.particles.speed);
+  inputs.particlesKind.value  = s.particles.kind || "snow";
+
+  // conway
+  inputs.conwayCellSize.value = String(s.conway.cell_size);
+  inputs.conwayDensity.value  = String(s.conway.density);
+
+  // flow field
+  inputs.flowCount.value = String(s.flow_field.count);
+  inputs.flowSpeed.value = String(s.flow_field.speed);
+  inputs.flowScale.value = String(s.flow_field.scale);
+
+  // sdf shapes
+  inputs.sdfCircleRadius.value   = String(s.sdf_shapes.circle_radius);
+  inputs.sdfBoxHalfWidth.value   = String(s.sdf_shapes.box_half_width);
+  inputs.sdfBoxHalfHeight.value  = String(s.sdf_shapes.box_half_height);
+  inputs.sdfSpeed.value          = String(s.sdf_shapes.speed);
+
+  // mandelbrot
+  inputs.mandelbrotMaxIter.value   = String(s.mandelbrot.max_iter);
+  inputs.mandelbrotZoomSpeed.value = String(s.mandelbrot.zoom_speed);
+  inputs.mandelbrotCenterRe.value  = String(s.mandelbrot.center_re);
+  inputs.mandelbrotCenterIm.value  = String(s.mandelbrot.center_im);
+
+  // voronoi
+  inputs.voronoiSeedCount.value = String(s.voronoi.seed_count);
+  inputs.voronoiSpeed.value     = String(s.voronoi.speed);
+  inputs.voronoiEdgeWidth.value = String(s.voronoi.edge_width);
+
+  // plasma
+  if (s.plasma) {
+    inputs.plasmaSpeed.value = String(s.plasma.speed);
+    inputs.plasmaScale.value = String(s.plasma.scale);
+  }
+
+  // lissajous
+  if (s.lissajous) {
+    inputs.lissajousA.value     = String(s.lissajous.a);
+    inputs.lissajousB.value     = String(s.lissajous.b);
+    inputs.lissajousSpeed.value = String(s.lissajous.speed);
+    inputs.lissajousTrail.value = String(s.lissajous.trail_frames);
+  }
+
+  // sine wave
+  if (s.sine_wave) {
+    inputs.sineSpeed.value = String(s.sine_wave.speed);
+  }
+
+  // starfield
+  if (s.starfield) {
+    inputs.starfieldCount.value = String(s.starfield.count);
+    inputs.starfieldSpeed.value = String(s.starfield.speed);
+  }
+
+  // tunnel
+  if (s.tunnel) {
+    inputs.tunnelSpeed.value = String(s.tunnel.speed);
+    inputs.tunnelRings.value = String(s.tunnel.rings);
+  }
+
+  // kaleidoscope
+  if (s.kaleidoscope) {
+    inputs.kaleidoscopeSegments.value = String(s.kaleidoscope.segments);
+    inputs.kaleidoscopeSpeed.value    = String(s.kaleidoscope.speed);
+    inputs.kaleidoscopeZoom.value     = String(s.kaleidoscope.zoom);
+  }
+
+  // metaballs
+  if (s.metaballs) {
+    inputs.metaballsCount.value     = String(s.metaballs.count);
+    inputs.metaballsSpeed.value     = String(s.metaballs.speed);
+    inputs.metaballsThreshold.value = String(s.metaballs.threshold);
+  }
+
+  // oscilloscope
+  if (s.oscilloscope) {
+    inputs.oscilloscopeFrequency.value = String(s.oscilloscope.frequency);
+    inputs.oscilloscopeAmplitude.value = String(s.oscilloscope.amplitude);
+    inputs.oscilloscopeSpeed.value     = String(s.oscilloscope.speed);
+    inputs.oscilloscopeGlow.value      = String(s.oscilloscope.glow);
+  }
+
+  // blend
+  if (s.blend) {
+    blendSceneA.value = s.blend.scene_a || "gradient";
+    blendSceneB.value = s.blend.scene_b || "plasma";
+    blendPresetA.value = s.blend.preset_a || "";
+    blendPresetB.value = s.blend.preset_b || "";
+    blendSpeed.value  = String(s.blend.speed || 1.0);
+  }
+
+  // effects
+  const e = config.effects;
+  fxInvert.checked = !!e.invert;
+
+  fxBlurOn.checked = !!e.blur;
+  fxBlurParams.hidden = !e.blur;
+  if (e.blur) fxBlurRadius.value = String(e.blur.radius);
+
+  fxPixelOn.checked = !!e.pixelation;
+  fxPixelParams.hidden = !e.pixelation;
+  if (e.pixelation) fxPixelSize.value = String(e.pixelation.block_size);
+
+  fxDitherOn.checked = !!e.dither;
+  fxDitherParams.hidden = !e.dither;
+  if (e.dither) fxDitherSpread.value = String(e.dither.spread);
+
+  fxPaletteOn.checked = !!e.palette;
+  fxPaletteParams.hidden = !e.palette;
+  if (e.palette) fxPaletteName.value = e.palette.name || "cga16";
+
+  fxMotionOn.checked = !!e.motion_blur;
+  fxMotionParams.hidden = !e.motion_blur;
+  if (e.motion_blur) fxMotionStrength.value = String(e.motion_blur.strength);
+
+  fxBloomOn.checked = !!e.bloom;
+  fxBloomParams.hidden = !e.bloom;
+  if (e.bloom) {
+    fxBloomThreshold.value = String(e.bloom.threshold);
+    fxBloomIntensity.value = String(e.bloom.intensity);
+    fxBloomRadius.value    = String(e.bloom.radius);
+  }
+
+  fxChromaticOn.checked = !!e.chromatic_aberration;
+  fxChromaticParams.hidden = !e.chromatic_aberration;
+  if (e.chromatic_aberration) {
+    fxChromaticOffset.value = String(e.chromatic_aberration.offset);
+  }
+
+  fxPosterizeOn.checked = !!e.posterize;
+  fxPosterizeParams.hidden = !e.posterize;
+  if (e.posterize) {
+    fxPosterizeLevels.value = String(e.posterize.levels);
+  }
+
+  fxBcOn.checked = !!e.brightness_contrast;
+  fxBcParams.hidden = !e.brightness_contrast;
+  if (e.brightness_contrast) {
+    fxBcBrightness.value = String(e.brightness_contrast.brightness);
+    fxBcContrast.value   = String(e.brightness_contrast.contrast);
+  }
+
+  fxVhsOn.checked = !!e.vhs_crt;
+  fxVhsParams.hidden = !e.vhs_crt;
+  if (e.vhs_crt) {
+    fxVhsScanlines.value = String(e.vhs_crt.scanlines_strength);
+    fxVhsChroma.value    = String(e.vhs_crt.chromatic_offset);
+    fxVhsNoise.value     = String(e.vhs_crt.noise_amount);
+    fxVhsWarp.value      = String(e.vhs_crt.warp_amount);
+  }
+
+  fxVignetteOn.checked = !!e.vignette;
+  fxVignetteParams.hidden = !e.vignette;
+  if (e.vignette) {
+    fxVignetteStrength.value = String(e.vignette.strength);
+    fxVignetteRadius.value   = String(e.vignette.radius);
+  }
+
+  const audioMapping = (config.audio_mappings || [])[0];
+  audioMapTarget.value = audioMapping?.target || "";
+  audioMapAmount.value = String(audioMapping?.amount || 1.0);
+
+  // Sync all badges
+  Object.entries(badges).forEach(([id, badge]) => {
+    const el = document.getElementById(id);
+    if (el && badge) badge.textContent = el.value;
+  });
+}
+
+function buildConfigFromForm() {
+  if (!currentConfig) return null;
+
+  currentConfig.seed     = Number(seedInput.value);
+  currentConfig.width    = Number(widthInput.value);
+  currentConfig.height   = Number(heightInput.value);
+  currentConfig.fps      = Number(fpsInput.value);
+  currentConfig.duration = Number(durationInput.value);
+
+  const s = currentConfig.scene;
+
+  s.gradient.speed     = Number(inputs.gradientSpeed.value);
+  s.gradient.palette   = inputs.gradientPalette.value || "";
+  s.gradient.direction = inputs.gradientDirection.value;
+  s.gradient.start_color = inputs.gradientPalette.value ? null : gradientStartColor.value;
+  s.gradient.end_color   = inputs.gradientPalette.value ? null : gradientEndColor.value;
+
+  s.noise_clouds.speed   = Number(inputs.noiseSpeed.value);
+  s.noise_clouds.scale   = Number(inputs.noiseScale.value);
+  s.noise_clouds.colored = inputs.noiseColored.checked;
+
+  s.particles.count = Number(inputs.particlesCount.value);
+  s.particles.speed = Number(inputs.particlesSpeed.value);
+  s.particles.kind  = inputs.particlesKind.value;
+
+  s.conway.cell_size = Number(inputs.conwayCellSize.value);
+  s.conway.density   = Number(inputs.conwayDensity.value);
+
+  s.flow_field.count = Number(inputs.flowCount.value);
+  s.flow_field.speed = Number(inputs.flowSpeed.value);
+  s.flow_field.scale = Number(inputs.flowScale.value);
+
+  s.sdf_shapes.circle_radius  = Number(inputs.sdfCircleRadius.value);
+  s.sdf_shapes.box_half_width  = Number(inputs.sdfBoxHalfWidth.value);
+  s.sdf_shapes.box_half_height = Number(inputs.sdfBoxHalfHeight.value);
+  s.sdf_shapes.speed           = Number(inputs.sdfSpeed.value);
+
+  s.mandelbrot.max_iter   = Number(inputs.mandelbrotMaxIter.value);
+  s.mandelbrot.zoom_speed = Number(inputs.mandelbrotZoomSpeed.value);
+  s.mandelbrot.center_re  = Number(inputs.mandelbrotCenterRe.value);
+  s.mandelbrot.center_im  = Number(inputs.mandelbrotCenterIm.value);
+
+  s.voronoi.seed_count = Number(inputs.voronoiSeedCount.value);
+  s.voronoi.speed      = Number(inputs.voronoiSpeed.value);
+  s.voronoi.edge_width = Number(inputs.voronoiEdgeWidth.value);
+
+  if (s.plasma) {
+    s.plasma.speed = Number(inputs.plasmaSpeed.value);
+    s.plasma.scale = Number(inputs.plasmaScale.value);
+  }
+  if (s.lissajous) {
+    s.lissajous.a            = Number(inputs.lissajousA.value);
+    s.lissajous.b            = Number(inputs.lissajousB.value);
+    s.lissajous.speed        = Number(inputs.lissajousSpeed.value);
+    s.lissajous.trail_frames = Number(inputs.lissajousTrail.value);
+  }
+  if (s.sine_wave) {
+    s.sine_wave.speed = Number(inputs.sineSpeed.value);
+  }
+  if (s.starfield) {
+    s.starfield.count = Number(inputs.starfieldCount.value);
+    s.starfield.speed = Number(inputs.starfieldSpeed.value);
+  }
+  if (s.tunnel) {
+    s.tunnel.speed = Number(inputs.tunnelSpeed.value);
+    s.tunnel.rings = Number(inputs.tunnelRings.value);
+  }
+  if (s.kaleidoscope) {
+    s.kaleidoscope.segments = Number(inputs.kaleidoscopeSegments.value);
+    s.kaleidoscope.speed    = Number(inputs.kaleidoscopeSpeed.value);
+    s.kaleidoscope.zoom     = Number(inputs.kaleidoscopeZoom.value);
+  }
+  if (s.metaballs) {
+    s.metaballs.count     = Number(inputs.metaballsCount.value);
+    s.metaballs.speed     = Number(inputs.metaballsSpeed.value);
+    s.metaballs.threshold = Number(inputs.metaballsThreshold.value);
+  }
+  if (s.oscilloscope) {
+    s.oscilloscope.frequency = Number(inputs.oscilloscopeFrequency.value);
+    s.oscilloscope.amplitude = Number(inputs.oscilloscopeAmplitude.value);
+    s.oscilloscope.speed     = Number(inputs.oscilloscopeSpeed.value);
+    s.oscilloscope.glow      = Number(inputs.oscilloscopeGlow.value);
+  }
+  if (s.blend) {
+    s.blend.scene_a = blendSceneA.value;
+    s.blend.scene_b = blendSceneB.value;
+    s.blend.preset_a = blendPresetA.value || null;
+    s.blend.preset_b = blendPresetB.value || null;
+    s.blend.speed   = Number(blendSpeed.value);
+  }
+
+  // Motion / speed keyframes
+  currentConfig.speed_keyframes = getKeyframesFromUI();
+
+  // Audio beat pulse
+  currentConfig.beat_pulse = detectedBeats.length ? {
+    beat_times: detectedBeats,
+    strength: Number(beatStrength.value),
+    decay: Number(beatDecay.value),
+  } : null;
+  currentConfig.audio_mappings = detectedBeats.length && audioMapTarget.value ? [
+    {
+      target: audioMapTarget.value,
+      amount: Number(audioMapAmount.value),
+    },
+  ] : [];
+
+  // Effects
+  currentConfig.effects.invert = fxInvert.checked;
+
+  currentConfig.effects.blur = fxBlurOn.checked
+    ? { radius: Number(fxBlurRadius.value) } : null;
+
+  currentConfig.effects.pixelation = fxPixelOn.checked
+    ? { block_size: Number(fxPixelSize.value) } : null;
+
+  currentConfig.effects.dither = fxDitherOn.checked
+    ? { spread: Number(fxDitherSpread.value) } : null;
+
+  currentConfig.effects.palette = fxPaletteOn.checked
+    ? { name: fxPaletteName.value } : null;
+
+  currentConfig.effects.motion_blur = fxMotionOn.checked
+    ? { strength: Number(fxMotionStrength.value) } : null;
+
+  currentConfig.effects.bloom = fxBloomOn.checked
+    ? {
+        threshold: Number(fxBloomThreshold.value),
+        intensity: Number(fxBloomIntensity.value),
+        radius: Number(fxBloomRadius.value),
+      } : null;
+
+  currentConfig.effects.chromatic_aberration = fxChromaticOn.checked
+    ? { offset: Number(fxChromaticOffset.value) } : null;
+
+  currentConfig.effects.posterize = fxPosterizeOn.checked
+    ? { levels: Number(fxPosterizeLevels.value) } : null;
+
+  currentConfig.effects.brightness_contrast = fxBcOn.checked
+    ? { brightness: Number(fxBcBrightness.value), contrast: Number(fxBcContrast.value) } : null;
+
+  currentConfig.effects.vhs_crt = fxVhsOn.checked
+    ? {
+        scanlines_strength: Number(fxVhsScanlines.value),
+        chromatic_offset:   Number(fxVhsChroma.value),
+        noise_amount:       Number(fxVhsNoise.value),
+        warp_amount:        Number(fxVhsWarp.value),
+      } : null;
+
+  currentConfig.effects.vignette = fxVignetteOn.checked
+    ? {
+        strength: Number(fxVignetteStrength.value),
+        radius: Number(fxVignetteRadius.value),
+      } : null;
+
+  return currentConfig;
+}
+
+// ── Preview ───────────────────────────────────────────────────────────────────
+async function refreshPreview() {
+  const config = buildConfigFromForm();
+  if (!config || previewing) return;
+
+  stopAnimation();
+  previewing = true;
+  showOverlay("Rendering preview…");
+
+  try {
+    updateFrameSliderMax(config);
+    const frameIndex = Number(frameIndexInput.value);
+    const base64 = await invoke("preview_frame", {
+      request: { config, frame_index: frameIndex },
+    });
+    previewImage.src = `data:image/png;base64,${base64}`;
+    previewImage.classList.add("loaded");
+    previewImage.hidden = false;
+    previewEmpty.classList.add("hidden");
+    previewInfo.textContent =
+      `${config.width}×${config.height}  frame ${frameIndex + 1}/${totalFrames(config)}  seed ${config.seed}`;
+    playPreviewBtn.hidden = false;
+
+    // Clear old thumbnail strip when preview refreshes
+    thumbnailStrip.hidden = true;
+    thumbnailStrip.innerHTML = "";
+    animFrames = [];
+  } catch (error) {
+    console.error("Error refreshing preview:", error);
+  } finally {
+    previewing = false;
+    hideOverlay();
+  }
+}
+
+function scheduleRefresh() {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(refreshPreview, 200);
+}
+
+// ── Preset load ───────────────────────────────────────────────────────────────
+async function onPresetChange(slug) {
+  showOverlay("Loading preset…");
+  try {
+    currentConfig = await invoke("preset_config", { preset: slug });
+    syncFormFromConfig(currentConfig);
+    showScenePanel(currentConfig.scene.name);
+    updateFrameSliderMax(currentConfig);
+    await refreshPreview();
+  } catch (e) {
+    hideOverlay();
+    console.error("Error loading preset:", e);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function loadInitialState() {
+  await loadPresets();
+  if (presetSelect.value) {
+    await onPresetChange(presetSelect.value);
+  }
+}
+
+// ── Event wiring ──────────────────────────────────────────────────────────────
+presetSelect.addEventListener("change", () =>
+  onPresetChange(presetSelect.value).catch(console.error)
+);
+
+frameIndexInput.addEventListener("input", () => {
+  frameIndexLabel.textContent = frameIndexInput.value;
+  scheduleRefresh();
+});
+
+refreshButton.addEventListener("click", (e) => {
+  e.preventDefault();
+  refreshPreview();
+});
+
+playPreviewBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  toggleAnimation();
+});
+
+exportButton.addEventListener("click", (e) => {
+  e.preventDefault();
+  queueExport();
+});
+
+copyTomlBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  copyConfigToml();
+});
+
+randomizeSeedBtn.addEventListener("click", () => {
+  seedInput.value = String(Math.floor(Math.random() * 1_000_000_000) + 1);
+  scheduleRefresh();
+});
+
+// Resolution presets
+document.querySelectorAll(".res-preset").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    widthInput.value  = btn.dataset.w;
+    heightInput.value = btn.dataset.h;
+    scheduleRefresh();
+  });
+});
+
+// Timeline / motion
+addKeyframeBtn.addEventListener("click", () => addKeyframeRow());
+loopDurationBtn.addEventListener("click", () => snapLoopDuration());
+
+// Audio
+loadAudioBtn.addEventListener("click", () => loadAudio());
+clearAudioBtn.addEventListener("click", () => clearAudio());
+
+// Scene randomize
+randomizeSceneBtn.addEventListener("click", () => randomizeSceneParams());
+variationWallBtn.addEventListener("click", () => generateVariationWall());
+
+// Batch export
+batchToggleBtn.addEventListener("click", () => {
+  batchPanel.hidden = !batchPanel.hidden;
+  batchToggleBtn.classList.toggle("active", !batchPanel.hidden);
+});
+runBatchBtn.addEventListener("click", (e) => { e.preventDefault(); runBatchExport(); });
+
+// All live inputs (range + select + number) trigger a debounced refresh
+const liveInputs = [
+  seedInput, widthInput, heightInput, fpsInput, durationInput,
+  ...Object.values(inputs),
+  fxInvert, fxBlurRadius, fxPixelSize, fxDitherSpread, fxPaletteName,
+  fxMotionStrength, fxBcBrightness, fxBcContrast,
+  fxVhsScanlines, fxVhsChroma, fxVhsNoise, fxVhsWarp,
+  fxBloomThreshold, fxBloomIntensity, fxBloomRadius,
+  fxChromaticOffset, fxPosterizeLevels,
+  fxVignetteStrength, fxVignetteRadius,
+  blendSceneA, blendSceneB, blendPresetA, blendPresetB, blendSpeed,
+  beatStrength, beatDecay, audioMapTarget, audioMapAmount,
+];
+liveInputs.forEach((el) => {
+  if (!el) return;
+  el.addEventListener("input", scheduleRefresh);
+  el.addEventListener("change", scheduleRefresh);
+});
+
+// Register render events independently so they work even if preset load fails.
+setupRenderEvents().catch(console.error);
+loadInitialState().catch(console.error);

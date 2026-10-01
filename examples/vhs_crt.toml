@@ -1,0 +1,18 @@
+width = 256
+height = 256
+fps = 24.0
+duration = 3.0
+seed = 42
+
+[scene]
+name = "gradient"
+
+[scene.gradient]
+palette = "sunset"
+speed = 1.0
+
+[effects.vhs_crt]
+scanlines_strength = 0.35
+chromatic_offset = 2
+noise_amount = 0.0
+warp_amount = 2.5

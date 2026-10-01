@@ -1,0 +1,12 @@
+width = 256
+height = 256
+fps = 24.0
+duration = 4.0
+seed = 42
+
+[scene]
+name = "conway"
+
+[scene.conway]
+cell_size = 4
+density = 0.35

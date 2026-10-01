@@ -1,0 +1,17 @@
+use crate::Frame;
+use base64::{Engine, engine::general_purpose::STANDARD};
+use image::RgbaImage;
+use std::io::Cursor;
+
+fn frame_to_png_bytes(frame: &Frame) -> Result<Vec<u8>, image::ImageError> {
+    let image = RgbaImage::from_raw(frame.width, frame.height, frame.as_raw_rgba().to_vec())
+        .expect("pixel buffer size mismatch");
+    let mut cursor = Cursor::new(Vec::new());
+    image.write_to(&mut cursor, image::ImageFormat::Png)?;
+    Ok(cursor.into_inner())
+}
+
+pub fn frame_to_base64(frame: &Frame) -> Result<String, image::ImageError> {
+    let bytes = frame_to_png_bytes(frame)?;
+    Ok(STANDARD.encode(bytes))
+}

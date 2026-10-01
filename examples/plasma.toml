@@ -1,0 +1,12 @@
+width = 640
+height = 360
+fps = 24.0
+duration = 5.0
+seed = 42
+
+[scene]
+name = "plasma"
+
+[scene.plasma]
+speed = 1.0
+scale = 3.0

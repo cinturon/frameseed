@@ -1,0 +1,15 @@
+width = 256
+height = 256
+fps = 24.0
+duration = 5.0
+seed = 42
+
+[scene]
+name = "mandelbrot"
+
+[scene.mandelbrot]
+max_iter = 120
+center_re = -0.75
+center_im = 0.1
+initial_view_width = 3.0
+zoom_speed = 1.2

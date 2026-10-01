@@ -1,0 +1,16 @@
+width = 640
+height = 360
+fps = 24.0
+duration = 10.0
+seed = 99
+
+[scene]
+name = "starfield"
+
+[scene.starfield]
+count = 500
+speed = 0.8
+
+[effects.brightness_contrast]
+brightness = -0.05
+contrast = 1.2

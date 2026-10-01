@@ -1,0 +1,11 @@
+width = 256
+height = 64
+fps = 24.0
+duration = 5.0
+seed = 42
+
+[scene]
+name = "sine_wave"
+
+[scene.sine_wave]
+speed = 1.0

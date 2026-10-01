@@ -1,0 +1,17 @@
+width = 640
+height = 360
+fps = 24.0
+duration = 8.0
+seed = 616
+
+[scene]
+name = "kaleidoscope"
+
+[scene.kaleidoscope]
+segments = 10
+speed = 0.85
+zoom = 2.4
+
+[effects.brightness_contrast]
+brightness = 0.05
+contrast = 0.18

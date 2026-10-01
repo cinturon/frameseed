@@ -1,0 +1,14 @@
+width = 256
+height = 256
+fps = 24.0
+duration = 4.0
+seed = 42
+
+[scene]
+name = "sdf_shapes"
+
+[scene.sdf_shapes]
+circle_radius = 48.0
+box_half_width = 36.0
+box_half_height = 28.0
+speed = 1.2

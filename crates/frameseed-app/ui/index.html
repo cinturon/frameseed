@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FrameSeed</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <header id="app-header">
+        <span id="app-logo">⬡</span>
+        <span id="app-name">FrameSeed</span>
+      </header>
+
+      <!-- Preset picker -->
+      <section class="sidebar-section">
+        <label class="section-label" for="preset">Preset</label>
+        <select id="preset"></select>
+      </section>
+
+      <!-- Scene params -->
+      <section class="sidebar-section collapsible open" id="section-scene">
+        <button class="section-toggle" aria-expanded="true">
+          <span>Scene</span><span class="chevron">▾</span>
+        </button>
+        <div class="section-body">
+
+          <div class="scene-toolbar">
+            <button id="randomize-scene" class="icon-btn" title="Randomize scene parameters">🎲</button>
+          </div>
+
+          <div id="scene-gradient" class="scene-panel">
+            <div class="field-row">
+              <label for="gradient-speed">Speed</label>
+              <input id="gradient-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="gradient-speed-val">1.0</span>
+            </div>
+            <div class="field-row">
+              <label for="gradient-palette">Palette</label>
+              <select id="gradient-palette">
+                <option value="">custom</option>
+                <option value="sunset">sunset</option>
+                <option value="ocean">ocean</option>
+                <option value="forest">forest</option>
+                <option value="fire">fire</option>
+                <option value="purple">purple</option>
+                <option value="ice">ice</option>
+                <option value="rose">rose</option>
+                <option value="midnight">midnight</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label>Colors</label>
+              <div class="color-pair">
+                <input id="gradient-start-color" type="color" value="#ff6b35" title="Start color" />
+                <input id="gradient-end-color" type="color" value="#1a1a2e" title="End color" />
+              </div>
+            </div>
+            <div class="field-row">
+              <label for="gradient-direction">Direction</label>
+              <select id="gradient-direction">
+                <option value="horizontal">horizontal</option>
+                <option value="vertical">vertical</option>
+                <option value="radial">radial</option>
+                <option value="diagonal">diagonal</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="scene-noise-clouds" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="noise-speed">Speed</label>
+              <input id="noise-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="noise-speed-val">1.0</span>
+            </div>
+            <div class="field-row">
+              <label for="noise-scale">Scale</label>
+              <input id="noise-scale" type="range" min="0.005" max="0.2" step="0.005" />
+              <span class="value-badge" id="noise-scale-val">0.05</span>
+            </div>
+            <div class="field-row">
+              <label for="noise-colored">Colored</label>
+              <label class="toggle">
+                <input id="noise-colored" type="checkbox" />
+                <span class="toggle-track"></span>
+              </label>
+            </div>
+          </div>
+
+          <div id="scene-particles" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="particles-count">Count</label>
+              <input id="particles-count" type="range" min="10" max="2000" step="10" />
+              <span class="value-badge" id="particles-count-val">100</span>
+            </div>
+            <div class="field-row">
+              <label for="particles-speed">Speed</label>
+              <input id="particles-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="particles-speed-val">1.0</span>
+            </div>
+            <div class="field-row">
+              <label for="particles-kind">Kind</label>
+              <select id="particles-kind">
+                <option value="snow">snow</option>
+                <option value="rain">rain</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="scene-conway" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="conway-cell-size">Cell size</label>
+              <input id="conway-cell-size" type="range" min="1" max="16" step="1" />
+              <span class="value-badge" id="conway-cell-size-val">4</span>
+            </div>
+            <div class="field-row">
+              <label for="conway-density">Density</label>
+              <input id="conway-density" type="range" min="0.01" max="1" step="0.01" />
+              <span class="value-badge" id="conway-density-val">0.3</span>
+            </div>
+          </div>
+
+          <div id="scene-flow-field" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="flow-count">Count</label>
+              <input id="flow-count" type="range" min="10" max="2000" step="10" />
+              <span class="value-badge" id="flow-count-val">500</span>
+            </div>
+            <div class="field-row">
+              <label for="flow-speed">Speed</label>
+              <input id="flow-speed" type="range" min="0.1" max="10" step="0.1" />
+              <span class="value-badge" id="flow-speed-val">1.0</span>
+            </div>
+            <div class="field-row">
+              <label for="flow-scale">Scale</label>
+              <input id="flow-scale" type="range" min="0.001" max="0.1" step="0.001" />
+              <span class="value-badge" id="flow-scale-val">0.01</span>
+            </div>
+          </div>
+
+          <div id="scene-sdf-shapes" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="sdf-circle-radius">Circle r</label>
+              <input id="sdf-circle-radius" type="range" min="0.01" max="0.5" step="0.01" />
+              <span class="value-badge" id="sdf-circle-radius-val">0.2</span>
+            </div>
+            <div class="field-row">
+              <label for="sdf-box-half-width">Box W</label>
+              <input id="sdf-box-half-width" type="range" min="0.01" max="0.5" step="0.01" />
+              <span class="value-badge" id="sdf-box-half-width-val">0.15</span>
+            </div>
+            <div class="field-row">
+              <label for="sdf-box-half-height">Box H</label>
+              <input id="sdf-box-half-height" type="range" min="0.01" max="0.5" step="0.01" />
+              <span class="value-badge" id="sdf-box-half-height-val">0.1</span>
+            </div>
+            <div class="field-row">
+              <label for="sdf-speed">Speed</label>
+              <input id="sdf-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="sdf-speed-val">1.0</span>
+            </div>
+          </div>
+
+          <div id="scene-mandelbrot" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="mandelbrot-max-iter">Max iter</label>
+              <input id="mandelbrot-max-iter" type="range" min="10" max="500" step="10" />
+              <span class="value-badge" id="mandelbrot-max-iter-val">100</span>
+            </div>
+            <div class="field-row">
+              <label for="mandelbrot-zoom-speed">Zoom speed</label>
+              <input id="mandelbrot-zoom-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="mandelbrot-zoom-speed-val">1.0</span>
+            </div>
+            <div class="field-row">
+              <label for="mandelbrot-center-re">Center re</label>
+              <input id="mandelbrot-center-re" type="number" step="0.01" />
+            </div>
+            <div class="field-row">
+              <label for="mandelbrot-center-im">Center im</label>
+              <input id="mandelbrot-center-im" type="number" step="0.01" />
+            </div>
+          </div>
+
+          <div id="scene-voronoi" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="voronoi-seed-count">Seeds</label>
+              <input id="voronoi-seed-count" type="range" min="2" max="64" step="1" />
+              <span class="value-badge" id="voronoi-seed-count-val">12</span>
+            </div>
+            <div class="field-row">
+              <label for="voronoi-speed">Speed</label>
+              <input id="voronoi-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="voronoi-speed-val">1.0</span>
+            </div>
+            <div class="field-row">
+              <label for="voronoi-edge-width">Edge width</label>
+              <input id="voronoi-edge-width" type="range" min="0.001" max="0.1" step="0.001" />
+              <span class="value-badge" id="voronoi-edge-width-val">0.02</span>
+            </div>
+          </div>
+
+          <div id="scene-plasma" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="plasma-speed">Speed</label>
+              <input id="plasma-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="plasma-speed-val">1.0</span>
+            </div>
+            <div class="field-row">
+              <label for="plasma-scale">Scale</label>
+              <input id="plasma-scale" type="range" min="0.5" max="10" step="0.5" />
+              <span class="value-badge" id="plasma-scale-val">3.0</span>
+            </div>
+          </div>
+
+          <div id="scene-lissajous" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="lissajous-a">Freq A</label>
+              <input id="lissajous-a" type="range" min="1" max="8" step="1" />
+              <span class="value-badge" id="lissajous-a-val">3</span>
+            </div>
+            <div class="field-row">
+              <label for="lissajous-b">Freq B</label>
+              <input id="lissajous-b" type="range" min="1" max="8" step="1" />
+              <span class="value-badge" id="lissajous-b-val">2</span>
+            </div>
+            <div class="field-row">
+              <label for="lissajous-speed">Speed</label>
+              <input id="lissajous-speed" type="range" min="0.05" max="2" step="0.05" />
+              <span class="value-badge" id="lissajous-speed-val">0.5</span>
+            </div>
+            <div class="field-row">
+              <label for="lissajous-trail">Trail</label>
+              <input id="lissajous-trail" type="range" min="1" max="30" step="1" />
+              <span class="value-badge" id="lissajous-trail-val">8</span>
+            </div>
+          </div>
+
+          <div id="scene-sine-wave" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="sine-speed">Speed</label>
+              <input id="sine-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="sine-speed-val">1.0</span>
+            </div>
+          </div>
+
+          <div id="scene-starfield" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="starfield-count">Stars</label>
+              <input id="starfield-count" type="range" min="50" max="1000" step="50" />
+              <span class="value-badge" id="starfield-count-val">200</span>
+            </div>
+            <div class="field-row">
+              <label for="starfield-speed">Speed</label>
+              <input id="starfield-speed" type="range" min="0.1" max="3" step="0.1" />
+              <span class="value-badge" id="starfield-speed-val">0.5</span>
+            </div>
+          </div>
+
+          <div id="scene-tunnel" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="tunnel-speed">Speed</label>
+              <input id="tunnel-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="tunnel-speed-val">1.0</span>
+            </div>
+            <div class="field-row">
+              <label for="tunnel-rings">Rings</label>
+              <input id="tunnel-rings" type="range" min="2" max="20" step="1" />
+              <span class="value-badge" id="tunnel-rings-val">8</span>
+            </div>
+          </div>
+
+          <div id="scene-kaleidoscope" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="kaleidoscope-segments">Segments</label>
+              <input id="kaleidoscope-segments" type="range" min="2" max="24" step="1" />
+              <span class="value-badge" id="kaleidoscope-segments-val">8</span>
+            </div>
+            <div class="field-row">
+              <label for="kaleidoscope-speed">Speed</label>
+              <input id="kaleidoscope-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="kaleidoscope-speed-val">0.8</span>
+            </div>
+            <div class="field-row">
+              <label for="kaleidoscope-zoom">Zoom</label>
+              <input id="kaleidoscope-zoom" type="range" min="0.5" max="6" step="0.1" />
+              <span class="value-badge" id="kaleidoscope-zoom-val">2.0</span>
+            </div>
+          </div>
+
+          <div id="scene-metaballs" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="metaballs-count">Balls</label>
+              <input id="metaballs-count" type="range" min="1" max="24" step="1" />
+              <span class="value-badge" id="metaballs-count-val">7</span>
+            </div>
+            <div class="field-row">
+              <label for="metaballs-speed">Speed</label>
+              <input id="metaballs-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="metaballs-speed-val">0.8</span>
+            </div>
+            <div class="field-row">
+              <label for="metaballs-threshold">Threshold</label>
+              <input id="metaballs-threshold" type="range" min="0.1" max="2" step="0.05" />
+              <span class="value-badge" id="metaballs-threshold-val">0.75</span>
+            </div>
+          </div>
+
+          <div id="scene-oscilloscope" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="oscilloscope-frequency">Frequency</label>
+              <input id="oscilloscope-frequency" type="range" min="0.5" max="12" step="0.1" />
+              <span class="value-badge" id="oscilloscope-frequency-val">4.0</span>
+            </div>
+            <div class="field-row">
+              <label for="oscilloscope-amplitude">Amplitude</label>
+              <input id="oscilloscope-amplitude" type="range" min="0.1" max="0.95" step="0.05" />
+              <span class="value-badge" id="oscilloscope-amplitude-val">0.65</span>
+            </div>
+            <div class="field-row">
+              <label for="oscilloscope-speed">Speed</label>
+              <input id="oscilloscope-speed" type="range" min="0.1" max="5" step="0.1" />
+              <span class="value-badge" id="oscilloscope-speed-val">1.0</span>
+            </div>
+            <div class="field-row">
+              <label for="oscilloscope-glow">Glow</label>
+              <input id="oscilloscope-glow" type="range" min="0.3" max="4" step="0.1" />
+              <span class="value-badge" id="oscilloscope-glow-val">1.0</span>
+            </div>
+          </div>
+
+          <div id="scene-blend" class="scene-panel" hidden>
+            <div class="field-row">
+              <label for="blend-scene-a">Scene A</label>
+              <select id="blend-scene-a">
+                <option value="gradient">gradient</option>
+                <option value="noise_clouds">noise clouds</option>
+                <option value="plasma">plasma</option>
+                <option value="tunnel">tunnel</option>
+                <option value="mandelbrot">mandelbrot</option>
+                <option value="sdf_shapes">SDF shapes</option>
+                <option value="sine_wave">sine wave</option>
+                <option value="particles">particles</option>
+                <option value="flow_field">flow field</option>
+                <option value="voronoi">voronoi</option>
+                <option value="lissajous">lissajous</option>
+                <option value="starfield">starfield</option>
+                <option value="kaleidoscope">kaleidoscope</option>
+                <option value="metaballs">metaballs</option>
+                <option value="oscilloscope">oscilloscope</option>
+                <option value="conway">conway</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="blend-preset-a">Preset A</label>
+              <select id="blend-preset-a">
+                <option value="">scene controls</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="blend-scene-b">Scene B</label>
+              <select id="blend-scene-b">
+                <option value="gradient">gradient</option>
+                <option value="noise_clouds">noise clouds</option>
+                <option value="plasma" selected>plasma</option>
+                <option value="tunnel">tunnel</option>
+                <option value="mandelbrot">mandelbrot</option>
+                <option value="sdf_shapes">SDF shapes</option>
+                <option value="sine_wave">sine wave</option>
+                <option value="particles">particles</option>
+                <option value="flow_field">flow field</option>
+                <option value="voronoi">voronoi</option>
+                <option value="lissajous">lissajous</option>
+                <option value="starfield">starfield</option>
+                <option value="kaleidoscope">kaleidoscope</option>
+                <option value="metaballs">metaballs</option>
+                <option value="oscilloscope">oscilloscope</option>
+                <option value="conway">conway</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="blend-preset-b">Preset B</label>
+              <select id="blend-preset-b">
+                <option value="">scene controls</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="blend-speed">Blend speed</label>
+              <input id="blend-speed" type="range" min="0.1" max="5" step="0.1" value="1.0" />
+              <span class="value-badge" id="blend-speed-val">1.0</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Render settings -->
+      <section class="sidebar-section collapsible open" id="section-render">
+        <button class="section-toggle" aria-expanded="true">
+          <span>Render</span><span class="chevron">▾</span>
+        </button>
+        <div class="section-body">
+          <div class="field-row">
+            <label for="seed">Seed</label>
+            <div class="input-with-action">
+              <input id="seed" type="number" min="1" step="1" />
+              <button id="randomize-seed" class="icon-btn" title="Randomize seed">⟳</button>
+            </div>
+          </div>
+          <div class="field-row two-col">
+            <div>
+              <label for="width">Width</label>
+              <input id="width" type="number" min="1" step="1" />
+            </div>
+            <div>
+              <label for="height">Height</label>
+              <input id="height" type="number" min="1" step="1" />
+            </div>
+          </div>
+          <div class="preset-grid" style="margin-bottom:10px">
+            <button class="btn btn-secondary res-preset" data-w="640" data-h="360">360p</button>
+            <button class="btn btn-secondary res-preset" data-w="1280" data-h="720">720p</button>
+            <button class="btn btn-secondary res-preset" data-w="1920" data-h="1080">1080p</button>
+            <button class="btn btn-secondary res-preset" data-w="1080" data-h="1080">1:1</button>
+            <button class="btn btn-secondary res-preset" data-w="1080" data-h="1920">9:16</button>
+          </div>
+          <div class="field-row two-col">
+            <div>
+              <label for="fps">FPS</label>
+              <input id="fps" type="number" min="0.1" step="0.1" />
+            </div>
+            <div>
+              <label for="duration">Duration (s)</label>
+              <input id="duration" type="number" min="0.1" step="0.1" />
+            </div>
+          </div>
+          <div class="field-row">
+            <label for="frame-index">Frame <span id="frame-index-label" class="value-badge">0</span></label>
+            <input id="frame-index" type="range" min="0" max="0" step="1" value="0" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Effects stack -->
+      <section class="sidebar-section collapsible" id="section-effects">
+        <button class="section-toggle" aria-expanded="false">
+          <span>Effects</span><span class="chevron">▾</span>
+        </button>
+        <div class="section-body">
+          <div class="field-row">
+            <label for="fx-invert">Invert</label>
+            <label class="toggle"><input id="fx-invert" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-blur-on">Blur</label>
+            <label class="toggle"><input id="fx-blur-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-blur-params" hidden>
+            <div class="field-row">
+              <label for="fx-blur-radius">Radius</label>
+              <input id="fx-blur-radius" type="range" min="1" max="20" step="1" value="2" />
+              <span class="value-badge" id="fx-blur-radius-val">2</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-pixelation-on">Pixelation</label>
+            <label class="toggle"><input id="fx-pixelation-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-pixelation-params" hidden>
+            <div class="field-row">
+              <label for="fx-pixelation-size">Block size</label>
+              <input id="fx-pixelation-size" type="range" min="2" max="64" step="1" value="8" />
+              <span class="value-badge" id="fx-pixelation-size-val">8</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-dither-on">Dither</label>
+            <label class="toggle"><input id="fx-dither-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-dither-params" hidden>
+            <div class="field-row">
+              <label for="fx-dither-spread">Spread</label>
+              <input id="fx-dither-spread" type="range" min="0" max="128" step="1" value="48" />
+              <span class="value-badge" id="fx-dither-spread-val">48</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-palette-on">Palette</label>
+            <label class="toggle"><input id="fx-palette-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-palette-params" hidden>
+            <div class="field-row">
+              <label for="fx-palette-name">Palette</label>
+              <select id="fx-palette-name">
+                <option value="cga16">CGA 16</option>
+                <option value="gameboy">Gameboy</option>
+                <option value="c64">C64</option>
+                <option value="nes">NES</option>
+                <option value="pico8">PICO-8</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-motion-blur-on">Motion blur</label>
+            <label class="toggle"><input id="fx-motion-blur-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-motion-blur-params" hidden>
+            <div class="field-row">
+              <label for="fx-motion-blur-strength">Strength</label>
+              <input id="fx-motion-blur-strength" type="range" min="0.0" max="1.0" step="0.05" value="0.5" />
+              <span class="value-badge" id="fx-motion-blur-strength-val">0.5</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-bloom-on">Bloom</label>
+            <label class="toggle"><input id="fx-bloom-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-bloom-params" hidden>
+            <div class="field-row">
+              <label for="fx-bloom-threshold">Threshold</label>
+              <input id="fx-bloom-threshold" type="range" min="0" max="1" step="0.05" value="0.65" />
+              <span class="value-badge" id="fx-bloom-threshold-val">0.65</span>
+            </div>
+            <div class="field-row">
+              <label for="fx-bloom-intensity">Intensity</label>
+              <input id="fx-bloom-intensity" type="range" min="0" max="3" step="0.1" value="0.8" />
+              <span class="value-badge" id="fx-bloom-intensity-val">0.8</span>
+            </div>
+            <div class="field-row">
+              <label for="fx-bloom-radius">Radius</label>
+              <input id="fx-bloom-radius" type="range" min="1" max="20" step="1" value="6" />
+              <span class="value-badge" id="fx-bloom-radius-val">6</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-chromatic-on">Chromatic aberration</label>
+            <label class="toggle"><input id="fx-chromatic-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-chromatic-params" hidden>
+            <div class="field-row">
+              <label for="fx-chromatic-offset">Offset</label>
+              <input id="fx-chromatic-offset" type="range" min="0" max="12" step="0.5" value="2" />
+              <span class="value-badge" id="fx-chromatic-offset-val">2</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-posterize-on">Posterize</label>
+            <label class="toggle"><input id="fx-posterize-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-posterize-params" hidden>
+            <div class="field-row">
+              <label for="fx-posterize-levels">Levels</label>
+              <input id="fx-posterize-levels" type="range" min="2" max="16" step="1" value="6" />
+              <span class="value-badge" id="fx-posterize-levels-val">6</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-bc-on">Brightness/Contrast</label>
+            <label class="toggle"><input id="fx-bc-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-bc-params" hidden>
+            <div class="field-row">
+              <label for="fx-bc-brightness">Brightness</label>
+              <input id="fx-bc-brightness" type="range" min="-1.0" max="1.0" step="0.05" value="0" />
+              <span class="value-badge" id="fx-bc-brightness-val">0</span>
+            </div>
+            <div class="field-row">
+              <label for="fx-bc-contrast">Contrast</label>
+              <input id="fx-bc-contrast" type="range" min="-1.0" max="1.0" step="0.05" value="0" />
+              <span class="value-badge" id="fx-bc-contrast-val">0</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-vhs-on">VHS / CRT</label>
+            <label class="toggle"><input id="fx-vhs-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-vhs-params" hidden>
+            <div class="field-row">
+              <label for="fx-vhs-scanlines">Scanlines</label>
+              <input id="fx-vhs-scanlines" type="range" min="0" max="1.0" step="0.05" value="0.5" />
+              <span class="value-badge" id="fx-vhs-scanlines-val">0.5</span>
+            </div>
+            <div class="field-row">
+              <label for="fx-vhs-chroma">Chromatic</label>
+              <input id="fx-vhs-chroma" type="range" min="0" max="10" step="0.5" value="2" />
+              <span class="value-badge" id="fx-vhs-chroma-val">2</span>
+            </div>
+            <div class="field-row">
+              <label for="fx-vhs-noise">Noise</label>
+              <input id="fx-vhs-noise" type="range" min="0" max="0.5" step="0.01" value="0.08" />
+              <span class="value-badge" id="fx-vhs-noise-val">0.08</span>
+            </div>
+            <div class="field-row">
+              <label for="fx-vhs-warp">Warp</label>
+              <input id="fx-vhs-warp" type="range" min="0" max="10" step="0.5" value="2.5" />
+              <span class="value-badge" id="fx-vhs-warp-val">2.5</span>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="fx-vignette-on">Vignette</label>
+            <label class="toggle"><input id="fx-vignette-on" type="checkbox" /><span class="toggle-track"></span></label>
+          </div>
+          <div class="effect-params" id="fx-vignette-params" hidden>
+            <div class="field-row">
+              <label for="fx-vignette-strength">Strength</label>
+              <input id="fx-vignette-strength" type="range" min="0" max="1" step="0.05" value="0.55" />
+              <span class="value-badge" id="fx-vignette-strength-val">0.55</span>
+            </div>
+            <div class="field-row">
+              <label for="fx-vignette-radius">Radius</label>
+              <input id="fx-vignette-radius" type="range" min="0.1" max="1.2" step="0.05" value="0.65" />
+              <span class="value-badge" id="fx-vignette-radius-val">0.65</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Motion / speed keyframes -->
+      <section class="sidebar-section collapsible" id="section-timeline">
+        <button class="section-toggle" aria-expanded="false">
+          <span>Motion</span><span class="chevron">▾</span>
+        </button>
+        <div class="section-body">
+          <p class="hint">Speed multipliers at positions in the clip (0–100%). Values are interpolated.</p>
+          <div id="keyframe-list"></div>
+          <div class="btn-row">
+            <button id="add-keyframe" class="btn btn-secondary">+ Add keyframe</button>
+            <button id="loop-duration" class="btn btn-secondary" title="Snap duration to a perfect loop">⟳ Snap loop</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Audio sync -->
+      <section class="sidebar-section collapsible" id="section-audio">
+        <button class="section-toggle" aria-expanded="false">
+          <span>Audio</span><span class="chevron">▾</span>
+        </button>
+        <div class="section-body">
+          <div class="btn-row">
+            <button id="load-audio" class="btn btn-secondary">Load WAV…</button>
+            <button id="clear-audio" class="btn btn-secondary" hidden>Clear</button>
+          </div>
+          <div id="audio-info" hidden>
+            <p class="hint" id="audio-summary"></p>
+            <div class="field-row">
+              <label for="beat-strength">Pulse strength</label>
+              <input id="beat-strength" type="range" min="0.1" max="5" step="0.1" value="1.5" />
+              <span class="value-badge" id="beat-strength-val">1.5</span>
+            </div>
+            <div class="field-row">
+              <label for="beat-decay">Pulse decay</label>
+              <input id="beat-decay" type="range" min="1" max="20" step="0.5" value="8" />
+              <span class="value-badge" id="beat-decay-val">8</span>
+            </div>
+            <div class="field-row">
+              <label for="audio-map-target">Map beats to</label>
+              <select id="audio-map-target">
+                <option value="">speed pulse only</option>
+                <option value="speed">scene speed</option>
+                <option value="bloom_intensity">bloom intensity</option>
+                <option value="chromatic_offset">chromatic split</option>
+                <option value="oscilloscope_glow">oscilloscope glow</option>
+                <option value="vignette_strength">vignette strength</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <label for="audio-map-amount">Map amount</label>
+              <input id="audio-map-amount" type="range" min="0.1" max="4" step="0.1" value="1.0" />
+              <span class="value-badge" id="audio-map-amount-val">1.0</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Export -->
+      <section class="sidebar-section collapsible open" id="section-export">
+        <button class="section-toggle" aria-expanded="true">
+          <span>Export</span><span class="chevron">▾</span>
+        </button>
+        <div class="section-body">
+          <div class="field-row">
+            <label for="export-format">Format</label>
+            <select id="export-format">
+              <option value="mp4">MP4</option>
+              <option value="gif">GIF</option>
+              <option value="webm">WebM / VP9</option>
+            </select>
+          </div>
+          <div class="field-row" id="bitrate-row">
+            <label for="export-bitrate">Bitrate</label>
+            <select id="export-bitrate">
+              <option value="1M">1 Mbps — small file</option>
+              <option value="2M">2 Mbps</option>
+              <option value="5M" selected>5 Mbps — default</option>
+              <option value="10M">10 Mbps — high quality</option>
+              <option value="20M">20 Mbps — very high</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button id="export" type="button" class="btn btn-primary">Export…</button>
+            <button id="batch-toggle" type="button" class="btn btn-secondary" title="Batch export multiple seeds">Batch</button>
+            <button id="copy-toml" type="button" class="btn btn-secondary" title="Copy config as TOML">TOML</button>
+          </div>
+          <div id="batch-panel" hidden>
+            <div class="field-row">
+              <label for="batch-count">Seeds</label>
+              <input id="batch-count" type="number" min="1" max="50" step="1" value="5" />
+            </div>
+            <button id="run-batch" type="button" class="btn btn-secondary" style="margin-bottom:8px">Run Batch Export…</button>
+          </div>
+          <div id="progress-container" hidden>
+            <div id="progress-bar-track">
+              <div id="progress-bar-fill"></div>
+            </div>
+            <span id="render-status">Idle</span>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- Main preview area -->
+    <main id="preview-area">
+      <div id="preview-wrapper">
+        <img id="preview" alt="Preview" />
+        <canvas id="anim-canvas" hidden></canvas>
+        <div id="preview-overlay" hidden>
+          <div class="spinner"></div>
+          <span id="preview-overlay-text">Rendering…</span>
+        </div>
+        <div id="preview-empty">
+          <span>⬡</span>
+          <p>Select a preset to begin</p>
+        </div>
+      </div>
+      <div id="preview-toolbar">
+        <button id="refresh" type="button" class="btn btn-secondary">
+          <span>↺</span> Preview
+        </button>
+        <button id="play-preview" type="button" class="btn btn-secondary" hidden title="Play animation preview">
+          <span id="play-icon">▶</span>
+        </button>
+        <button id="variation-wall-btn" type="button" class="btn btn-secondary" title="Generate variations">
+          Variations
+        </button>
+        <span id="preview-info"></span>
+      </div>
+      <div id="thumbnail-strip" hidden></div>
+      <div id="variation-wall" hidden></div>
+    </main>
+
+    <script type="module" src="main.js"></script>
+  </body>
+</html>

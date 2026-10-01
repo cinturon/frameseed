@@ -1,0 +1,25 @@
+width = 640
+height = 360
+fps = 24.0
+duration = 8.0
+seed = 7331
+
+[scene]
+name = "blend"
+
+[scene.blend]
+preset_a = "oscilloscope"
+preset_b = "plasma_neon"
+speed = 0.7
+
+[effects.bloom]
+threshold = 0.45
+intensity = 0.9
+radius = 8
+
+[effects.chromatic_aberration]
+offset = 2.5
+
+[effects.vignette]
+strength = 0.65
+radius = 0.6
